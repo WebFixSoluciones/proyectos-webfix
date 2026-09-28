@@ -940,7 +940,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                           type="button"
                           onClick={() => verifySriTransaction(tx)}
                           disabled={verifyingTxId === tx.id}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-amber-600 bg-amber-50 hover:text-amber-700 hover:bg-amber-100 border border-amber-200/60 transition-colors"
                           title="Consultar estado de autorización en el SRI ahora"
                         >
                           <RefreshCw size={13} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
@@ -957,7 +957,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                             setSelectedRideTx(tx);
                           }
                         }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-blue-600 bg-blue-50 hover:text-blue-700 hover:bg-blue-100 border border-blue-200/60 transition-colors"
                         title={tx.documentType === 'nota_venta' ? "Ver detalles del Recibo" : "Ver detalles de la Factura"}
                       >
                         <Eye size={14} />
@@ -967,7 +967,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       <button
                         type="button"
                         onClick={() => handleDirectPrint(tx)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-orange-600 bg-orange-50 hover:text-orange-700 hover:bg-orange-100 border border-orange-200/60 transition-colors"
                         title="Impresión directa (Asistente de impresión)"
                       >
                         <Printer size={14} />
@@ -978,7 +978,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         <button
                           type="button"
                           onClick={() => handleCreateNotaCredito(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-purple-600 bg-purple-50 hover:text-purple-700 hover:bg-purple-100 border border-purple-200/60 transition-colors"
                           title="Emitir Nota de Crédito sobre esta factura"
                         >
                           <FileMinus size={14} />
@@ -990,7 +990,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         <button
                           type="button"
                           onClick={() => handleCreateGuiaRemision(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-teal-600 bg-teal-50 hover:text-teal-700 hover:bg-teal-100 border border-teal-200/60 transition-colors"
                           title="Emitir Guía de Remisión para esta factura"
                         >
                           <Truck size={14} />
@@ -1001,7 +1001,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       <button
                         type="button"
                         onClick={() => handleOpenEmailModal(tx)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-sky-600 bg-sky-50 hover:text-sky-700 hover:bg-sky-100 border border-sky-200/60 transition-colors"
                         title={tx.emailDelivery?.emitter?.status === 'sent'
                           ? 'Copia enviada. Reenviar por correo'
                           : 'Enviar comprobante por correo electrónico'}
@@ -1013,7 +1013,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       <button
                         type="button"
                         onClick={() => handleShareWhatsApp(tx)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-emerald-600 bg-emerald-50 hover:text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60 transition-colors"
                         title="Enviar comprobante al cliente por WhatsApp"
                       >
                         <MessageCircle size={14} />
@@ -1024,7 +1024,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         <button
                           type="button"
                           onClick={() => onOpenForm(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-indigo-600 bg-indigo-50 hover:text-indigo-700 hover:bg-indigo-100 border border-indigo-200/60 transition-colors"
                           title="Editar comprobante"
                         >
                           <Edit2 size={13} />
@@ -1036,7 +1036,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         <button
                           type="button"
                           onClick={() => handleDelete(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-rose-600 bg-rose-50 hover:text-rose-700 hover:bg-rose-100 border border-rose-200/60 transition-colors"
                           title="Eliminar comprobante"
                         >
                           <Trash2 size={13} />

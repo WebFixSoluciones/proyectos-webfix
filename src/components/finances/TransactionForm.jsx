@@ -3387,10 +3387,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <button
                       type="button"
                       onClick={downloadXMLFile}
-                      className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                      className="py-2 px-3 sm:px-3.5 rounded-xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                       title="Descargar archivo XML oficial"
                     >
-                      <Download size={14} className="text-slate-600" />
+                      <Download size={14} className="text-indigo-600" />
                       <span>XML</span>
                     </button>
                   )}
@@ -3399,7 +3399,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <button
                     type="button"
                     onClick={handleOpenRide}
-                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-rose-200 bg-rose-50/80 hover:bg-rose-100 text-rose-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     title="Ver o descargar PDF / RIDE oficial"
                   >
                     <FileDown size={14} className="text-rose-600" />
@@ -3410,10 +3410,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <button
                     type="button"
                     onClick={() => handleDirectPrint(printFormat || 'ride')}
-                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-orange-200 bg-orange-50/80 hover:bg-orange-100 text-orange-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     title="Impresión directa (Asistente del navegador / Windows)"
                   >
-                    <Printer size={14} className="text-amber-600" />
+                    <Printer size={14} className="text-orange-600" />
                     <span>Imprimir</span>
                   </button>
 
@@ -3421,7 +3421,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <button
                     type="button"
                     onClick={handleShareWhatsApp}
-                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-emerald-200 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     title="Compartir comprobante por WhatsApp"
                   >
                     <MessageCircle size={14} className="text-emerald-600" />
@@ -3432,7 +3432,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <button
                     type="button"
                     onClick={handleStartNewSale}
-                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     title="Registrar una nueva venta"
                   >
                     <Plus size={14} className="text-blue-600" />
