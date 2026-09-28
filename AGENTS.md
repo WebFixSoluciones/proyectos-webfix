@@ -653,7 +653,25 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Persistencia en la Emisión (`TransactionForm.jsx` y `sriRecovery.js`)**:
     - Añadidos `logoUrl`, `logo`, `telefonoContacto`, `telefono`, `ciudad`, `contribuyenteRimpe`, `especialResolucion`, `agenteRetencion`, `agenteResolucion` y `sucursales` al `emisorSnapshot` al reservar emisión SRI (`reserveSriEmission`) y al guardar comprobantes internos / notas de venta (`handleSubmit`).
     - Almacenamiento directo de `logoUrl` en la raíz del documento fiscal.
-  - **Pruebas y Build**: 51/51 tests unitarios aprobados (`npm test`, incluyendo nuevo test de resolución de logo en `tests/phase1-security-fiscal.test.mjs`), compilación de producción exitosa en 24.66s (`npm run build`).
+  - **Pruebas y Build**: 52/52 tests unitarios aprobados (`npm test`, incluyendo nuevo test de aislamiento multi-tenant en `tests/phase1-security-fiscal.test.mjs`), compilación de producción exitosa en 24.66s (`npm run build`).
+
+### 52. Supresión de Columna Archivos, Barra Unificada de Iconos de Acción y Descarga XML en Detalle de Factura (2026-09-28) — COMPLETADO
+- **Eliminación Total de la Columna "Archivos" (`TransactionsView.jsx`)**:
+  - Removida la cabecera `<UiTableHead>Archivos</UiTableHead>` y la celda completa de archivos de todas las filas.
+  - Eliminados los botones de texto voluminosos (*XML autorizado*, *Respuesta SRI*, *RIDE / PDF*, *Portal SRI*), liberando espacio horizontal y mejorando la respiración visual y legibilidad de las columnas de Fecha, Documento, Tercero, Total y Estado SRI.
+- **Barra de Iconos de Acción Unificada y Limpia (`TransactionsView.jsx`)**:
+  - Consolidada una única columna final `Acciones` con micro-iconos compactos (28px × 28px, esquinas redondeadas `rounded-lg`, hover sutil y tooltips claros):
+    1. **Ver Detalles de la Factura** (`<Eye size={14} />`): Abre el visor interactivo de la factura (`RidePreviewModal`).
+    2. **Descargar PDF / RIDE** (`<FileDown size={14} />`): Abre en pestaña nueva el documento RIDE/PDF oficial.
+    3. **Impresión Directa** (`<Printer size={14} />`): Envía directamente el comprobante al asistente de impresión nativo del navegador / Windows con la plantilla oficial.
+    4. **Emitir Nota de Crédito** (`<FileMinus size={14} />`): Solo para facturas; abre el formulario pre-cargado referenciando la factura sustento, fecha, cliente e ítems.
+    5. **Emitir Guía de Remisión** (`<Truck size={14} />`): Solo para facturas; abre el formulario pre-cargado referenciando la factura de origen, cliente, destino y mercadería para traslado.
+    6. **Enviar por Correo** (`<Mail size={14} />`): Abre el modal de notificación por correo al cliente con reenvío y estado de entrega.
+    7. **Enviar por WhatsApp al Cliente** (`<MessageCircle size={14} />`): Genera mensaje personalizado con número de documento, total y enlace público RIDE para el cliente (`wa.me`), abriendo WhatsApp Web o App en un clic.
+    8. **Editar / Eliminar** (`<Edit2 />` / `<Trash2 />`): Se mantienen para borradores o comprobantes internos permitidos por ley.
+- **Reubicación de Descarga XML en Detalle de Factura (`RidePreviewModal.jsx`)**:
+  - En la cabecera del visor interactivo de comprobante, se incorporó el botón destacado **"XML"** (`<FileCode size={13} />`), descargando de inmediato el archivo XML oficial firmado o autorizado (`downloadFiscalXml`) al revisar la factura.
+- **Pruebas y Build**: 52/52 tests unitarios aprobados (`npm test`), compilación de producción exitosa en 11.89s (`npm run build`).
 
 
 

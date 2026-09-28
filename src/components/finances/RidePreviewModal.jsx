@@ -2,9 +2,10 @@ import { UiButton } from '../ui/controls';
 import { invoiceDescription, invoiceLineAmounts } from '../../services/invoiceLine';
 import { useState, useEffect } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
-import { X, Printer, FileText } from 'lucide-react';
+import { X, Printer, FileText, FileCode } from 'lucide-react';
 import { doc, getDoc } from '../../services/financeStore.js';
 import { db as defaultDb, getAppId } from '../../firebase';
+import { downloadFiscalXml } from '../../services/sriAuthorization';
 
 function numeroALetras(num) {
   const unidades = ['SIN', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
@@ -469,6 +470,16 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                 Ticket POS (80mm)
               </UiButton>
             </div>
+
+            {(tx.xmlAutorizado || tx.xml) && (
+              <UiButton
+                onClick={() => downloadFiscalXml(tx.xmlAutorizado || tx.xml, `${tx.documentNumber || tx.claveAcceso || 'factura'}.xml`)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
+                title="Descargar archivo XML oficial firmado / autorizado"
+              >
+                <FileCode size={13} /> XML
+              </UiButton>
+            )}
 
             <UiButton
               onClick={handlePrint}

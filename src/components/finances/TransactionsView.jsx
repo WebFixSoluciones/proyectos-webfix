@@ -1,9 +1,8 @@
-import FiscalDocuments from './FiscalDocuments';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, FileDown, Printer, FileMinus, MessageCircle } from 'lucide-react';
 import { doc, deleteDoc, setDoc, getDoc, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
@@ -530,6 +529,90 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
   };
 
+  const handleShareWhatsApp = (tx) => {
+    const party = getTransactionParty(tx);
+    const rawPhone = party?.telefono || party?.phone || party?.telefonoContacto || tx.telefono || tx.telefonoContacto || '';
+    let cleanPhone = String(rawPhone || '').replace(/\D/g, '');
+    if (cleanPhone.startsWith('09') && cleanPhone.length === 10) {
+      cleanPhone = '593' + cleanPhone.substring(1);
+    } else if (cleanPhone.length === 9 && cleanPhone.startsWith('9')) {
+      cleanPhone = '593' + cleanPhone;
+    }
+    
+    const clientName = party?.name || tx.thirdPartyName || 'Estimado(a) Cliente';
+    const docNum = tx.documentNumber || 'Comprobante';
+    const totalStr = `$${Number(tx.total || 0).toFixed(2)}`;
+    const origin = typeof window !== 'undefined' ? (window.location.origin + window.location.pathname) : '';
+    const rideUrl = `${origin}#/public/ride?txId=${tx.id}&claveAcceso=${tx.claveAcceso || ''}&tenantId=${appId || ''}`;
+    
+    const text = `Hola ${clientName}, le compartimos el comprobante de venta N° ${docNum} por un valor de ${totalStr}.\n\nPuede consultar y descargar su comprobante oficial RIDE aquí:\n${rideUrl}\n\n¡Gracias por su preferencia!`;
+    
+    const waUrl = cleanPhone 
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    
+    window.open(waUrl, '_blank');
+  };
+
+  const handleDirectPrint = (tx) => {
+    setSelectedRideTx({ ...tx, autoPrint: true });
+  };
+
+  const handleOpenRide = (tx) => {
+    const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
+      ? tx.pdfUrl
+      : `${typeof window !== 'undefined' ? (window.location.origin + window.location.pathname) : ''}#/public/ride?txId=${tx.id}&claveAcceso=${tx.claveAcceso || ''}&tenantId=${appId || ''}`;
+    window.open(effectivePdf, '_blank');
+  };
+
+  const handleCreateNotaCredito = (tx) => {
+    if (!onOpenForm) return;
+    onOpenForm({
+      id: '',
+      type: tx.type || 'ingreso',
+      documentType: 'nota_credito',
+      sriStatus: 'pendiente',
+      codDocModificado: '01',
+      numDocModificado: tx.documentNumber || '',
+      fechaEmisionDocSustento: tx.date || getEcuadorDateString(),
+      motivo: 'Devolución / Descuento sobre factura ' + (tx.documentNumber || ''),
+      thirdPartyId: tx.thirdPartyId,
+      thirdParty: getTransactionParty(tx),
+      items: tx.items || [],
+      subtotal: tx.subtotal || 0,
+      ivaValor: tx.ivaValor || 0,
+      total: tx.total || 0,
+      establecimiento: tx.establecimiento || '001',
+      puntoEmision: tx.puntoEmision || '001',
+    });
+  };
+
+  const handleCreateGuiaRemision = (tx) => {
+    if (!onOpenForm) return;
+    const party = getTransactionParty(tx);
+    onOpenForm({
+      id: '',
+      type: tx.type || 'ingreso',
+      documentType: 'guia_remision',
+      sriStatus: 'pendiente',
+      codDocSustento: '01',
+      numDocSustento: tx.documentNumber || '',
+      fechaEmisionDocSustento: tx.date || getEcuadorDateString(),
+      motivoTraslado: 'Venta / Entrega de mercadería',
+      thirdPartyId: tx.thirdPartyId,
+      thirdParty: party,
+      dirDestino: party?.direccion || party?.address || '',
+      items: (tx.items || []).map(item => ({
+        ...item,
+        quantity: item.quantity || item.cantidad || 1,
+        name: item.name || item.description || item.descripcion || '',
+        code: item.code || item.sku || '',
+      })),
+      establecimiento: tx.establecimiento || '001',
+      puntoEmision: tx.puntoEmision || '001',
+    });
+  };
+
   const docTypeTabs = [
     { id: 'all', label: 'Todos' },
     { id: 'factura', label: 'Facturas' },
@@ -794,7 +877,6 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 </UiTableHead>
                 <UiTableHead className="px-6 py-3.5 font-semibold">Estado SRI</UiTableHead>
                 {isPreventaTab && <UiTableHead className="px-6 py-3.5 font-semibold">Despacho</UiTableHead>}
-                <UiTableHead className="px-6 py-3.5 font-semibold hidden sm:table-cell">Archivos</UiTableHead>
                 <UiTableHead className="px-6 py-3.5 font-semibold text-right">Acciones</UiTableHead>
               </UiTableRow>
             </UiTableHeader>
@@ -850,146 +932,127 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                       )}
                     </UiTableCell>
                   )}
-                  <UiTableCell className="px-6 py-3.5 hidden sm:table-cell">
-                    <UiBox className="flex items-center gap-1.5">
+                  <UiTableCell className="px-6 py-2.5 text-right">
+                    <div className="flex items-center justify-end gap-1 flex-nowrap">
+                      {/* Consultar SRI si está pendiente */}
                       {tx.claveAcceso && tx.sriStatus === 'pendiente_sri' && (
-                        <UiButton
-                          size="1"
-                          variant="soft"
-                          color="amber"
+                        <button
+                          type="button"
                           onClick={() => verifySriTransaction(tx)}
                           disabled={verifyingTxId === tx.id}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
                           title="Consultar estado de autorización en el SRI ahora"
                         >
-                          <RefreshCw size={11} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
-                          {verifyingTxId === tx.id ? "Consultando..." : "Consultar SRI"}
-                        </UiButton>
+                          <RefreshCw size={13} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
+                        </button>
                       )}
-                      {tx.claveAcceso ? <FiscalDocuments transaction={tx} tenantId={appId} onPreview={() => setSelectedRideTx(tx)} /> : <>
-                      {tx.xmlUrl ? (
-                        <UiButton
-                          iconOnly
-                          asChild
-                          variant="soft"
-                          color="blue"
-                          size="1"
-                          title="Ver XML"
-                        >
-                          <a href={tx.xmlUrl} target="_blank" rel="noreferrer">
-                            <FileText size={13}/>
-                          </a>
-                        </UiButton>
-                      ) : (
-                        <UiButton
-                          iconOnly
-                          variant="ghost"
-                          color="gray"
-                          size="1"
-                          disabled
-                          title="XML no disponible"
-                        >
-                          <FileText size={13} className="opacity-40"/>
-                        </UiButton>
-                      )}
-                      
-                      {(() => {
-                        const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
-                          ? tx.pdfUrl
-                          : (tx.claveAcceso ? `/#/public/ride?txId=${tx.id}&claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
 
-                        return effectivePdf ? (
-                          <UiButton
-                            iconOnly
-                            asChild
-                            variant="soft"
-                            color="red"
-                            size="1"
-                            title="Ver PDF / RIDE"
-                          >
-                            <a href={effectivePdf} target="_blank" rel="noreferrer">
-                              <FileText size={13}/>
-                            </a>
-                          </UiButton>
-                        ) : (
-                          <UiButton
-                            iconOnly
-                            variant="ghost"
-                            color="gray"
-                            size="1"
-                            disabled
-                            title="PDF no disponible"
-                          >
-                            <FileText size={13} className="opacity-40"/>
-                          </UiButton>
-                        );
-                      })()}
+                      {/* 1. Ver Detalles de Factura */}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRideTx(tx)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        title={tx.documentType === 'nota_venta' ? "Ver detalles del Recibo" : "Ver detalles de la Factura"}
+                      >
+                        <Eye size={14} />
+                      </button>
 
-                      {tx.documentType && (
-                        <UiButton
-                          iconOnly
+                      {/* 2. Descargar PDF / RIDE Oficial */}
+                      <button
+                        type="button"
+                        onClick={() => handleOpenRide(tx)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Ver / Descargar PDF (RIDE)"
+                      >
+                        <FileDown size={14} />
+                      </button>
+
+                      {/* 3. Impresión Directa (asistente de Windows / navegador) */}
+                      <button
+                        type="button"
+                        onClick={() => handleDirectPrint(tx)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                        title="Impresión directa (Asistente de impresión)"
+                      >
+                        <Printer size={14} />
+                      </button>
+
+                      {/* 4. Emitir Nota de Crédito (solo facturas) */}
+                      {tx.documentType === 'factura' && (
+                        <button
                           type="button"
-                          onClick={() => setSelectedRideTx(tx)}
-                          variant="soft"
-                          color="amber"
-                          size="1"
-                          title={tx.documentType === 'nota_venta' ? "Ver Recibo / Imprimir" : "Ver RIDE Interactivo / Imprimir Factura"}
+                          onClick={() => handleCreateNotaCredito(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                          title="Emitir Nota de Crédito sobre esta factura"
                         >
-                          <Eye size={13}/>
-                        </UiButton>
+                          <FileMinus size={14} />
+                        </button>
                       )}
-                      
-                      </>}
-                      {(tx.sriStatus === 'autorizado' || tx.xmlUrl || tx.pdfUrl) && tx.documentType !== 'nota_venta' && (
-                        <UiButton
-                          iconOnly
+
+                      {/* 5. Emitir Guía de Remisión (solo facturas) */}
+                      {tx.documentType === 'factura' && (
+                        <button
                           type="button"
-                          onClick={() => handleOpenEmailModal(tx)}
-                          variant="soft"
-                          color="indigo"
-                          size="1"
-                          title={tx.emailDelivery?.emitter?.status === 'sent'
-                            ? 'Copia enviada al emisor. Reenviar comprobante'
-                            : tx.emailDelivery?.emitter?.status === 'failed'
-                              ? 'Copia del emisor pendiente. Reintentar envío'
-                              : 'Enviar comprobante y copia al emisor'}
+                          onClick={() => handleCreateGuiaRemision(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                          title="Emitir Guía de Remisión para esta factura"
                         >
-                          <Mail size={13}/>
-                        </UiButton>
+                          <Truck size={14} />
+                        </button>
                       )}
-                    </UiBox>
-                  </UiTableCell>
-                  <UiTableCell className="px-6 py-3.5 text-right">
-                    <UiBox className="flex items-center justify-end gap-1.5">
-                       <UiButton
-                         iconOnly
-                         type="button"
-                         onClick={() => onOpenForm(tx)}
-                         variant="soft"
-                         color="gray"
-                         size="1"
-                         title="Editar"
-                       >
-                         <Edit2 size={13}/>
-                       </UiButton>
-                       <UiButton
-                         iconOnly
-                         type="button" 
-                         onClick={() => handleDelete(tx)} 
-                         variant="soft"
-                         color={tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta') ? "gray" : "red"}
-                         size="1"
-                         disabled={tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')}
-                         title={(tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) ? "Comprobantes electrónicos no pueden ser eliminados" : "Eliminar"}
-                       >
-                         <Trash2 size={13}/>
-                       </UiButton>
-                    </UiBox>
+
+                      {/* 6. Enviar por Correo */}
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEmailModal(tx)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                        title={tx.emailDelivery?.emitter?.status === 'sent'
+                          ? 'Copia enviada. Reenviar por correo'
+                          : 'Enviar comprobante por correo electrónico'}
+                      >
+                        <Mail size={14} />
+                      </button>
+
+                      {/* 7. Enviar por WhatsApp al Cliente */}
+                      <button
+                        type="button"
+                        onClick={() => handleShareWhatsApp(tx)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        title="Enviar comprobante al cliente por WhatsApp"
+                      >
+                        <MessageCircle size={14} />
+                      </button>
+
+                      {/* 8. Editar (Borrador o no fiscal) */}
+                      {(!tx.claveAcceso || tx.sriStatus === 'borrador') && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenForm(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                          title="Editar comprobante"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                      )}
+
+                      {/* 9. Eliminar (Solo borradores o documentos no fiscales) */}
+                      {(!tx.claveAcceso && tx.documentType !== 'factura') && (
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          title="Eliminar comprobante"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
                   </UiTableCell>
                 </UiTableRow>
               ))}
               {sortedFiltered.length === 0 && (
                 <UiTableRow>
-                  <UiTableCell colSpan={isPreventaTab ? 8 : 7} className="px-6 py-12 text-center text-slate-400 italic text-xs">
+                  <UiTableCell colSpan={isPreventaTab ? 7 : 6} className="px-6 py-12 text-center text-slate-400 italic text-xs">
                     No se encontraron comprobantes registrados.
                   </UiTableCell>
                 </UiTableRow>
