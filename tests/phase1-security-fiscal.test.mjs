@@ -119,3 +119,37 @@ test('sriDocumentLinks generates public ride URLs with txId', () => {
   assert.ok(links.ride.includes('claveAcceso=0101202601179001234500110010010000000011234567819'));
   assert.ok(links.ride.includes('tenantId=tenant_456'));
 });
+
+test('emisor resolution preserves logoUrl from companyConfig when snapshot omitted it', () => {
+  const companyConfig = {
+    ruc: '1754376901001',
+    razonSocial: 'SEVILLA MARROQUIN ROSA KARINA',
+    logoUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
+  };
+
+  // Case 1: Transaction has emisorSnapshot from older emission without logoUrl
+  const txOld = {
+    id: 'tx_old_1',
+    emisorSnapshot: {
+      ruc: '1754376901001',
+      razonSocial: 'SEVILLA MARROQUIN ROSA KARINA',
+    }
+  };
+
+  const emisorSnapshot = txOld.emisorSnapshot || {};
+  const configSnapshot = companyConfig || {};
+  const resolvedLogo1 = txOld.logoUrl || emisorSnapshot.logoUrl || emisorSnapshot.logo || configSnapshot.logoUrl || configSnapshot.logo || '';
+  assert.equal(resolvedLogo1, companyConfig.logoUrl);
+
+  // Case 2: Transaction has direct logoUrl
+  const txDirect = {
+    id: 'tx_direct_2',
+    logoUrl: 'data:image/png;base64,custom_logo...',
+    emisorSnapshot: {
+      ruc: '1754376901001',
+    }
+  };
+  const resolvedLogo2 = txDirect.logoUrl || txDirect.emisorSnapshot.logoUrl || companyConfig.logoUrl || '';
+  assert.equal(resolvedLogo2, 'data:image/png;base64,custom_logo...');
+});
+

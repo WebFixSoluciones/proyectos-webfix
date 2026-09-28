@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { X, Printer, FileText } from 'lucide-react';
 import { doc, getDoc } from '../../services/financeStore.js';
+import { db as defaultDb, getAppId } from '../../firebase';
 
 function numeroALetras(num) {
   const unidades = ['SIN', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
@@ -84,21 +85,34 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
     }
   }, [autoPrint]);
 
-  // Cargar configuración de la empresa (Emisor)
+  const effectiveAppId = appId || tx?.tenantId || getAppId();
+  const effectiveDb = db || defaultDb;
+
+  // Cargar configuración de la empresa (Emisor) y su logotipo oficial
   useEffect(() => {
-    if (!appId || !db) return;
+    if (!effectiveAppId || !effectiveDb) return;
     async function loadCompanyConfig() {
       try {
-        const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+        let config = null;
+        const snap = await getDoc(doc(effectiveDb, 'artifacts', effectiveAppId, 'public', 'data', 'finances_settings', 'config'));
         if (snap.exists()) {
-          setCompanyConfig(snap.data());
+          config = snap.data();
+        }
+        if (!config?.logoUrl) {
+          const infoSnap = await getDoc(doc(effectiveDb, 'artifacts', effectiveAppId, 'public', 'data', 'meta', 'info'));
+          if (infoSnap.exists() && infoSnap.data()?.companyProfile?.logoUrl) {
+            config = { ...(config || {}), logoUrl: infoSnap.data().companyProfile.logoUrl };
+          }
+        }
+        if (config) {
+          setCompanyConfig(config);
         }
       } catch (err) {
         console.error("Error al cargar config de emisor para RIDE", err);
       }
     }
     loadCompanyConfig();
-  }, [appId, db]);
+  }, [effectiveAppId, effectiveDb]);
 
   const getDocTypeLabel = () => {
     if (tx.isPreventa) return 'PREVENTA / PEDIDO';
@@ -133,18 +147,28 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
     email: 'consumidorfinal@sri.gob.ec'
   };
 
-  // Valores predeterminados del Emisor (Fallback si no hay config)
-  const emisor = tx.emisorSnapshot || companyConfig || {
-    razonSocial: 'EMISOR DEMO S.A.',
-    nombreComercial: 'MI NEGOCIO',
-    ruc: '1790000000001',
-    establecimiento: '001',
-    puntoEmision: '001',
-    direccionMatriz: 'Av. Principal 123 y Secundaria, Quito, Ecuador',
-    obligadoContabilidad: false,
-    contribuyenteRimpe: 'general',
-    ambiente: '1', // 1: Pruebas, 2: Prod
-    resolucionMicro: ''
+  // Valores predeterminados del Emisor (combina snapshot con configuración general de la empresa para asegurar el logo)
+  const emisorSnapshot = tx.emisorSnapshot || {};
+  const configSnapshot = companyConfig || {};
+  const emisor = {
+    razonSocial: emisorSnapshot.razonSocial || configSnapshot.razonSocial || 'EMISOR DEMO S.A.',
+    nombreComercial: emisorSnapshot.nombreComercial || configSnapshot.nombreComercial || '',
+    ruc: emisorSnapshot.ruc || configSnapshot.ruc || '1790000000001',
+    establecimiento: emisorSnapshot.establecimiento || configSnapshot.establecimiento || '001',
+    puntoEmision: emisorSnapshot.puntoEmision || configSnapshot.puntoEmision || '001',
+    direccionMatriz: emisorSnapshot.direccionMatriz || emisorSnapshot.dirMatriz || configSnapshot.direccionMatriz || 'Av. Principal 123 y Secundaria, Quito, Ecuador',
+    obligadoContabilidad: emisorSnapshot.obligadoContabilidad !== undefined ? emisorSnapshot.obligadoContabilidad : (configSnapshot.obligadoContabilidad || false),
+    contribuyenteRimpe: emisorSnapshot.contribuyenteRimpe || configSnapshot.contribuyenteRimpe || 'general',
+    ambiente: emisorSnapshot.ambiente || configSnapshot.ambiente || '1',
+    resolucionMicro: emisorSnapshot.resolucionMicro || configSnapshot.resolucionMicro || '',
+    contribuyenteEspecial: emisorSnapshot.contribuyenteEspecial !== undefined ? emisorSnapshot.contribuyenteEspecial : configSnapshot.contribuyenteEspecial,
+    especialResolucion: emisorSnapshot.especialResolucion || configSnapshot.especialResolucion || '',
+    agenteRetencion: emisorSnapshot.agenteRetencion !== undefined ? emisorSnapshot.agenteRetencion : configSnapshot.agenteRetencion,
+    agenteResolucion: emisorSnapshot.agenteResolucion || configSnapshot.agenteResolucion || '',
+    telefono: emisorSnapshot.telefono || emisorSnapshot.telefonoContacto || configSnapshot.telefonoContacto || configSnapshot.telefono || '',
+    telefonoContacto: emisorSnapshot.telefonoContacto || configSnapshot.telefonoContacto || '',
+    sucursales: emisorSnapshot.sucursales || configSnapshot.sucursales || [],
+    logoUrl: tx.logoUrl || emisorSnapshot.logoUrl || emisorSnapshot.logo || configSnapshot.logoUrl || configSnapshot.logo || '',
   };
 
   // Formatear secuencial (ej: 001-001-000000005)
@@ -474,7 +498,13 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                   {/* Columna Izquierda: Datos del Emisor */}
                   <div className="p-2.5 flex items-start gap-2.5 min-w-0">
                     {emisor.logoUrl ? (
-                      <img src={emisor.logoUrl} alt="Logo" className="max-h-12 max-w-[100px] object-contain print:max-h-10 shrink-0" />
+                      <div className="max-h-16 max-w-[130px] flex items-center justify-center shrink-0">
+                        <img 
+                          src={emisor.logoUrl} 
+                          alt={emisor.nombreComercial || emisor.razonSocial || "Logo"} 
+                          className="max-h-14 max-w-[120px] object-contain print:max-h-12" 
+                        />
+                      </div>
                     ) : (
                       <div className="h-10 w-20 bg-surface-muted border border-border-strong rounded flex items-center justify-center font-bold text-xs text-text-primary tracking-wider shrink-0">LOGOTIPO</div>
                     )}
@@ -823,6 +853,13 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
             {viewFormat === 'ticket' && (
               <div className="w-[300px] mx-auto p-4 bg-white border border-border-strong text-black text-xs font-mono leading-tight print: print:border-none print:p-0">
                 <div className="text-center space-y-1">
+                  {emisor.logoUrl && (
+                    <img 
+                      src={emisor.logoUrl} 
+                      alt="Logo" 
+                      className="max-h-12 max-w-[140px] mx-auto object-contain mb-1.5" 
+                    />
+                  )}
                   <h2 className="font-bold text-sm uppercase">{emisor.nombreComercial}</h2>
                   <p className="text-xs">{emisor.razonSocial}</p>
                   <p>RUC: {emisor.ruc}</p>

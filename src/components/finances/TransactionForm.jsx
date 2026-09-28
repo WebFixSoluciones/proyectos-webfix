@@ -1102,9 +1102,34 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         primaryMethod = 'combinado';
       }
 
+      const emisorSnapshotData = updatedFormData.emisorSnapshot || (sriConfig?.ruc ? {
+        ruc: sriConfig.ruc,
+        razonSocial: sriConfig.razonSocial || '',
+        nombreComercial: sriConfig.nombreComercial || '',
+        direccionMatriz: sriConfig.direccionMatriz || sriConfig.direccion || '',
+        dirMatriz: sriConfig.direccionMatriz || sriConfig.direccion || '',
+        direccion: sriConfig.direccion || sriConfig.direccionMatriz || '',
+        establecimiento: sriConfig.establecimiento || '001',
+        puntoEmision: sriConfig.puntoEmision || '001',
+        obligadoContabilidad: sriConfig.obligadoContabilidad || false,
+        contribuyenteEspecial: sriConfig.contribuyenteEspecial || false,
+        especialResolucion: sriConfig.especialResolucion || '',
+        agenteRetencion: sriConfig.agenteRetencion || false,
+        agenteResolucion: sriConfig.agenteResolucion || '',
+        contribuyenteRimpe: sriConfig.contribuyenteRimpe || 'general',
+        telefonoContacto: sriConfig.telefonoContacto || sriConfig.telefono || '',
+        telefono: sriConfig.telefono || '',
+        ciudad: sriConfig.ciudad || 'QUITO',
+        sucursales: sriConfig.sucursales || [],
+        logoUrl: sriConfig.logoUrl || sriConfig.logo || '',
+        ambiente: String(sriConfig.ambiente || '1'),
+      } : undefined);
+
       let finalTxData = {
         ...updatedFormData,
         id: docId,
+        ...(emisorSnapshotData ? { emisorSnapshot: emisorSnapshotData } : {}),
+        logoUrl: sriConfig?.logoUrl || sriConfig?.logo || updatedFormData.logoUrl || '',
         paidAmount,
         paymentStatus,
         paymentMethod: primaryMethod,
@@ -1408,10 +1433,37 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           const invoice = { ...formData, ...paymentSnapshot, id: docId, thirdParty: receiver, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, date, time, codigoNumerico, secuencial };
           const { xml, claveAcceso } = generate(config, invoice, receiver, invoice.items);
           const signedXml = firmarComprobanteXML(xml, config.certificadoBase64, config.certificadoClave);
-          const emitter = Object.fromEntries(['ruc', 'razonSocial', 'nombreComercial', 'direccion', 'direccionMatriz', 'dirMatriz', 'establecimiento', 'puntoEmision', 'obligadoContabilidad', 'contribuyenteEspecial', 'ambiente'].filter(key => config[key] !== undefined).map(key => [key, config[key]]));
+          const emitter = {
+            ruc: config.ruc,
+            razonSocial: config.razonSocial || '',
+            nombreComercial: config.nombreComercial || '',
+            direccionMatriz: config.direccionMatriz || config.direccion || '',
+            dirMatriz: config.direccionMatriz || config.direccion || '',
+            direccion: config.direccion || config.direccionMatriz || '',
+            establecimiento: config.establecimiento || '001',
+            puntoEmision: config.puntoEmision || '001',
+            obligadoContabilidad: config.obligadoContabilidad || false,
+            contribuyenteEspecial: config.contribuyenteEspecial || false,
+            especialResolucion: config.especialResolucion || '',
+            agenteRetencion: config.agenteRetencion || false,
+            agenteResolucion: config.agenteResolucion || '',
+            contribuyenteRimpe: config.contribuyenteRimpe || 'general',
+            telefonoContacto: config.telefonoContacto || config.telefono || '',
+            telefono: config.telefono || '',
+            ciudad: config.ciudad || 'QUITO',
+            sucursales: config.sucursales || [],
+            logoUrl: config.logoUrl || config.logo || '',
+            ambiente: String(config.ambiente || '1'),
+            ...Object.fromEntries(
+              ['ruc', 'razonSocial', 'nombreComercial', 'direccion', 'direccionMatriz', 'dirMatriz', 'establecimiento', 'puntoEmision', 'obligadoContabilidad', 'contribuyenteEspecial', 'ambiente', 'logoUrl', 'logo', 'telefonoContacto', 'telefono', 'ciudad', 'contribuyenteRimpe', 'especialResolucion', 'agenteRetencion', 'agenteResolucion', 'sucursales']
+                .filter(key => config[key] !== undefined)
+                .map(key => [key, config[key]])
+            )
+          };
           return sanitizeFirestoreData({
             ...invoice, documentNumber: `${config.establecimiento || '001'}-${config.puntoEmision || '001'}-${secuencial.padStart(9, '0')}`,
             claveAcceso, xml: signedXml, sriStatus: 'pendiente_sri', sriAmbiente: String(config.ambiente), emisorSnapshot: emitter,
+            logoUrl: emitter.logoUrl || '',
             sriReservedAt: timestamp.toISOString(), financialSyncStatus: 'awaiting_authorization',
             transferenciaRef: payments.transferenciaRef || '', transferenciaBankId: payments.transferenciaBankId || '', cuentaBancariaId: payments.transferenciaBankId || '',
             tarjetaRef: payments.tarjetaRef || '', cruceRef: payments.cruceRef || '', creditDueDate, creditObservations,

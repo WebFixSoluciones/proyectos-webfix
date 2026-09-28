@@ -116,14 +116,21 @@ export default function PublicRideView() {
 
         setTx(txData);
 
-        // 2. Cargar configuración de la empresa (Emisor) si no viene en el snapshot del documento
-        if (!txData.emisorSnapshot) {
+        // 2. Cargar configuración de la empresa (Emisor) si falta el logo o no viene en el snapshot
+        if (!txData.emisorSnapshot?.logoUrl) {
           try {
             const configSnap = await getDoc(
               doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_settings', 'config')
             );
             if (configSnap.exists()) {
               setCompanyConfig(configSnap.data());
+            } else {
+              const infoSnap = await getDoc(
+                doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'meta', 'info')
+              );
+              if (infoSnap.exists()) {
+                setCompanyConfig(prev => ({ ...prev, ...infoSnap.data() }));
+              }
             }
           } catch (configErr) {
             console.warn('Configuración de emisor no disponible públicamente; usando snapshot del documento.', configErr);
@@ -166,17 +173,28 @@ export default function PublicRideView() {
     );
   }
 
-  const emisor = tx.emisorSnapshot || companyConfig || {
-    razonSocial: 'EMISOR DEMO S.A.',
-    nombreComercial: 'MI NEGOCIO',
-    ruc: '1790000000001',
-    establecimiento: '001',
-    puntoEmision: '001',
-    direccionMatriz: 'Av. Principal 123, Quito, Ecuador',
-    obligadoContabilidad: false,
-    contribuyenteRimpe: 'general',
-    ambiente: '1',
-    resolucionMicro: ''
+  const emisorSnapshot = tx.emisorSnapshot || {};
+  const configSnapshot = companyConfig || {};
+
+  const emisor = {
+    razonSocial: emisorSnapshot.razonSocial || configSnapshot.razonSocial || 'EMISOR DEMO S.A.',
+    nombreComercial: emisorSnapshot.nombreComercial || configSnapshot.nombreComercial || '',
+    ruc: emisorSnapshot.ruc || configSnapshot.ruc || '1790000000001',
+    establecimiento: emisorSnapshot.establecimiento || configSnapshot.establecimiento || '001',
+    puntoEmision: emisorSnapshot.puntoEmision || configSnapshot.puntoEmision || '001',
+    direccionMatriz: emisorSnapshot.direccionMatriz || emisorSnapshot.dirMatriz || configSnapshot.direccionMatriz || 'Av. Principal 123, Quito, Ecuador',
+    obligadoContabilidad: emisorSnapshot.obligadoContabilidad !== undefined ? emisorSnapshot.obligadoContabilidad : (configSnapshot.obligadoContabilidad || false),
+    contribuyenteRimpe: emisorSnapshot.contribuyenteRimpe || configSnapshot.contribuyenteRimpe || 'general',
+    ambiente: emisorSnapshot.ambiente || configSnapshot.ambiente || '1',
+    resolucionMicro: emisorSnapshot.resolucionMicro || configSnapshot.resolucionMicro || '',
+    contribuyenteEspecial: emisorSnapshot.contribuyenteEspecial !== undefined ? emisorSnapshot.contribuyenteEspecial : configSnapshot.contribuyenteEspecial,
+    especialResolucion: emisorSnapshot.especialResolucion || configSnapshot.especialResolucion || '',
+    agenteRetencion: emisorSnapshot.agenteRetencion !== undefined ? emisorSnapshot.agenteRetencion : configSnapshot.agenteRetencion,
+    agenteResolucion: emisorSnapshot.agenteResolucion || configSnapshot.agenteResolucion || '',
+    telefono: emisorSnapshot.telefono || emisorSnapshot.telefonoContacto || configSnapshot.telefonoContacto || configSnapshot.telefono || '',
+    telefonoContacto: emisorSnapshot.telefonoContacto || configSnapshot.telefonoContacto || '',
+    sucursales: emisorSnapshot.sucursales || configSnapshot.sucursales || [],
+    logoUrl: tx.logoUrl || emisorSnapshot.logoUrl || emisorSnapshot.logo || configSnapshot.logoUrl || configSnapshot.logo || '',
   };
 
   const getDocTypeLabel = () => {
@@ -468,7 +486,9 @@ export default function PublicRideView() {
               {/* Columna Izquierda: Datos del Emisor */}
               <div className="p-2.5 flex items-start gap-2.5 min-w-0">
                 {emisor.logoUrl ? (
-                  <img src={emisor.logoUrl} alt="Logo" className="max-h-12 max-w-[100px] object-contain print:max-h-10 shrink-0" />
+                  <div className="max-h-16 max-w-[130px] flex items-center justify-center shrink-0">
+                    <img src={emisor.logoUrl} alt="Logo" className="max-h-16 max-w-[130px] object-contain print:max-h-14" />
+                  </div>
                 ) : (
                   <div className="h-10 w-20 bg-surface-muted border border-border-strong rounded flex items-center justify-center font-bold text-xs text-text-primary tracking-wider shrink-0">LOGOTIPO</div>
                 )}

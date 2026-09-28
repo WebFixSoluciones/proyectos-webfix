@@ -59,9 +59,14 @@ export async function recoverInvoiceFromSri(db, appId, key, store = api, consult
     const [current, settings, sequence] = await Promise.all([transaction.get(target), transaction.get(configRef), transaction.get(seqRef)]);
     if (settings.data()?.ruc !== key.slice(10, 23) || String(settings.data()?.ambiente) !== key[23]) throw new Error('La configuración del tenant cambió durante la recuperación.');
     if (current.data()?.claveAcceso && current.data().claveAcceso !== key) throw new Error('Conflicto de identidad fiscal.');
+    const logoUrl = settings.data()?.logoUrl || settings.data()?.logo || current.data()?.logoUrl || current.data()?.emisorSnapshot?.logoUrl || '';
+    const emisorSnapshot = {
+      ...recovered.emisorSnapshot,
+      ...(logoUrl ? { logoUrl } : {}),
+    };
     const document = current.exists()
-      ? { ...current.data(), id, sriStatus: 'autorizado', claveAcceso: key, fechaAutorizacion: recovered.fechaAutorizacion, xmlAutorizado: recovered.xmlAutorizado, xml: recovered.xml, sriLastCheckedAt: new Date().toISOString(), sriAuthorizationResponse: recovered.sriAuthorizationResponse, sriAmbiente: recovered.sriAmbiente, emisorSnapshot: recovered.emisorSnapshot, financialSyncStatus: current.data().financialSyncStatus === 'complete' ? 'complete' : current.data().sriRecoveryOnly ? 'review_required' : 'pending' }
-      : { ...recovered, id };
+      ? { ...current.data(), id, sriStatus: 'autorizado', claveAcceso: key, fechaAutorizacion: recovered.fechaAutorizacion, xmlAutorizado: recovered.xmlAutorizado, xml: recovered.xml, sriLastCheckedAt: new Date().toISOString(), sriAuthorizationResponse: recovered.sriAuthorizationResponse, sriAmbiente: recovered.sriAmbiente, emisorSnapshot, logoUrl, financialSyncStatus: current.data().financialSyncStatus === 'complete' ? 'complete' : current.data().sriRecoveryOnly ? 'review_required' : 'pending' }
+      : { ...recovered, id, emisorSnapshot, logoUrl };
     transaction.set(target, document);
     const next = Number(recovered.secuencial) + 1;
     transaction.set(seqRef, { next: Math.max(next, Number(sequence.data()?.next || 1)), lastRecoveredKey: key }, { merge: true });

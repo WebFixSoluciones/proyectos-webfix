@@ -637,6 +637,24 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - El filtro coexiste armoniosamente con la búsqueda por texto (nombre, RUC, número), filtro de mes y filtro de año.
 - **Pruebas y Build**: 46 tests unitarios aprobados (`npm test`), incluyendo prueba de filtrado de comprobantes en `tests/commerce.test.mjs`, compilación de producción exitosa en 11.34s (`npm run build`).
 
+### 51. Corrección Integral de Carga y Visualización del Logotipo en Facturas RIDE y Tickets (2026-09-28) — COMPLETADO
+- **Causa Raíz Diagnosticada**:
+  - En `RidePreviewModal.jsx` y `PublicRideView.jsx`: `const emisor = tx.emisorSnapshot || companyConfig || { ... }`. Al existir `emisorSnapshot` en la factura, JavaScript descartaba por completo `companyConfig` (donde reside el `logoUrl` en Base64).
+  - En `TransactionForm.jsx`: la lista de campos permitidos (*whitelist*) para construir `emitter` al emitir omitía estrictamente `'logoUrl'`, impidiendo que facturas nuevas almacenaran el logo en su propio `emisorSnapshot`.
+  - En `PublicRideView.jsx`: la carga de configuración de emisor se omitía si existía `emisorSnapshot`, impidiendo cargar el logo en comprobantes emitidos antes de la inclusión del logo en el snapshot.
+- **Solución Implementada**:
+  - **Fusión Bidireccional Inteligente (`RidePreviewModal.jsx` y `PublicRideView.jsx`)**:
+    - Desacoplado `emisorSnapshot` y `configSnapshot`.
+    - `emisor.logoUrl` se resuelve con prioridad robusta: `tx.logoUrl || emisorSnapshot.logoUrl || emisorSnapshot.logo || configSnapshot.logoUrl || configSnapshot.logo || ''`.
+    - Respaldo automático consultando `finances_settings/config` y `meta/info` (`companyProfile.logoUrl`).
+  - **Contenedores de Imagen Optimizados**:
+    - Envoltorio de imagen `max-h-16 max-w-[130px]` con `object-contain` en previsualización de RIDE A4, impidiendo deformaciones de escala.
+    - Soporte de renderizado del logotipo oficial en el formato Ticket POS (80mm) si está configurado.
+  - **Persistencia en la Emisión (`TransactionForm.jsx` y `sriRecovery.js`)**:
+    - Añadidos `logoUrl`, `logo`, `telefonoContacto`, `telefono`, `ciudad`, `contribuyenteRimpe`, `especialResolucion`, `agenteRetencion`, `agenteResolucion` y `sucursales` al `emisorSnapshot` al reservar emisión SRI (`reserveSriEmission`) y al guardar comprobantes internos / notas de venta (`handleSubmit`).
+    - Almacenamiento directo de `logoUrl` en la raíz del documento fiscal.
+  - **Pruebas y Build**: 51/51 tests unitarios aprobados (`npm test`, incluyendo nuevo test de resolución de logo en `tests/phase1-security-fiscal.test.mjs`), compilación de producción exitosa en 24.66s (`npm run build`).
+
 
 
 
