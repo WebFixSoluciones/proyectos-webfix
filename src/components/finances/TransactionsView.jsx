@@ -2,7 +2,8 @@ import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, FileDown, Printer, FileMinus, MessageCircle } from 'lucide-react';
+import { DropdownMenu } from '@radix-ui/themes';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, FileDown, Printer, FileMinus, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { doc, deleteDoc, setDoc, getDoc, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
@@ -973,43 +974,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         <Printer size={14} />
                       </button>
 
-                      {/* 4. Emitir Nota de Crédito (solo facturas) */}
-                      {tx.documentType === 'factura' && (
-                        <button
-                          type="button"
-                          onClick={() => handleCreateNotaCredito(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Emitir Nota de Crédito sobre esta factura"
-                        >
-                          <FileMinus size={14} />
-                        </button>
-                      )}
-
-                      {/* 5. Emitir Guía de Remisión (solo facturas) */}
-                      {tx.documentType === 'factura' && (
-                        <button
-                          type="button"
-                          onClick={() => handleCreateGuiaRemision(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Emitir Guía de Remisión para esta factura"
-                        >
-                          <Truck size={14} />
-                        </button>
-                      )}
-
-                      {/* 6. Enviar por Correo */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEmailModal(tx)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
-                        title={tx.emailDelivery?.emitter?.status === 'sent'
-                          ? 'Copia enviada. Reenviar por correo'
-                          : 'Enviar comprobante por correo electrónico'}
-                      >
-                        <Mail size={14} />
-                      </button>
-
-                      {/* 7. Enviar por WhatsApp al Cliente */}
+                      {/* 3. Enviar por WhatsApp al Cliente */}
                       <button
                         type="button"
                         onClick={() => handleShareWhatsApp(tx)}
@@ -1019,29 +984,63 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         <MessageCircle size={14} />
                       </button>
 
-                      {/* 8. Editar (Borrador o no fiscal) */}
-                      {(!tx.claveAcceso || tx.sriStatus === 'borrador') && (
-                        <button
-                          type="button"
-                          onClick={() => onOpenForm(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Editar comprobante"
-                        >
-                          <Edit2 size={13} />
-                        </button>
-                      )}
+                      {/* Divisor vertical sutil */}
+                      <div className="h-4 w-px bg-slate-200 mx-0.5" />
 
-                      {/* 9. Eliminar (Solo borradores o documentos no fiscales) */}
-                      {(!tx.claveAcceso && tx.documentType !== 'factura') && (
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Eliminar comprobante"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
+                      {/* 4. Menú de Más Opciones (...) */}
+                      <DropdownMenu.Root>
+                        <DropdownMenu.Trigger>
+                          <button
+                            type="button"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                            title="Más opciones"
+                          >
+                            <MoreHorizontal size={14} />
+                          </button>
+                        </DropdownMenu.Trigger>
+                        <DropdownMenu.Content size="1" variant="solid" color="gray" align="end" className="min-w-[190px]">
+                          {/* Emitir Nota de Crédito */}
+                          {tx.documentType === 'factura' && (
+                            <DropdownMenu.Item onClick={() => handleCreateNotaCredito(tx)} className="cursor-pointer gap-2">
+                              <FileMinus size={14} className="text-slate-600" />
+                              <span>Emitir Nota de Crédito</span>
+                            </DropdownMenu.Item>
+                          )}
+
+                          {/* Emitir Guía de Remisión */}
+                          {tx.documentType === 'factura' && (
+                            <DropdownMenu.Item onClick={() => handleCreateGuiaRemision(tx)} className="cursor-pointer gap-2">
+                              <Truck size={14} className="text-slate-600" />
+                              <span>Emitir Guía de Remisión</span>
+                            </DropdownMenu.Item>
+                          )}
+
+                          {/* Enviar por Correo */}
+                          <DropdownMenu.Item onClick={() => handleOpenEmailModal(tx)} className="cursor-pointer gap-2">
+                            <Mail size={14} className="text-slate-600" />
+                            <span>{tx.emailDelivery?.emitter?.status === 'sent' ? 'Reenviar Correo' : 'Enviar por Correo'}</span>
+                          </DropdownMenu.Item>
+
+                          {/* Editar Comprobante */}
+                          {(!tx.claveAcceso || tx.sriStatus === 'borrador') && (
+                            <DropdownMenu.Item onClick={() => onOpenForm(tx)} className="cursor-pointer gap-2">
+                              <Edit2 size={13} className="text-slate-600" />
+                              <span>Editar Comprobante</span>
+                            </DropdownMenu.Item>
+                          )}
+
+                          {/* Eliminar Comprobante */}
+                          {(!tx.claveAcceso && tx.documentType !== 'factura') && (
+                            <>
+                              <DropdownMenu.Separator />
+                              <DropdownMenu.Item color="red" onClick={() => handleDelete(tx)} className="cursor-pointer gap-2 text-rose-600">
+                                <Trash2 size={13} />
+                                <span>Eliminar Comprobante</span>
+                              </DropdownMenu.Item>
+                            </>
+                          )}
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Root>
                     </div>
                   </UiTableCell>
                 </UiTableRow>
