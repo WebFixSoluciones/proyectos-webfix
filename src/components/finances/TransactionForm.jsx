@@ -1579,6 +1579,29 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
   };
 
+  const handleShareWhatsApp = () => {
+    const party = formData.claveAcceso ? formData.thirdParty : ((thirdParties || []).find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty);
+    const rawPhone = party?.telefono || party?.phone || party?.telefonoContacto || formData.telefono || '';
+    let cleanPhone = String(rawPhone || '').replace(/\D/g, '');
+    if (cleanPhone.startsWith('09') && cleanPhone.length === 10) {
+      cleanPhone = '593' + cleanPhone.substring(1);
+    } else if (cleanPhone.length === 9 && cleanPhone.startsWith('9')) {
+      cleanPhone = '593' + cleanPhone;
+    }
+    
+    const clientName = party?.name || formData.thirdPartyName || 'Estimado(a) Cliente';
+    const docNum = formData.documentNumber || (formData.secuencial ? `001-001-${String(formData.secuencial).padStart(9, '0')}` : 'Comprobante');
+    const totalStr = `$${Number(formData.total || 0).toFixed(2)}`;
+    
+    const text = `Hola ${clientName}, le compartimos el comprobante de venta N° ${docNum} por un valor de ${totalStr}.\n\nPuede consultar y descargar su comprobante oficial RIDE aquí:\n${currentRideUrl}\n\n¡Gracias por su preferencia!`;
+    
+    const waUrl = cleanPhone 
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    
+    window.open(waUrl, '_blank');
+  };
+
   const handleStartNewSale = () => {
     stableIdRef.current = crypto.randomUUID();
     setFormData({
