@@ -697,6 +697,22 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - Cuadro de totales exacto: Subtotal 15%, Subtotal 0%, Descuentos, IVA 15% y **TOTAL Facturado** en tipografía `#1b1b1b` de alto contraste.
 - **Pruebas y Build**: 52 tests unitarios aprobados, compilación limpia de producción en 6.01s.
 
+### 54. Persistencia Consistente de Borradores en Venta Administrativa y POS (2026-09-30) — COMPLETADO
+- **Desbloqueo de Guardado de Borradores en Venta Administrativa (`TransactionForm.jsx` & `saleValidation.js`)**:
+  - `getAdministrativeSaleIssues`: Parámetro `isDraft` añadido. Al guardar un borrador, se omiten las validaciones restrictivas de medios de pago (`paymentStatus.isValid`), número de documento fiscal y validación estricta de identificación, permitiendo guardar el borrador en cualquier etapa.
+  - `handleSave` y `executeSave`: El guardado de borrador marca `sriStatus = 'borrador'`, omite la deducción de inventario (`registrarInventarioTransaccion`) y la sincronización contable/bancaria hasta que el comprobante sea efectivamente emitido o finalizado.
+  - Al guardar borrador, se notifica al usuario con toast explicativo y se permanece en el formulario sin saltar prematuramente al Paso 2 de comprobante autorizado.
+  - Los borradores siempre se abren en modo edición (Paso 1), permitiendo modificar ítems, cliente y medios de pago antes de emitir.
+- **Persistencia en la Nube y Experiencia de Borrador en POS (`PosView.jsx`)**:
+  - `suspendSale` actualizado a método asíncrono que persiste el borrador directamente en Firestore (`finances_transactions`) con `sriStatus: 'borrador'`, `isPOS: true`, `paymentStatus: 'pendiente'`, ítems, cliente y totales calculados, además de mantener respaldo en `localStorage` para recuperación ultra-rápida.
+  - Nuevo botón **"Guardar como Borrador (F8)"** integrado en la pantalla de cobro del POS (`showPaymentScreen`) y renombrado en la cabecera del carrito.
+  - Soporte de reanudación y actualización: al recuperar una venta suspendida (`resumeSale`) o editar un borrador, se conserva su ID para sobrescribirlo al emitir sin generar registros duplicados.
+  - Al abandonar una venta recuperada, se elimina de forma limpia el borrador en la nube para prevenir comprobantes huérfanos.
+- **Gestión de Borradores en el Historial (`TransactionsView.jsx`)**:
+  - Los borradores se visualizan con badge *"Borrador"* y la opción *"Editar Comprobante"* para retomarlos en el asistente de ventas.
+  - Permitida la eliminación controlada de facturas en estado borrador que carezcan de clave de acceso fiscal del SRI.
+- **Pruebas y Build**: 53 tests unitarios aprobados (`npm test`), compilación de producción limpia en 18.32s (`npm run build`).
+
 
 
 

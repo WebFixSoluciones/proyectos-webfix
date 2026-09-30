@@ -522,7 +522,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         tx.sriStatus === 'registrado' ||
         Boolean(tx.claveAcceso) || 
         Boolean(tx.documentNumber && tx.sriStatus !== 'borrador') ||
-        Boolean(tx.viewDetails);
+        Boolean(tx.viewDetails && tx.sriStatus !== 'borrador');
 
       if (isEmittedOrDetail) {
         setCurrentStep(2);
@@ -966,13 +966,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setTimeout(() => document.getElementById(inputId)?.focus(), 0);
   };
 
-  const validateForm = () => {
+  const validateForm = (isDraftMode = false) => {
     const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
     const issues = getAdministrativeSaleIssues({
       clientId: formData.thirdPartyId, client: matchedTercero,
       identificationValid: matchedTercero ? validarIdentificacion(matchedTercero.ruc, matchedTercero.tipoIdentificacion, matchedTercero.isValidated || matchedTercero.validado) : false,
       items: formData.items || [], total: formData.total, documentType: formData.documentType,
-      documentNumber: formData.documentNumber, paymentStatus: calculatePaymentStatus(), payments, isSale: formData.type === 'ingreso'
+      documentNumber: formData.documentNumber, paymentStatus: calculatePaymentStatus(), payments, isSale: formData.type === 'ingreso',
+      isDraft: isDraftMode
     });
     if (issues.length) return showValidationIssues(issues);
     return true;
@@ -1000,16 +1001,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       options = {};
     }
 
-    // Validate first before showing confirmation dialog
-    if (!validateForm()) return;
+    const { isFinalizingNotaVenta = false, isDraft = false } = options;
+    const isDraftSale = Boolean(isDraft || (!isFinalizingNotaVenta && formData.type === 'ingreso' && formData.sriStatus !== 'autorizado'));
 
-    const { isFinalizingNotaVenta = false } = options;
+    // Validate first before showing confirmation dialog
+    if (!validateForm(isDraftSale)) return;
 
     let title;
     let message;
     let type;
 
-    if (isFinalizingNotaVenta) {
+    if (isDraftSale) {
+      title = "Guardar Borrador";
+      message = "¿Deseas guardar este comprobante como BORRADOR? Podrás editarlo más tarde antes de emitirlo.";
+      type = "info";
+    } else if (isFinalizingNotaVenta) {
       title = "Confirmar Registro de Venta";
       message = "Se guardará el RECIBO de venta local para control interno. Esta acción no tiene validez tributaria ante el SRI.";
       type = "warning";
@@ -1018,8 +1024,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       message = "Se guardará este comprobante de GASTO/COMPRA en el sistema.";
       type = "info";
     } else {
-      title = "Guardar Borrador";
-      message = "¿Deseas guardar este comprobante como BORRADOR? Podrás editarlo más tarde antes de emitirlo.";
+      title = "Confirmar Registro";
+      message = "¿Deseas registrar este comprobante en el sistema?";
       type = "info";
     }
 
@@ -1029,14 +1035,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       type,
       onConfirm: () => {
         setConfirmDialog(null);
-        executeSave(options);
+        executeSave({ ...options, isDraft: isDraftSale });
       },
       onCancel: () => setConfirmDialog(null)
     });
   };
 
   const executeSave = async (options = {}) => {
-    if (operationRef.current || !validateForm()) return;
+    const { isFinalizingNotaVenta = false, isDraft = false } = options;
+    const isDraftSale = Boolean(isDraft || (!isFinalizingNotaVenta && formData.type === 'ingreso' && formData.sriStatus !== 'autorizado'));
+
+    if (operationRef.current || !validateForm(isDraftSale)) return;
     operationRef.current = true;
     setIsSaving(true);
 
@@ -1044,9 +1053,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const docId = formData.id || stableIdRef.current;
       let updatedFormData = { ...formData, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, financialSyncStatus: 'pending' };
 
-      // Si es un borrador de factura (o comprobante SRI aún no emitido), no retener ni asignar secuencial fiscal oficial
-      const isDraftFactura = updatedFormData.type === 'ingreso' && updatedFormData.documentType === 'factura' && updatedFormData.sriStatus !== 'autorizado';
-      if (isDraftFactura) {
+      // Si es un borrador (factura o nota de venta o venta administrativa), no retener ni asignar secuencial fiscal oficial
+      if (isDraftSale) {
         updatedFormData.sriStatus = 'borrador';
         updatedFormData.documentNumber = '';
         updatedFormData.secuencial = '';
@@ -1167,14 +1175,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       });
       setFormData(finalTxData);
 
-      // Si es un egreso (compra/gasto) o se está finalizando una Nota de Venta (ingreso)
-      if (finalTxData.type !== 'ingreso' || isFinalizingNotaVenta) {
+      // Si es un egreso (compra/gasto) o se está finalizando una Nota de Venta (ingreso), y NO es borrador
+      if (!isDraftSale && (finalTxData.type !== 'ingreso' || isFinalizingNotaVenta)) {
         await registrarInventarioTransaccion(finalTxData);
         finalTxData = { ...finalTxData, inventarioRegistrado: true };
       }
 
       try {
-        if (finalTxData.type === 'ingreso' && (isFinalizingNotaVenta || finalTxData.sriStatus === 'autorizado')) {
+        if (!isDraftSale && finalTxData.type === 'ingreso' && (isFinalizingNotaVenta || finalTxData.sriStatus === 'autorizado')) {
           const ventaData = {
             id: docId,
             type: 'ingreso',
@@ -1201,7 +1209,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             creadoPor: '',
           };
           await sincronizarVenta(ventaData, db, usuario || { uid: '', email: '' });
-        } else if (finalTxData.type === 'egreso') {
+        } else if (!isDraftSale && finalTxData.type === 'egreso') {
           const compraData = {
             id: docId,
             type: 'egreso',
@@ -1234,18 +1242,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         throw syncErr;
       }
 
-      if (finalTxData.sriStatus === 'autorizado' || finalTxData.type !== 'ingreso') {
+      if (!isDraftSale && (finalTxData.sriStatus === 'autorizado' || finalTxData.type !== 'ingreso')) {
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), { financialSyncStatus: 'complete' }, { merge: true });
         finalTxData = { ...finalTxData, financialSyncStatus: 'complete' };
       }
-      if (isDraftFactura) {
-        showToast('Borrador guardado con éxito. El secuencial se asignará al emitir la factura en el SRI.', 'success');
+      if (isDraftSale) {
+        showToast('Borrador guardado con éxito. Podrás completarlo y emitirlo más tarde.', 'success');
       } else {
         showToast('Transacción guardada', 'success');
       }
       setFormData(finalTxData);
       onSaved?.(finalTxData);
-      if (!isDraftFactura) {
+      if (!isDraftSale) {
         setCurrentStep(2);
         if (formData.documentType === 'nota_venta' && isFinalizingNotaVenta) {
           const receiver = thirdParties.find(tp => tp.id === finalTxData.thirdPartyId) || finalTxData.thirdParty;
@@ -3271,7 +3279,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       {/* Save Draft (Guardar Borrador) */}
                       <button
                         type="button" 
-                        onClick={handleSave} 
+                        onClick={() => handleSave({ isDraft: true })} 
                         disabled={isUploading || isEmitting || isSaving}
                         className={`w-full py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''

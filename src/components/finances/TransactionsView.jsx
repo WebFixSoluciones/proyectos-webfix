@@ -1030,7 +1030,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                           )}
 
                           {/* Eliminar Comprobante */}
-                          {(!tx.claveAcceso && tx.documentType !== 'factura') && (
+                          {(!tx.claveAcceso && (tx.documentType !== 'factura' || tx.sriStatus === 'borrador')) && (
                             <>
                               <DropdownMenu.Separator />
                               <DropdownMenu.Item color="red" onClick={() => handleDelete(tx)} className="cursor-pointer gap-2 text-rose-600">

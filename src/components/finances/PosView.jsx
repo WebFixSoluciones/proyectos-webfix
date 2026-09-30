@@ -9,7 +9,7 @@ import { settlePayments, cashSessionTotals } from '../../services/paymentModel';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { Search, ShoppingCart, Plus, Minus, Trash2, User, Sparkles, CheckCircle2, DollarSign, CreditCard, X, ShieldAlert, Tag, Bookmark, RefreshCw, LogOut, ArrowLeft, ChevronRight, Settings, Barcode, Zap, Eye, Keyboard, History, Download, FileText, Unlock, UserPlus, ChevronDown, Box, LayoutGrid, List, Percent, Sliders, SlidersHorizontal } from 'lucide-react';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot } from '../../services/financeStore.js';
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, onSnapshot } from '../../services/financeStore.js';
 import { consultarRucSri, getEcuadorDateString, validarIdentificacion } from '../../services/sriService';
 import { calculateTransactionTotals, isDiscountScheduleActive } from '../../services/discountCalcService';
 import { getCuentas } from '../../services/bancosService';
@@ -216,6 +216,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   const [bankAccounts, setBankAccounts] = useState([]);
   const [isCreditAuthOpen, setIsCreditAuthOpen] = useState(false);
   const [creditAuthData, setCreditAuthData] = useState(null);
+  const [resumedDraftId, setResumedDraftId] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -896,18 +897,75 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     try { validateCartStock(next, products); setCart(next); } catch (error) { showToast(error.message, 'error'); }
   };
 
-  // Guardar / Suspender ventas
-  const suspendSale = () => {
+  // Guardar / Suspender ventas (Borrador)
+  const suspendSale = async () => {
     if (processingRef.current) return;
     if (cart.length === 0) {
-      showToast("El carrito está vacío para suspender", "error");
+      showToast("El carrito está vacío para guardar borrador", "error");
       return;
     }
-    const data = { cart, selectedClientId, selectedGeneralDiscount, posDocType };
-    localStorage.setItem(`suspended_pos_sale_${appId}`, JSON.stringify(data));
-    setCart([]);
-    setSelectedClientId('');
-    showToast("Venta suspendida temporalmente", "info");
+
+    try {
+      const client = getSelectedClient();
+      let clientDocId = selectedClientId;
+      if (!clientDocId || clientDocId === 'consumidor_final') {
+        const cf = thirdParties.find(tp => tp.ruc === '9999999999999');
+        clientDocId = cf?.id || 'consumidor_final';
+      }
+
+      const draftDocId = resumedDraftId || `pos_draft_${Date.now()}`;
+      const draftData = {
+        id: draftDocId,
+        type: 'ingreso',
+        date: getEcuadorDateString(),
+        documentType: posDocType || 'factura',
+        documentNumber: '',
+        secuencial: '',
+        thirdPartyId: clientDocId,
+        thirdParty: client,
+        category: 'ventas',
+        currency: 'USD',
+        baseImponible: Number(getSubtotalWithDiscount().toFixed(2)),
+        ivaPorcentaje: 15,
+        ivaValor: Number(getIva().toFixed(2)),
+        retencionFuente: 0,
+        retencionIva: 0,
+        total: Number(totalToPay.toFixed(2)),
+        paymentMethod: posPaymentMethod || 'efectivo',
+        paymentStatus: 'pendiente',
+        sriStatus: 'borrador',
+        items: totalsResult?.items || cart,
+        generalDiscount: selectedGeneralDiscount,
+        posCheckoutOrigin: true,
+        isPOS: !isPreventaOnly,
+        isPreventa: !!isPreventaOnly,
+        cashSessionId: isPreventaOnly ? '' : (activeSession?.id || ''),
+        financialSyncStatus: 'pending',
+        createdAt: new Date().toISOString()
+      };
+
+      if (db && appId) {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', draftDocId), sanitizeData(draftData));
+      }
+
+      const localData = { 
+        cart, 
+        selectedClientId, 
+        selectedGeneralDiscount, 
+        posDocType, 
+        draftDocId 
+      };
+      localStorage.setItem(`suspended_pos_sale_${appId}`, JSON.stringify(localData));
+
+      setCart([]);
+      setSelectedClientId('');
+      setResumedDraftId(null);
+      setShowPaymentScreen(false);
+      showToast("Venta guardada como borrador", "success");
+    } catch (error) {
+      console.error("Error al guardar borrador en POS:", error);
+      showToast("Error al guardar el borrador", "error");
+    }
   };
 
   const resumeSale = () => {
@@ -924,6 +982,9 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     setPosDocType(data.posDocType || 'factura');
     setCart(data.cart || []);
     setSelectedClientId(data.selectedClientId || '');
+    if (data.draftDocId) {
+      setResumedDraftId(data.draftDocId);
+    }
     localStorage.removeItem(`suspended_pos_sale_${appId}`);
     showToast("Venta suspendida recuperada", "success");
   };
@@ -980,6 +1041,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       }
 
       const invoiceData = {
+        ...(resumedDraftId ? { id: resumedDraftId } : {}),
         type: 'ingreso',
         date: getEcuadorDateString(),
         documentType: posDocType,
@@ -1031,6 +1093,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       if (!saved) return;
       setSelectedGeneralDiscount(null);
       setCart([]);
+      setResumedDraftId(null);
       setSelectedClientId('');
       setPosDocType(sriConfig?.rucActivo === false ? 'nota_venta' : 'factura');
       setPosPaymentMethod('efectivo');
@@ -1765,19 +1828,36 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
                 <UiButton
                   type="button"
+                  onClick={suspendSale}
+                  {...{"variant":"outline","color":"blue","size":"2","className":"w-full flex items-center justify-center gap-1.5 mb-2 cursor-pointer"}}
+                >
+                  <Bookmark size={13} />
+                  <UiText>Guardar como Borrador (F8)</UiText>
+                </UiButton>
+
+                <UiButton
+                  type="button"
                   onClick={async () => {
                     if (await window.confirm("¿Seguro que deseas abandonar la venta actual? Se vaciará el carrito y se reiniciará el POS.")) {
+                      if (resumedDraftId && db && appId) {
+                        try {
+                          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', resumedDraftId));
+                        } catch (err) {
+                          console.error("Error al eliminar borrador abandonado:", err);
+                        }
+                      }
                       setCart([]);
                       setSelectedClientId('');
                       setPosDocType('factura');
                       setPosPaymentMethod('efectivo');
                       setReceivedAmount('');
                       setPaymentRefCode('');
+                      setResumedDraftId(null);
                       setShowPaymentScreen(false);
                       showToast("Venta abandonada", "info");
                     }
                   }}
-                  {...{"variant":"outline","color":"red","size":"2","className":"w-full flex items-center justify-center gap-1.5"}}
+                  {...{"variant":"outline","color":"red","size":"2","className":"w-full flex items-center justify-center gap-1.5 cursor-pointer"}}
                 >
                   <Trash2 size={13} />
                   <UiText>Abandonar Venta (Vaciar)</UiText>
@@ -2178,14 +2258,18 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               <UiButton
                 type="button"
                 onClick={suspendSale} 
+                title="Guardar venta como borrador (F8)"
                 {...{"variant":"surface","color":"gray","size":"2","className":"flex items-center gap-1.5 select-none cursor-pointer"}}
               >
                 <Bookmark size={12} {...{"style":{"color":"var(--blue-12)"}}} />
-                <UiText>Suspender venta</UiText>
+                <UiText>Guardar Borrador (F8)</UiText>
               </UiButton>
               <UiButton
                 type="button"
-                onClick={() => setCart([])} 
+                onClick={() => {
+                  setCart([]);
+                  setResumedDraftId(null);
+                }} 
                 {...{"variant":"surface","color":"red","size":"2","className":"flex items-center gap-1.5 select-none cursor-pointer"}}
               >
                 <Trash2 size={12} {...{"style":{"color":"var(--red-11)"}}} />

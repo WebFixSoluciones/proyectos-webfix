@@ -27,3 +27,35 @@ test('both sale paths block invalid lines and administrative sale explains missi
   assert.equal(issues[0].shortMessage, 'INGRESA PAGO');
   assert.equal(issues[0].actionLabel, 'Ingresar Pago');
 });
+
+test('administrative sale permits saving drafts without payment settlement or strict identification check', () => {
+  // Regular sale without payment fails validation
+  const emissionIssues = getAdministrativeSaleIssues({
+    clientId: 'client',
+    client: { name: 'Cliente Borrador', ruc: '9999999999999' },
+    identificationValid: false,
+    items: [product],
+    total: 100,
+    documentType: 'factura',
+    paymentStatus: { isValid: false, error: 'Faltan $100.' },
+    payments: {},
+    isDraft: false
+  });
+  assert.ok(emissionIssues.length > 0);
+  assert.ok(emissionIssues.some(i => i.target === 'payment'));
+
+  // Draft sale with same data passes validation cleanly
+  const draftIssues = getAdministrativeSaleIssues({
+    clientId: 'client',
+    client: { name: 'Cliente Borrador', ruc: '9999999999999' },
+    identificationValid: false,
+    items: [product],
+    total: 100,
+    documentType: 'factura',
+    paymentStatus: { isValid: false, error: 'Faltan $100.' },
+    payments: {},
+    isDraft: true
+  });
+  assert.deepEqual(draftIssues, []);
+});
+
