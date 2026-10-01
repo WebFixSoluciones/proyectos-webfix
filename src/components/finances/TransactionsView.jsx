@@ -3,7 +3,7 @@ import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useRef, useEffect } from 'react';
 import { DropdownMenu } from '@radix-ui/themes';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, FileDown, Printer, FileMinus, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, FileDown, Printer, FileMinus, MessageCircle, MoreHorizontal, Copy, Check } from 'lucide-react';
 import { doc, deleteDoc, setDoc, getDoc, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
@@ -50,6 +50,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   const [emailModalTx, setEmailModalTx] = useState(null);
   const [emailTarget, setEmailTarget] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [rejectionModalTx, setRejectionModalTx] = useState(null);
+  const [copiedClave, setCopiedClave] = useState(false);
 
   // Sorting State
   const [sortField, setSortField] = useState('date');
@@ -305,10 +307,41 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
   };
 
+  const isDraftTx = (tx) => {
+    if (!tx) return false;
+    if (tx.sriStatus === 'borrador' || tx.status === 'borrador' || tx.estado === 'BORRADOR') return true;
+    if (tx.documentType === 'factura' && !tx.claveAcceso && tx.sriStatus !== 'autorizado') return true;
+    if (!tx.sriStatus && !tx.claveAcceso && tx.documentType !== 'nota_venta') return true;
+    return false;
+  };
+
+  const isPendingSriTx = (tx) => {
+    if (!tx) return false;
+    if (tx.sriStatus === 'pendiente_sri') return true;
+    if (tx.claveAcceso && (tx.sriStatus === 'pendiente' || !tx.sriStatus)) return true;
+    return false;
+  };
+
+  const isRejectedSriTx = (tx) => {
+    if (!tx) return false;
+    return ['devuelto', 'no_autorizado', 'rechazado'].includes(tx.sriStatus);
+  };
+
+  const handleCopyClaveAcceso = (clave) => {
+    if (!clave) return;
+    navigator.clipboard?.writeText?.(clave);
+    setCopiedClave(true);
+    setTimeout(() => setCopiedClave(false), 2000);
+    showToast('Clave de acceso copiada al portapapeles', 'info');
+  };
+
   const handleDelete = async (tx) => {
-    if (tx.inventarioRegistrado || tx.financialSyncStatus === 'complete') { showToast('Este documento tiene movimientos asociados. Usa la anulación para conservar la trazabilidad.', 'warning'); return; }
-    if (tx.claveAcceso || tx.documentType === 'factura' || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) {
-      alert("No se puede eliminar un comprobante electrónico (Factura / Retención / Nota de Crédito). Para anular la validez de este documento, se recomienda generar una Nota de Crédito o realizar la anulación directamente desde su cuenta del SRI.");
+    if (tx.inventarioRegistrado || tx.financialSyncStatus === 'complete') {
+      showToast('Este documento tiene movimientos asociados. Usa la anulación para conservar la trazabilidad.', 'warning');
+      return;
+    }
+    if (tx.claveAcceso || (tx.documentType === 'factura' && tx.sriStatus !== 'borrador') || (tx.sriStatus === 'autorizado' && tx.documentType !== 'nota_venta')) {
+      alert("No se puede eliminar un comprobante electrónico autorizado o emitido ante el SRI (Factura / Retención / Nota de Crédito). Para anular la validez de este documento, se recomienda generar una Nota de Crédito o realizar la anulación directamente desde su cuenta del SRI.");
       return;
     }
     if (await window.confirm('¿Seguro que deseas eliminar esta transacción permanentemente?')) {
@@ -380,37 +413,82 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   }, [transactions]);
 
   const getStatusBadge = (status, documentType, tx = null) => {
-    switch(status) {
-      case 'autorizado':
-        if (documentType === 'nota_venta') {
-          return <Badge variant="success"><CheckCircle2 size={10}/> Registrado</Badge>;
-        }
-        return <Badge variant="success"><CheckCircle2 size={10}/> Autorizado</Badge>;
-      case 'pendiente_sri':
-        return (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); verifySriTransaction(tx); }}
-            disabled={verifyingTxId === tx?.id}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100 transition-colors cursor-pointer"
-            title="Haga clic para consultar la autorización en el SRI ahora"
-          >
-            <RefreshCw size={10} className={verifyingTxId === tx?.id ? "animate-spin" : ""} />
-            <span>{verifyingTxId === tx?.id ? "Consultando..." : "Por confirmar en SRI"}</span>
-          </button>
-        );
-      case 'devuelto':
-      case 'no_autorizado':
-        return <Badge variant="destructive"><AlertTriangle size={10}/> {status === 'devuelto' ? 'Devuelto' : 'No autorizado'}</Badge>;
-      case 'pendiente':
-        return <Badge variant="warning"><AlertCircle size={10}/> Pendiente</Badge>;
-      case 'anulado':
-        return <Badge variant="destructive">Anulado</Badge>;
-      case 'rechazado':
-        return <Badge variant="destructive"><AlertTriangle size={10}/> Rechazado</Badge>;
-      default:
-        return <Badge variant="outline">{status || 'Borrador'}</Badge>;
+    // 1. Autorizado o Registrado (Notas de Venta)
+    if (status === 'autorizado' || (tx && tx.sriStatus === 'autorizado')) {
+      if (documentType === 'nota_venta') {
+        return <Badge variant="success"><CheckCircle2 size={10}/> Registrado</Badge>;
+      }
+      return <Badge variant="success"><CheckCircle2 size={10}/> Autorizado</Badge>;
     }
+
+    if (documentType === 'nota_venta') {
+      return <Badge variant="success"><CheckCircle2 size={10}/> Registrado</Badge>;
+    }
+
+    // 2. Anulado
+    if (status === 'anulado' || (tx && tx.status === 'anulado')) {
+      return <Badge variant="destructive">Anulado</Badge>;
+    }
+
+    // 3. Devuelto / No Autorizado / Rechazado por el SRI (Botón interactivo con modal de diagnóstico)
+    if (['devuelto', 'no_autorizado', 'rechazado'].includes(status) || (tx && isRejectedSriTx(tx))) {
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (tx) setRejectionModalTx(tx);
+          }}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80 hover:bg-rose-100 hover:border-rose-300 transition-colors cursor-pointer group"
+          title="Comprobante con observaciones o devuelto por el SRI. Clic para ver motivo y corregir"
+        >
+          <AlertTriangle size={11} className="text-rose-600 group-hover:scale-110 transition-transform" />
+          <span>{status === 'devuelto' ? 'Devuelto SRI' : 'No autorizado'} • Ver</span>
+        </button>
+      );
+    }
+
+    // 4. Pendiente en SRI (Botón interactivo de consulta directa en tiempo real)
+    if (status === 'pendiente_sri' || (tx && isPendingSriTx(tx))) {
+      const isChecking = verifyingTxId === tx?.id;
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (tx) verifySriTransaction(tx);
+          }}
+          disabled={isChecking}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100 hover:border-amber-300 transition-colors cursor-pointer group disabled:opacity-60"
+          title="Comprobante en procesamiento en el SRI. Clic para consultar la autorización ahora"
+        >
+          <RefreshCw size={11} className={`text-amber-600 ${isChecking ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500"}`} />
+          <span>{isChecking ? "Consultando..." : "Por confirmar en SRI"}</span>
+        </button>
+      );
+    }
+
+    // 5. Borrador (Botón interactivo para abrir, completar y emitir al SRI)
+    if (status === 'borrador' || (tx && isDraftTx(tx)) || !status) {
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onOpenForm && tx) {
+              onOpenForm(tx);
+            }
+          }}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer group"
+          title="Comprobante en borrador. Clic para completar y emitir al SRI"
+        >
+          <FileText size={11} className="text-blue-600 group-hover:scale-110 transition-transform" />
+          <span>Borrador • Emitir</span>
+        </button>
+      );
+    }
+
+    return <Badge variant="outline">{status}</Badge>;
   };
 
   const handleOpenEmailModal = (tx) => {
@@ -934,114 +1012,201 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                     </UiTableCell>
                   )}
                   <UiTableCell className="px-6 py-2.5 text-right">
-                    <div className="flex items-center justify-end gap-1 flex-nowrap">
-                      {/* Consultar SRI si está pendiente */}
-                      {tx.claveAcceso && tx.sriStatus === 'pendiente_sri' && (
+                    {isDraftTx(tx) ? (
+                      <div className="flex items-center justify-end gap-1 flex-nowrap">
+                        {/* Botón principal: Emitir Borrador */}
                         <button
                           type="button"
-                          onClick={() => verifySriTransaction(tx)}
-                          disabled={verifyingTxId === tx.id}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors cursor-pointer"
-                          title="Consultar estado de autorización en el SRI ahora"
+                          onClick={() => onOpenForm?.(tx)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-[#1b1b1b] text-white hover:bg-slate-800 transition-colors cursor-pointer shadow-none"
+                          title="Completar y emitir comprobante al SRI"
                         >
-                          <RefreshCw size={13} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
+                          <Sparkles size={12} className="text-amber-300" />
+                          <span>Emitir</span>
                         </button>
-                      )}
 
-                      {/* 1. Ver Detalles de Factura / Comprobante */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (onOpenForm) {
-                            onOpenForm({ ...tx, type: tx.type || 'ingreso', viewDetails: true });
-                          } else {
-                            setSelectedRideTx(tx);
-                          }
-                        }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
-                        title={tx.documentType === 'nota_venta' ? "Ver detalles del Recibo" : "Ver detalles de la Factura"}
-                      >
-                        <Eye size={14} />
-                      </button>
+                        {/* Editar datos del borrador */}
+                        <button
+                          type="button"
+                          onClick={() => onOpenForm?.(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Editar borrador"
+                        >
+                          <Edit2 size={13} />
+                        </button>
 
-                      {/* 2. Impresión Directa (asistente de Windows / navegador) */}
-                      <button
-                        type="button"
-                        onClick={() => handleDirectPrint(tx)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Impresión directa (Asistente de impresión)"
-                      >
-                        <Printer size={14} />
-                      </button>
+                        {/* Eliminar borrador */}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Eliminar borrador"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ) : isRejectedSriTx(tx) ? (
+                      <div className="flex items-center justify-end gap-1 flex-nowrap">
+                        {/* Botón principal: Corregir Rechazo SRI */}
+                        <button
+                          type="button"
+                          onClick={() => setRejectionModalTx(tx)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 transition-colors cursor-pointer shadow-none"
+                          title="Ver motivo del rechazo del SRI y corregir"
+                        >
+                          <AlertTriangle size={12} />
+                          <span>Corregir</span>
+                        </button>
 
-                      {/* 3. Enviar por WhatsApp al Cliente */}
-                      <button
-                        type="button"
-                        onClick={() => handleShareWhatsApp(tx)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Enviar comprobante al cliente por WhatsApp"
-                      >
-                        <MessageCircle size={14} />
-                      </button>
+                        {/* Editar comprobante */}
+                        <button
+                          type="button"
+                          onClick={() => onOpenForm?.(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Editar comprobante"
+                        >
+                          <Edit2 size={13} />
+                        </button>
 
-                      {/* Divisor vertical sutil */}
-                      <div className="h-4 w-px bg-slate-200 mx-0.5" />
-
-                      {/* 4. Menú de Más Opciones (...) */}
-                      <DropdownMenu.Root>
-                        <DropdownMenu.Trigger>
+                        {/* Más opciones para rechazados */}
+                        <DropdownMenu.Root>
+                          <DropdownMenu.Trigger>
+                            <button
+                              type="button"
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                              title="Más opciones"
+                            >
+                              <MoreHorizontal size={14} />
+                            </button>
+                          </DropdownMenu.Trigger>
+                          <DropdownMenu.Content size="1" variant="solid" color="gray" align="end" className="min-w-[190px]">
+                            <DropdownMenu.Item onClick={() => setRejectionModalTx(tx)} className="cursor-pointer gap-2 text-rose-600">
+                              <AlertTriangle size={13} />
+                              <span>Ver Motivo de Rechazo</span>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item onClick={() => onOpenForm?.(tx)} className="cursor-pointer gap-2">
+                              <Edit2 size={13} className="text-slate-600" />
+                              <span>Editar Datos</span>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Separator />
+                            <DropdownMenu.Item color="red" onClick={() => handleDelete(tx)} className="cursor-pointer gap-2 text-rose-600">
+                              <Trash2 size={13} />
+                              <span>Eliminar Registro</span>
+                            </DropdownMenu.Item>
+                          </DropdownMenu.Content>
+                        </DropdownMenu.Root>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-end gap-1 flex-nowrap">
+                        {/* Consultar SRI si está pendiente */}
+                        {(tx.claveAcceso && isPendingSriTx(tx)) && (
                           <button
                             type="button"
-                            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
-                            title="Más opciones"
+                            onClick={() => verifySriTransaction(tx)}
+                            disabled={verifyingTxId === tx.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-colors cursor-pointer disabled:opacity-60"
+                            title="Consultar estado de autorización en el SRI ahora"
                           >
-                            <MoreHorizontal size={14} />
+                            <RefreshCw size={12} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
+                            <span>{verifyingTxId === tx.id ? "Consultando..." : "Consultar SRI"}</span>
                           </button>
-                        </DropdownMenu.Trigger>
-                        <DropdownMenu.Content size="1" variant="solid" color="gray" align="end" className="min-w-[190px]">
-                          {/* Emitir Nota de Crédito */}
-                          {tx.documentType === 'factura' && (
-                            <DropdownMenu.Item onClick={() => handleCreateNotaCredito(tx)} className="cursor-pointer gap-2">
-                              <FileMinus size={14} className="text-slate-600" />
-                              <span>Emitir Nota de Crédito</span>
-                            </DropdownMenu.Item>
-                          )}
+                        )}
 
-                          {/* Emitir Guía de Remisión */}
-                          {tx.documentType === 'factura' && (
-                            <DropdownMenu.Item onClick={() => handleCreateGuiaRemision(tx)} className="cursor-pointer gap-2">
-                              <Truck size={14} className="text-slate-600" />
-                              <span>Emitir Guía de Remisión</span>
-                            </DropdownMenu.Item>
-                          )}
+                        {/* 1. Ver Detalles de Factura / Comprobante */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onOpenForm) {
+                              onOpenForm({ ...tx, type: tx.type || 'ingreso', viewDetails: true });
+                            } else {
+                              setSelectedRideTx(tx);
+                            }
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                          title={tx.documentType === 'nota_venta' ? "Ver detalles del Recibo" : "Ver detalles de la Factura"}
+                        >
+                          <Eye size={14} />
+                        </button>
 
-                          {/* Enviar por Correo */}
-                          <DropdownMenu.Item onClick={() => handleOpenEmailModal(tx)} className="cursor-pointer gap-2">
-                            <Mail size={14} className="text-slate-600" />
-                            <span>{tx.emailDelivery?.emitter?.status === 'sent' ? 'Reenviar Correo' : 'Enviar por Correo'}</span>
-                          </DropdownMenu.Item>
+                        {/* 2. Impresión Directa (asistente de Windows / navegador) */}
+                        <button
+                          type="button"
+                          onClick={() => handleDirectPrint(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Impresión directa (Asistente de impresión)"
+                        >
+                          <Printer size={14} />
+                        </button>
 
-                          {/* Editar Comprobante */}
-                          {(!tx.claveAcceso || tx.sriStatus === 'borrador') && (
-                            <DropdownMenu.Item onClick={() => onOpenForm(tx)} className="cursor-pointer gap-2">
-                              <Edit2 size={13} className="text-slate-600" />
-                              <span>Editar Comprobante</span>
-                            </DropdownMenu.Item>
-                          )}
+                        {/* 3. Enviar por WhatsApp al Cliente */}
+                        <button
+                          type="button"
+                          onClick={() => handleShareWhatsApp(tx)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Enviar comprobante al cliente por WhatsApp"
+                        >
+                          <MessageCircle size={14} />
+                        </button>
 
-                          {/* Eliminar Comprobante */}
-                          {(!tx.claveAcceso && (tx.documentType !== 'factura' || tx.sriStatus === 'borrador')) && (
-                            <>
-                              <DropdownMenu.Separator />
-                              <DropdownMenu.Item color="red" onClick={() => handleDelete(tx)} className="cursor-pointer gap-2 text-rose-600">
-                                <Trash2 size={13} />
-                                <span>Eliminar Comprobante</span>
+                        {/* Divisor vertical sutil */}
+                        <div className="h-4 w-px bg-slate-200 mx-0.5" />
+
+                        {/* 4. Menú de Más Opciones (...) */}
+                        <DropdownMenu.Root>
+                          <DropdownMenu.Trigger>
+                            <button
+                              type="button"
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                              title="Más opciones"
+                            >
+                              <MoreHorizontal size={14} />
+                            </button>
+                          </DropdownMenu.Trigger>
+                          <DropdownMenu.Content size="1" variant="solid" color="gray" align="end" className="min-w-[190px]">
+                            {/* Emitir Nota de Crédito */}
+                            {tx.documentType === 'factura' && tx.sriStatus === 'autorizado' && (
+                              <DropdownMenu.Item onClick={() => handleCreateNotaCredito(tx)} className="cursor-pointer gap-2">
+                                <FileMinus size={14} className="text-slate-600" />
+                                <span>Emitir Nota de Crédito</span>
                               </DropdownMenu.Item>
-                            </>
-                          )}
-                        </DropdownMenu.Content>
-                      </DropdownMenu.Root>
-                    </div>
+                            )}
+
+                            {/* Emitir Guía de Remisión */}
+                            {tx.documentType === 'factura' && tx.sriStatus === 'autorizado' && (
+                              <DropdownMenu.Item onClick={() => handleCreateGuiaRemision(tx)} className="cursor-pointer gap-2">
+                                <Truck size={14} className="text-slate-600" />
+                                <span>Emitir Guía de Remisión</span>
+                              </DropdownMenu.Item>
+                            )}
+
+                            {/* Enviar por Correo */}
+                            <DropdownMenu.Item onClick={() => handleOpenEmailModal(tx)} className="cursor-pointer gap-2">
+                              <Mail size={14} className="text-slate-600" />
+                              <span>{tx.emailDelivery?.emitter?.status === 'sent' ? 'Reenviar Correo' : 'Enviar por Correo'}</span>
+                            </DropdownMenu.Item>
+
+                            {/* Editar Comprobante */}
+                            {(!tx.claveAcceso || tx.sriStatus === 'borrador') && (
+                              <DropdownMenu.Item onClick={() => onOpenForm(tx)} className="cursor-pointer gap-2">
+                                <Edit2 size={13} className="text-slate-600" />
+                                <span>Editar Comprobante</span>
+                              </DropdownMenu.Item>
+                            )}
+
+                            {/* Eliminar Comprobante */}
+                            {(!tx.claveAcceso && (tx.documentType !== 'factura' || tx.sriStatus === 'borrador')) && (
+                              <>
+                                <DropdownMenu.Separator />
+                                <DropdownMenu.Item color="red" onClick={() => handleDelete(tx)} className="cursor-pointer gap-2 text-rose-600">
+                                  <Trash2 size={13} />
+                                  <span>Eliminar Comprobante</span>
+                                </DropdownMenu.Item>
+                              </>
+                            )}
+                          </DropdownMenu.Content>
+                        </DropdownMenu.Root>
+                      </div>
+                    )}
                   </UiTableCell>
                 </UiTableRow>
               ))}
@@ -1138,6 +1303,98 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 )}
               </UiButton>
             </UiBox>
+          </UiCard>
+        </UiBox>
+      )}
+
+      {/* MODAL DE MOTIVO DE RECHAZO / DEVOLUCIÓN SRI */}
+      {rejectionModalTx && (
+        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <UiCard style={{ backgroundColor: 'var(--color-panel-solid)', color: 'var(--gray-12)' }} className="w-full max-w-lg p-6 space-y-4 scale-100 shadow-2xl rounded-2xl">
+            {/* Header */}
+            <div className="flex items-start gap-3 pb-3 border-b border-slate-200">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                <AlertTriangle size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-slate-900 leading-tight">
+                  {rejectionModalTx.sriStatus === 'devuelto' ? 'Comprobante Devuelto por el SRI' : 'Comprobante No Autorizado por el SRI'}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {getDocumentTypeLabel(rejectionModalTx.documentType, rejectionModalTx.type)} • N°: {rejectionModalTx.documentNumber || 'Borrador'} • {rejectionModalTx.date || ''}
+                </p>
+              </div>
+            </div>
+
+            {/* Motivo del SRI */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 block">
+                Observación o Error Reportado por el SRI:
+              </label>
+              <div className="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200 text-xs font-mono text-rose-950 leading-relaxed max-h-48 overflow-y-auto custom-scrollbar break-words">
+                {rejectionModalTx.sriLastError ||
+                 rejectionModalTx.sriMessage ||
+                 rejectionModalTx.errorMessage ||
+                 rejectionModalTx.mensajeSri ||
+                 rejectionModalTx.error ||
+                 'El SRI devolvió el comprobante con observaciones. Es necesario corregir los datos de la factura (cliente, montos o tarifas) antes de volver a emitir.'}
+              </div>
+            </div>
+
+            {/* Clave de Acceso SRI */}
+            {rejectionModalTx.claveAcceso && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-slate-600">
+                  <span className="font-semibold">Clave de Acceso (49 dígitos):</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyClaveAcceso(rejectionModalTx.claveAcceso)}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+                  >
+                    {copiedClave ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
+                    <span>{copiedClave ? 'Copiada' : 'Copiar clave'}</span>
+                  </button>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700 break-all select-all">
+                  {rejectionModalTx.claveAcceso}
+                </div>
+              </div>
+            )}
+
+            {/* Orientación / Sugerencia */}
+            <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/90 text-xs text-amber-900 space-y-1">
+              <span className="font-bold flex items-center gap-1">
+                <Sparkles size={12} className="text-amber-600" /> ¿Cómo resolver este comprobante?
+              </span>
+              <p className="text-[11px] leading-relaxed text-amber-900/90">
+                Haz clic en <strong>"Editar y Corregir Comprobante"</strong> para ajustar los datos observados en el formulario de venta y reemitirlo al SRI de inmediato.
+              </p>
+            </div>
+
+            {/* Acciones */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <UiButton
+                type="button"
+                onClick={() => setRejectionModalTx(null)}
+                size="2"
+                variant="outline"
+                color="gray"
+              >
+                Cerrar
+              </UiButton>
+              <button
+                type="button"
+                onClick={() => {
+                  const txToEdit = rejectionModalTx;
+                  setRejectionModalTx(null);
+                  if (onOpenForm) onOpenForm(txToEdit);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors cursor-pointer shadow-none"
+              >
+                <Edit2 size={13} />
+                <span>Editar y Corregir Comprobante</span>
+              </button>
+            </div>
           </UiCard>
         </UiBox>
       )}

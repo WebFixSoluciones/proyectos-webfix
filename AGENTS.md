@@ -733,7 +733,25 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Pestañas de Flujo de Caja y Forecast**:
     - Flujo mensual con 3 tarjetas de balance y gráfico comparativo de barras redondeadas por mes.
     - Forecast con 3 tarjetas de horizonte (30, 60 y 90 días) con superávit/déficit estimado y desglose de liquidez vs compromisos.
-- **Pruebas y Build**: 54 tests unitarios aprobados (`npm test`), compilación de producción exitosa en 5.62s (`npm run build`).
+### 56. Botones de Acción Inteligente para Comprobantes No Autorizados o en Borrador (2026-09-30) — COMPLETADO
+- **Badges de Estado Interactivos e Inteligentes (`TransactionsView.jsx`)**:
+  - **Borradores (`isDraftTx`)**: Los comprobantes no emitidos se identifican claramente con un botón píldora interactivo `[ Borrador • Emitir ]` en azul suave con icono `FileText`. Al hacer clic, abre de inmediato el formulario de emisión prellenado para enviarlo al SRI con un solo clic.
+  - **Pendientes SRI (`isPendingSriTx`)**: Comprobantes con clave de acceso en procesamiento muestran el botón `[ Por confirmar en SRI ]` en ámbar con icono `RefreshCw` animado al consultar, ejecutando la reconciliación y autorización instantánea contra el WebService SOAP del SRI.
+  - **Devueltos / Rechazados (`isRejectedSriTx`)**: Comprobantes con inconsistencias o rechazados por el SRI muestran el botón `[ Devuelto SRI • Ver ]` / `[ No autorizado • Ver ]` en color rosa con icono `AlertTriangle`.
+  - **Autorizados y Registrados**: Mantienen los badges limpios en verde (`Autorizado` para facturas electrónicas y `Registrado` para notas de venta internas).
+- **Modal Explicativo de Rechazo / Devolución SRI (`rejectionModalTx`)**:
+  - Modal con diseño Flat Modern que diagnostica y explica en lenguaje claro y legible la observación o error devuelto por el SRI (`sriLastError`, `sriMessage`, etc.).
+  - Caja con la Clave de Acceso de 49 dígitos y botón rápido para copiarla al portapapeles con confirmación visual.
+  - Bloque de orientación sobre cómo resolver la inconsistencia (datos del cliente, montos, tarifas).
+  - Botón de acción directa **"Editar y Corregir Comprobante"** que abre el comprobante en el formulario de ventas para ajustar los datos y reemitir de inmediato.
+- **Columna de Acciones Adaptativa por Estado**:
+  - **Para Borradores**: Se suprimen acciones no aplicables (WhatsApp, RIDE o Nota de Crédito) y se destacan los botones primarios `[ Emitir ]` (negro con estrella ámbar), `Editar` y `Eliminar borrador`.
+  - **Para Rechazados SRI**: Se destaca el botón primario `[ Corregir ]` (rojo) y opciones de edición y eliminación.
+  - **Para Pendientes SRI**: Se muestra el botón directo `[ Consultar SRI ]` junto a las acciones estándar.
+  - **Para Autorizados**: Se mantienen las acciones directas de Vista Previa, Impresión Directa (asistente de Windows / navegador), Compartir por WhatsApp y menú extendido.
+- **Habilitación de Eliminación de Borradores**:
+  - Corregida la condición en `handleDelete` para permitir que los usuarios descarten y eliminen borradores sin toparse con el bloqueo de comprobantes autorizados con clave fiscal.
+- **Pruebas y Build**: 48 tests unitarios aprobados (`node --test`), compilación de producción exitosa en 5.94s (`npm run build`).
 
 
 
