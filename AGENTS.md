@@ -766,6 +766,25 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Preservación Integral de Funcionalidades**: 100% compatible con subproductos, combos, Paso 2 de inicialización de stock por compra, popups de categoría/marca/proveedor y validaciones fiscales.
 - **Pruebas y Build**: 48 tests unitarios aprobados, compilación limpia de producción en 6.61s.
 
+### 58. Rediseño Minimalista de Movimientos Financieros al Estándar Brevo (2026-09-30) — COMPLETADO
+- **Métricas de Salud Operativa Renovadas (`src/components/finances/MovimientosView.jsx`)**:
+  - Reemplazadas las tarjetas genéricas por 3 tarjetas ejecutivas (`rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs`):
+    - **Ingresos del Período**: Cifra contundente en verde esmeralda (`font-mono text-2xl sm:text-3xl text-emerald-700`), squircle verde con `TrendingUp` y desglose de cantidad de entradas.
+    - **Egresos del Período**: Cifra destacada en rosa carmín (`text-rose-600`), squircle rosa con `TrendingDown` y conteo de egresos/pagos.
+    - **Saldo Neto**: Balance neto en tipografía mono de alto contraste, squircle azul con `DollarSign` y estado de superávit o déficit operacional.
+- **Barra de Búsqueda y Filtros Optimizada**:
+  - **Eliminación de Botones Duplicados**: Suprimidos los botones huérfanos `CSV` y `+ Nuevo` que se repetían innecesariamente debajo de los filtros y encima de la tabla.
+  - **Corrección de Selectores de Fechas Desbordados**: Eliminada la anomalía visual donde los inputs de fecha abarcaban el 100% del ancho en dos líneas consecutivas. Ahora se agrupan en una cápsula horizontal compacta con etiquetas claras (`Desde:` y `Hasta:`) e icono de calendario.
+  - **Píldoras de Filtro Rápido (Tipo)**: Pestañas redondeadas tipo Brevo con contadores en tiempo real para alternar instantáneamente entre *Todos*, *Ingresos* (con dot verde) y *Egresos* (con dot rojo).
+  - **Buscador Integral**: Input estilizado con icono de lupa para buscar por número de documento, tercero, RUC o concepto, acompañado de selector de estado y botón para limpiar filtros.
+- **Tabla de Movimientos Flat Modern**:
+  - Encabezado suave en `bg-slate-50/80` y celdas estilizadas con tipografía Inter y números mono.
+  - **Tipo y Estado Semánticos**: Badges tipo píldora limpios con flechas direccionales para Tipo (Ingreso / Egreso) y estados (*Pagado*, *Pendiente*, *Parcial*, *Anulado*).
+  - **Terceros y Documentos**: Formateo legible de tipos de comprobante (capitalizados sin snake_case) y secuenciales limpios.
+  - **Iconos de Acción Monocromáticos (Estilo Brevo)**: Sustituidos los botones multicolores chillones por botones compactos y limpios (`w-7 h-7 text-slate-700 hover:text-black hover:bg-slate-100`): *Ver Detalle* (`Eye`), *Registrar Abono* (`Wallet`), *Editar* (`Edit2`) y *Anular* (`Trash2`).
+- **Pruebas y Build**: 48 tests unitarios aprobados, compilación limpia de producción en 7.26s.
+
+
 
 
 

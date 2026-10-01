@@ -1,22 +1,14 @@
-import { resolveThemeProps } from '../ui/themeProps';
-import { mergeThemeProps } from '../ui/themeProps';
-import { UiBox, UiText, UiCard } from '../ui/layout';
-import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Download, FileText, Eye, Edit2, Trash2, Wallet, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { 
+  Plus, Search, Download, FileText, Eye, Edit2, 
+  Trash2, Wallet, DollarSign, TrendingUp, TrendingDown,
+  Calendar, X, RefreshCw, AlertTriangle
+} from 'lucide-react';
 import { getMovimientos, getResumen, anularMovimiento } from '../../services/movimientoService';
 import MovimientoForm from './MovimientoForm';
 import MovimientoAbono from './MovimientoAbono';
 import MovimientoDetalle from './MovimientoDetalle';
 import FinancialPageHeader from './FinancialPageHeader';
-import { Badge } from '../ui/badge';
-
-const ESTADO_BADGES = {
-  pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
-  parcial: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
-  pagado: {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}},
-  anulado: {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}},
-};
 
 const FILTROS_DEFAULT = {
   search: '',
@@ -26,6 +18,28 @@ const FILTROS_DEFAULT = {
   categoria: 'all',
   fechaDesde: '',
   fechaHasta: '',
+};
+
+const formatDocTipo = (tipo) => {
+  if (!tipo) return 'Comprobante';
+  const map = {
+    factura: 'Factura',
+    nota_venta: 'Nota de Venta',
+    nota_credito: 'Nota de Crédito',
+    nota_debito: 'Nota de Débito',
+    retencion: 'Retención',
+    liquidacion: 'Liquidación',
+    gasto: 'Comprobante Gasto',
+    ingreso_vario: 'Ingreso Varios',
+    gasto_hormiga: 'Gasto Menor',
+    recibo: 'Recibo Interno',
+  };
+  return map[tipo] || tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/_/g, ' ');
+};
+
+const formatCategoria = (cat) => {
+  if (!cat) return '-';
+  return cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ');
 };
 
 export default function MovimientosView({ db, usuario, showToast }) {
@@ -52,7 +66,6 @@ export default function MovimientosView({ db, usuario, showToast }) {
   }, [db, filtros]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargarMovimientos();
   }, [cargarMovimientos]);
 
@@ -71,66 +84,105 @@ export default function MovimientosView({ db, usuario, showToast }) {
     if (!window.confirm('¿Anular este movimiento? Esta acción no se puede deshacer.')) return;
     try {
       await anularMovimiento(db, id, usuario);
-      showToast('Movimiento anulado', 'success');
+      if (showToast) showToast('Movimiento anulado correctamente', 'success');
       cargarMovimientos();
     } catch (err) {
-      showToast('Error al anular: ' + err.message, 'error');
+      if (showToast) showToast('Error al anular: ' + err.message, 'error');
     }
   };
 
   const handleExportCsv = () => {
-    const headers = ['Fecha','Tipo','Documento','Número','Tercero','RUC','Monto','Abonado','Saldo','Estado','Método','Categoría'];
+    const headers = ['Fecha', 'Tipo', 'Documento', 'Número', 'Tercero', 'RUC', 'Monto', 'Abonado', 'Saldo', 'Estado', 'Método', 'Categoría'];
     const rows = movimientos.map(m => [
-      new Date(m.fecha?.toDate?.() || m.fecha).toLocaleDateString('es-EC'),
+      formatDate(m.fecha),
       m.tipo,
-      m.documento?.tipo,
-      m.documento?.numero,
-      m.tercero?.nombre,
-      m.tercero?.ruc,
-      Number(m.monto).toFixed(2),
-      (m.pagos || []).reduce((s, p) => s + Number(p.monto), 0).toFixed(2),
-      Number(m.saldoPendiente).toFixed(2),
-      m.estado,
-      m.metodoPago,
+      m.documento?.tipo || '',
+      m.documento?.numero || '',
+      m.tercero?.nombre || '',
+      m.tercero?.ruc || '',
+      Number(m.monto || 0).toFixed(2),
+      (m.pagos || []).reduce((s, p) => s + Number(p.monto || 0), 0).toFixed(2),
+      Number(m.saldoPendiente || 0).toFixed(2),
+      m.estado || '',
+      m.metodoPago || '',
       m.partidas?.[0]?.categoria || '',
     ]);
     const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `movimientos_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+    a.href = url;
+    a.download = `movimientos_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
-  const resumen = getResumen(movimientos);
-  const formatCurrency = (v) => `$${(Number(v) || 0).toFixed(2)}`;
-  const formatDate = (d) => d?.toDate ? d.toDate().toLocaleDateString('es-EC') : new Date(d).toLocaleDateString('es-EC');
+  const resumen = useMemo(() => getResumen(movimientos), [movimientos]);
 
-  if (loading) {
+  const countIngresos = useMemo(() => movimientos.filter(m => m.tipo === 'ingreso' && m.estado !== 'anulado').length, [movimientos]);
+  const countEgresos = useMemo(() => movimientos.filter(m => m.tipo === 'egreso' && m.estado !== 'anulado').length, [movimientos]);
+
+  const formatCurrency = (v) => `$${(Number(v) || 0).toFixed(2)}`;
+  
+  const formatDate = (d) => {
+    if (!d) return '-';
+    try {
+      const date = d?.toDate ? d.toDate() : new Date(d);
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch {
+      return '-';
+    }
+  };
+
+  const hasActiveFilters = useMemo(() => {
     return (
-      <UiBox {...{"className":"space-y-4 animate-pulse"}}>
-        <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-3 gap-4"}}>
-          {[1,2,3].map(i => <UiBox key={i} {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-20"}} />)}
-        </UiBox>
-        {[1,2,3,4,5].map(i => <UiBox key={i} {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"h-12"}} />)}
-      </UiBox>
+      filtros.search !== '' ||
+      filtros.tipo !== 'all' ||
+      filtros.estado !== 'all' ||
+      filtros.metodoPago !== 'all' ||
+      filtros.categoria !== 'all' ||
+      filtros.fechaDesde !== '' ||
+      filtros.fechaHasta !== ''
+    );
+  }, [filtros]);
+
+  const handleResetFilters = () => {
+    setFiltros(FILTROS_DEFAULT);
+  };
+
+  if (loading && movimientos.length === 0) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-24 bg-slate-100 rounded-2xl border border-slate-200/80" />
+          ))}
+        </div>
+        <div className="h-96 bg-slate-100 rounded-2xl border border-slate-200/80" />
+      </div>
     );
   }
 
-  if (error) {
+  if (error && movimientos.length === 0) {
     return (
-      <UiBox {...{"className":"text-center py-12"}}>
-        <UiBox {...{"style":{"color":"var(--red-12)"},"className":"mb-2"}}>Error al cargar los movimientos</UiBox>
-        <UiText as="p" {...{"color":"gray","size":"2","className":"mb-4"}}>{error}</UiText>
-        <UiButton onClick={cargarMovimientos} {...{"variant":"solid","color":"blue","size":"2"}}>
+      <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 space-y-3">
+        <AlertTriangle size={36} className="text-rose-500 mx-auto" />
+        <h3 className="text-base font-bold text-slate-800">Error al cargar movimientos</h3>
+        <p className="text-xs text-slate-500 max-w-md mx-auto">{error}</p>
+        <button
+          onClick={cargarMovimientos}
+          className="px-4 py-2 bg-[#1b1b1b] hover:bg-black text-white rounded-xl text-xs font-semibold cursor-pointer"
+        >
           Reintentar
-        </UiButton>
-      </UiBox>
+        </button>
+      </div>
     );
   }
 
   return (
-    <UiBox {...{"className":"space-y-4"}}>
+    <div className="space-y-5">
+      {/* 1. Header Estandarizado Brevo */}
       <FinancialPageHeader
         icon={DollarSign}
         title="Movimientos Financieros"
@@ -138,166 +190,386 @@ export default function MovimientosView({ db, usuario, showToast }) {
         badge={`${movimientos.length} registros`}
         badgeColor="green"
         actions={
-          <UiBox className="flex items-center gap-2">
-            <UiButton onClick={() => { setEditingMov(null); setShowForm(true); }} {...{"variant":"solid","color":"blue","size":"2","className":"flex items-center gap-1.5"}}>
-              <Plus size={14} /> Nuevo Movimiento
-            </UiButton>
-            <UiButton onClick={handleExportCsv} {...{"variant":"outline","color":"gray","size":"2","className":"flex items-center gap-1.5"}}>
-              <Download size={14} /> Exportar CSV
-            </UiButton>
-          </UiBox>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setEditingMov(null); setShowForm(true); }}
+              className="py-1.5 px-3.5 rounded-xl bg-[#1b1b1b] hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>Nuevo Movimiento</span>
+            </button>
+            <button
+              onClick={handleExportCsv}
+              className="py-1.5 px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
+            >
+              <Download size={13} />
+              <span>Exportar CSV</span>
+            </button>
+          </div>
         }
       />
-      <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-3 gap-4"}}>
-        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}>
-            <TrendingUp size={14} {...{"style":{"color":"var(--green-12)"}}} /> Ingresos del período
-          </UiBox>
-          <UiBox {...{"style":{"color":"var(--green-12)"}}}>{formatCurrency(resumen.totalIngresos)}</UiBox>
-        </UiCard>
-        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}>
-            <TrendingDown size={14} {...{"style":{"color":"var(--red-12)"}}} /> Egresos del período
-          </UiBox>
-          <UiBox {...{"style":{"color":"var(--red-12)"}}}>{formatCurrency(resumen.totalEgresos)}</UiBox>
-        </UiCard>
-        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}>
-            <DollarSign size={14} {...{"style":{"color":"var(--blue-12)"}}} /> Saldo neto
-          </UiBox>
-          <UiBox {...mergeThemeProps({}, {}, (resumen.saldoNeto >= 0 ? {"style":{"color":"var(--blue-12)"}} : {"style":{"color":"var(--red-12)"}}))}>
-            {formatCurrency(resumen.saldoNeto)}
-          </UiBox>
-        </UiCard>
-      </UiBox>
 
-      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-        <UiBox {...{"className":"flex flex-wrap items-center gap-3"}}>
-          <UiBox className="flex-1 min-w-[200px]">
-            <UiInput
+      {/* 2. Métricas de Salud Operativa (KPIs Flat Modern) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Card 1: Ingresos */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+          <div className="space-y-1">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              Ingresos del Período
+            </span>
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-700 tracking-tight">
+              {formatCurrency(resumen.totalIngresos)}
+            </div>
+            <span className="text-[11px] font-medium text-emerald-600 block">
+              {countIngresos} entradas registradas
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+            <TrendingUp size={22} />
+          </div>
+        </div>
+
+        {/* Card 2: Egresos */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+          <div className="space-y-1">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              Egresos del Período
+            </span>
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-rose-600 tracking-tight">
+              {formatCurrency(resumen.totalEgresos)}
+            </div>
+            <span className="text-[11px] font-medium text-rose-600 block">
+              {countEgresos} salidas y pagos registrados
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+            <TrendingDown size={22} />
+          </div>
+        </div>
+
+        {/* Card 3: Saldo Neto */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+          <div className="space-y-1">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              Saldo Neto
+            </span>
+            <div className={`text-2xl sm:text-3xl font-extrabold font-mono tracking-tight ${
+              resumen.saldoNeto >= 0 ? 'text-slate-900' : 'text-rose-600'
+            }`}>
+              {formatCurrency(resumen.saldoNeto)}
+            </div>
+            <span className="text-[11px] font-medium text-slate-500 block">
+              {resumen.saldoNeto >= 0 ? 'Balance operacional positivo' : 'Déficit operacional del período'}
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+            <DollarSign size={22} />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Barra de Búsqueda y Filtros Optimizada */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-4 space-y-3 shadow-xs">
+        {/* Pestañas tipo píldora para filtrar por Tipo */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+            {[
+              { id: 'all', label: 'Todos', count: movimientos.length },
+              { id: 'ingreso', label: 'Ingresos', count: countIngresos, isIngreso: true },
+              { id: 'egreso', label: 'Egresos', count: countEgresos, isEgreso: true },
+            ].map(tab => {
+              const active = filtros.tipo === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setFiltros(f => ({ ...f, tipo: tab.id }))}
+                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    active 
+                      ? 'bg-white text-slate-900 shadow-xs' 
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  }`}
+                >
+                  {tab.isIngreso && <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />}
+                  {tab.isEgreso && <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />}
+                  <span>{tab.label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    active ? 'bg-slate-100 text-slate-800' : 'bg-slate-200/70 text-slate-600'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Rango de Fechas compacto inline */}
+          <div className="flex flex-wrap items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/80">
+            <Calendar size={13} className="text-slate-400 ml-1 shrink-0" />
+            <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+              <span>Desde:</span>
+              <input
+                type="date"
+                value={filtros.fechaDesde}
+                onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
+                className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer"
+              />
+            </div>
+            <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+              <span>Hasta:</span>
+              <input
+                type="date"
+                value={filtros.fechaHasta}
+                onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
+                className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer"
+              />
+            </div>
+            {(filtros.fechaDesde || filtros.fechaHasta) && (
+              <button
+                type="button"
+                onClick={() => setFiltros(f => ({ ...f, fechaDesde: '', fechaHasta: '' }))}
+                className="text-slate-400 hover:text-slate-700 p-0.5 rounded cursor-pointer"
+                title="Limpiar fechas"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Buscador y selectores secundarios */}
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+          <div className="relative flex-1 w-full">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
               type="text"
               value={filtros.search}
               onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
-              placeholder="Buscar por documento, tercero, RUC..."
-              iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
-              size="2"
-              color="gray"
-              className="w-full"
+              placeholder="Buscar por número de documento, tercero, RUC o concepto..."
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-900 transition-all"
             />
-          </UiBox>
+          </div>
 
-          <UiSelect value={filtros.tipo} onChange={e => setFiltros(f => ({ ...f, tipo: e.target.value }))}
-            {...{"size":"2","color":"gray"}}>
-            <option value="all">Todos los tipos</option>
-            <option value="ingreso">Ingresos</option>
-            <option value="egreso">Egresos</option>
-          </UiSelect>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* Estado */}
+            <select
+              value={filtros.estado}
+              onChange={e => setFiltros(f => ({ ...f, estado: e.target.value }))}
+              className="w-full sm:w-auto px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer"
+            >
+              <option value="all">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="parcial">Parcial</option>
+              <option value="pagado">Pagado</option>
+              <option value="anulado">Anulado</option>
+            </select>
 
-          <UiSelect value={filtros.estado} onChange={e => setFiltros(f => ({ ...f, estado: e.target.value }))}
-            {...{"size":"2","color":"gray"}}>
-            <option value="all">Todos los estados</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="parcial">Parcial</option>
-            <option value="pagado">Pagado</option>
-            <option value="anulado">Anulado</option>
-          </UiSelect>
+            {/* Limpiar filtros */}
+            {hasActiveFilters && (
+              <button
+                onClick={handleResetFilters}
+                className="px-2.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer shrink-0"
+                title="Restablecer filtros"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-          <UiInput type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
-            {...{"size":"2","color":"gray"}} />
-          <UiInput type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
-            {...{"size":"2","color":"gray"}} />
-
-          <UiButton onClick={handleExportCsv}
-            {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1"}}>
-            <Download size={14} /> CSV
-          </UiButton>
-          <UiButton onClick={() => { setEditingMov(null); setShowForm(true); }}
-            {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1"}}>
-            <Plus size={14} /> Nuevo
-          </UiButton>
-        </UiBox>
-      </UiCard>
-
-      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"overflow-hidden"}}>
+      {/* 4. Tabla de Movimientos */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
         {movimientos.length === 0 ? (
-          <UiBox {...{"className":"text-center py-12"}}>
-            <FileText size={40} {...{"style":{"color":"var(--gray-11)"},"className":"mx-auto mb-3"}} />
-            <UiText as="p" {...{"color":"gray","className":"mb-1"}}>No hay movimientos registrados</UiText>
-            <UiText as="p" {...{"color":"gray","size":"2","className":"mb-4"}}>Crea el primer ingreso o gasto para empezar</UiText>
-            <UiButton onClick={() => { setEditingMov(null); setShowForm(true); }}
-              {...{"variant":"solid","color":"blue","size":"2","className":"flex items-center gap-1 mx-auto"}}>
-              <Plus size={14} /> Nuevo Movimiento
-            </UiButton>
-          </UiBox>
+          <div className="text-center py-16 px-4">
+            <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto mb-3 border border-slate-100">
+              <FileText size={24} />
+            </div>
+            <h3 className="text-sm font-bold text-slate-800 mb-1">No hay movimientos registrados</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
+              {hasActiveFilters 
+                ? 'No se encontraron movimientos que coincidan con los filtros aplicados.' 
+                : 'Empieza registrando tu primer ingreso o egreso operativo en el sistema.'}
+            </p>
+            {hasActiveFilters ? (
+              <button
+                onClick={handleResetFilters}
+                className="py-1.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw size={13} />
+                <span>Restablecer Filtros</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => { setEditingMov(null); setShowForm(true); }}
+                className="py-1.5 px-4 rounded-xl bg-[#1b1b1b] hover:bg-black text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>Nuevo Movimiento</span>
+              </button>
+            )}
+          </div>
         ) : (
-          <UiBox {...{"className":"overflow-x-auto"}}>
-            <UiTable {...{"className":"w-full"}}>
-              <UiTableHeader>
-                <UiTableRow {...{"style":{"backgroundColor":"var(--color-panel-solid)"}}}>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left"}}>Fecha</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left"}}>Tipo</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left"}}>Documento</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left"}}>Tercero</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-left hidden sm:table-cell"}}>Categoría</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right"}}>Monto</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right hidden md:table-cell"}}>Saldo</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-center"}}>Estado</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right"}}>Acciones</UiTableHead>
-                </UiTableRow>
-              </UiTableHeader>
-              <UiTableBody>
-                {movimientos.map(mov => (
-                  <UiTableRow key={mov.id}>
-                    <UiTableCell style={{ color: "var(--gray-12)" }} className="px-3 py-2.5 whitespace-nowrap">{formatDate(mov.fecha)}</UiTableCell>
-                    <UiTableCell className="px-3 py-2.5">
-                      <Badge variant="soft" color={mov.tipo === 'ingreso' ? 'green' : 'red'} size="1">
-                        {mov.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
-                      </Badge>
-                    </UiTableCell>
-                    <UiTableCell style={{ color: "var(--gray-12)" }} className="px-3 py-2.5 text-xs">
-                      <span className="font-medium">{mov.documento?.tipo}</span><br />
-                      <span style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-11)" }}>{mov.documento?.numero}</span>
-                    </UiTableCell>
-                    <UiTableCell style={{ color: "var(--gray-12)" }} className="px-3 py-2.5 text-xs">
-                      <span className="font-medium">{mov.tercero?.nombre}</span><br />
-                      <span style={{ color: "var(--gray-11)" }}>{mov.tercero?.ruc}</span>
-                    </UiTableCell>
-                    <UiTableCell className="px-3 py-2.5 hidden sm:table-cell text-xs" style={{ color: "var(--gray-11)" }}>
-                      {mov.partidas?.[0]?.categoria?.replace(/_/g, ' ') || '-'}
-                    </UiTableCell>
-                    <UiTableCell style={{ fontFamily: "var(--code-font-family)", color: "var(--gray-12)" }} className="px-3 py-2.5 text-right font-medium">{formatCurrency(mov.monto)}</UiTableCell>
-                    <UiTableCell className="px-3 py-2.5 text-right hidden md:table-cell">
-                      <span style={{ fontFamily: "var(--code-font-family)", color: Number(mov.saldoPendiente) > 0 ? "var(--amber-11)" : "var(--gray-11)" }} className="font-medium">
-                        {formatCurrency(mov.saldoPendiente)}
-                      </span>
-                    </UiTableCell>
-                    <UiTableCell className="px-3 py-2.5 text-center">
-                      <Badge variant="soft" color={mov.estado === 'pagado' ? 'green' : mov.estado === 'pendiente' ? 'amber' : mov.estado === 'parcial' ? 'blue' : 'red'} size="1">
-                        {mov.estado}
-                      </Badge>
-                    </UiTableCell>
-                    <UiTableCell className="px-3 py-2.5">
-                      <UiBox className="flex items-center justify-end gap-1">
-                        <UiButton iconOnly variant="soft" color="amber" size="1" onClick={() => setShowDetalle(mov)} title="Ver detalle"><Eye size={13} /></UiButton>
-                        {mov.origen === 'finanzas' && mov.estado !== 'anulado' && (
-                          <UiButton iconOnly variant="soft" color="gray" size="1" onClick={() => { setEditingMov(mov); setShowForm(true); }} title="Editar"><Edit2 size={13} /></UiButton>
-                        )}
-                        {(mov.estado === 'pendiente' || mov.estado === 'parcial') && (
-                          <UiButton iconOnly variant="soft" color="blue" size="1" onClick={() => setShowAbono(mov)} title="Abonar"><Wallet size={13} /></UiButton>
-                        )}
-                        {mov.estado !== 'anulado' && (
-                          <UiButton iconOnly variant="soft" color="red" size="1" onClick={() => handleAnular(mov.id)} title="Anular"><Trash2 size={13} /></UiButton>
-                        )}
-                      </UiBox>
-                    </UiTableCell>
-                  </UiTableRow>
-                ))}
-              </UiTableBody>
-            </UiTable>
-          </UiBox>
-        )}
-      </UiBox>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+                  <th className="px-4 py-3 whitespace-nowrap">Fecha</th>
+                  <th className="px-3 py-3">Tipo</th>
+                  <th className="px-4 py-3">Documento</th>
+                  <th className="px-4 py-3">Tercero</th>
+                  <th className="px-3 py-3 hidden sm:table-cell">Categoría</th>
+                  <th className="px-4 py-3 text-right">Monto</th>
+                  <th className="px-4 py-3 text-right hidden md:table-cell">Saldo</th>
+                  <th className="px-3 py-3 text-center">Estado</th>
+                  <th className="px-4 py-3 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {movimientos.map(mov => {
+                  const saldo = Number(mov.saldoPendiente || 0);
+                  const isIngreso = mov.tipo === 'ingreso';
 
+                  return (
+                    <tr key={mov.id} className="hover:bg-slate-50/60 transition-colors">
+                      {/* Fecha */}
+                      <td className="px-4 py-3 whitespace-nowrap font-medium text-slate-700">
+                        {formatDate(mov.fecha)}
+                      </td>
+
+                      {/* Tipo */}
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        {isIngreso ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <TrendingUp size={11} /> Ingreso
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                            <TrendingDown size={11} /> Egreso
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Documento */}
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-900 leading-tight">
+                          {formatDocTipo(mov.documento?.tipo)}
+                        </div>
+                        <div className="font-mono text-[11px] text-slate-500 mt-0.5">
+                          {mov.documento?.numero || '-'}
+                        </div>
+                      </td>
+
+                      {/* Tercero */}
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-900 leading-tight line-clamp-1 max-w-[240px]">
+                          {mov.tercero?.nombre || 'CONSUMIDOR FINAL'}
+                        </div>
+                        <div className="font-mono text-[11px] text-slate-500 mt-0.5">
+                          {mov.tercero?.ruc || '-'}
+                        </div>
+                      </td>
+
+                      {/* Categoría */}
+                      <td className="px-3 py-3 hidden sm:table-cell text-slate-600">
+                        {formatCategoria(mov.partidas?.[0]?.categoria)}
+                      </td>
+
+                      {/* Monto */}
+                      <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                        {formatCurrency(mov.monto)}
+                      </td>
+
+                      {/* Saldo Pendiente */}
+                      <td className="px-4 py-3 text-right hidden md:table-cell font-mono whitespace-nowrap">
+                        <span className={`font-semibold ${saldo > 0.005 ? 'text-amber-600' : 'text-slate-400'}`}>
+                          {formatCurrency(saldo)}
+                        </span>
+                      </td>
+
+                      {/* Estado */}
+                      <td className="px-3 py-3 text-center whitespace-nowrap">
+                        {mov.estado === 'pagado' && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Pagado
+                          </span>
+                        )}
+                        {mov.estado === 'pendiente' && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                            Pendiente
+                          </span>
+                        )}
+                        {mov.estado === 'parcial' && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                            Parcial
+                          </span>
+                        )}
+                        {mov.estado === 'anulado' && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                            Anulado
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* 1. Ver detalle */}
+                          <button
+                            type="button"
+                            onClick={() => setShowDetalle(mov)}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                            title="Ver detalle del movimiento"
+                          >
+                            <Eye size={14} />
+                          </button>
+
+                          {/* 2. Abonar (si está pendiente o parcial) */}
+                          {(mov.estado === 'pendiente' || mov.estado === 'parcial') && (
+                            <button
+                              type="button"
+                              onClick={() => setShowAbono(mov)}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                              title="Registrar abono"
+                            >
+                              <Wallet size={14} />
+                            </button>
+                          )}
+
+                          {/* 3. Editar (si es origen finanzas y no anulado) */}
+                          {mov.origen === 'finanzas' && mov.estado !== 'anulado' && (
+                            <button
+                              type="button"
+                              onClick={() => { setEditingMov(mov); setShowForm(true); }}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                              title="Editar movimiento"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                          )}
+
+                          {/* 4. Anular */}
+                          {mov.estado !== 'anulado' && (
+                            <button
+                              type="button"
+                              onClick={() => handleAnular(mov.id)}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Anular movimiento"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Modales Existentes */}
       {showForm && (
         <MovimientoForm
           movimiento={editingMov}
@@ -326,6 +598,6 @@ export default function MovimientosView({ db, usuario, showToast }) {
           onClose={() => setShowDetalle(null)}
         />
       )}
-    </UiBox>
+    </div>
   );
 }
