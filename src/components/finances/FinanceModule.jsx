@@ -531,7 +531,18 @@ export default function FinanceModule({
 
               {/* SECCIÓN CUENTAS POR COBRAR (CxC) */}
               {activeTab === 'cxc' && (
-                <CuentasPorCobrarView db={db} usuario={usuario} showToast={showToast} />
+                <CuentasPorCobrarView 
+                  db={db} 
+                  usuario={usuario} 
+                  showToast={showToast}
+                  appId={appId}
+                  thirdParties={thirdParties}
+                  transactions={transactions}
+                  onOpenTransaction={(tx) => {
+                    setEditingTx(tx);
+                    setIsModalOpen(true);
+                  }}
+                />
               )}
 
               {/* SECCIÓN CUENTAS POR PAGAR (CxP) */}
