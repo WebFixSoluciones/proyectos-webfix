@@ -713,6 +713,28 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Permitida la eliminación controlada de facturas en estado borrador que carezcan de clave de acceso fiscal del SRI.
 - **Pruebas y Build**: 53 tests unitarios aprobados (`npm test`), compilación de producción limpia en 18.32s (`npm run build`).
 
+### 55. Rediseño Limpio y sin Ruido del Dashboard de Resumen Financiero (2026-09-30) — COMPLETADO
+- **Estética Flat Modern sin Ruido (`ResumenFinancieroView.jsx`)**:
+  - **Encabezado y Selector de Período**: Selector de mes minimalista con icono de calendario encapsulado en píldora blanca limpia y botón de recarga integrado, sin bordes toscos ni inputs nativos pesados.
+  - **Pestañas Segmentadas**: Barra de navegación estilo Brevo (`General`, `Flujo de Caja`, `Forecast`) con esquinas redondeadas, fondo suave (`bg-slate-100`) e iconos contextuales (`LayoutGrid`, `BarChart3`, `Target`), suprimiendo la línea divisora rígida inferior.
+  - **4 Tarjetas KPI de Salud Financiera**:
+    - **Flujo del Mes**: Cifra contundente en alta legibilidad, contenedor de icono verde esmeralda y desglose mediante píldoras de ingresos y egresos.
+    - **Cartera Neta**: Cifra destacada, contenedor azul con balance claro entre CxC y CxP.
+    - **Deuda Total**: Total de pasivos financieros con estado amigable de *"Sin obligaciones vencidas"* cuando el pasivo es cero.
+    - **Liquidez Disponible**: Cifra centralizada con desglose ordenado de saldos en Bancos y Caja chica.
+  - **Antigüedad de Cartera (Aging CxC y CxP) Depurada**:
+    - Sustituidas las tablas vacías llenas de ceros por tarjetas ejecutivas con barra de distribución proporcional superior.
+    - Filas con puntos de estado semánticos (Verde: Al día 0-30d, Amarillo: 31-60d, Naranja: 61-90d, Rojo: Crítico +90d).
+    - Los tramos en cero se muestran atenuados (`text-slate-400`), mientras que los tramos con documentos activos se realzan con insignias y tipografía mono.
+    - Enlaces de acción directa rápida en cabecera: *"Ver Cartera CxC →"* y *"Ver CxP →"*.
+    - Banner informativo de tranquilidad cuando no existen obligaciones pendientes de pago.
+  - **Accesos Directos Renovados**:
+    - Cuadrícula compacta y moderna de 6 micro-tarjetas con icono en contenedor pastel, título en negrita, micro-descripción y flecha de acción dinámica (`ArrowUpRight`).
+  - **Pestañas de Flujo de Caja y Forecast**:
+    - Flujo mensual con 3 tarjetas de balance y gráfico comparativo de barras redondeadas por mes.
+    - Forecast con 3 tarjetas de horizonte (30, 60 y 90 días) con superávit/déficit estimado y desglose de liquidez vs compromisos.
+- **Pruebas y Build**: 54 tests unitarios aprobados (`npm test`), compilación de producción exitosa en 5.62s (`npm run build`).
+
 
 
 
