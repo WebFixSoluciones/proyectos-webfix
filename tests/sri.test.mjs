@@ -4,7 +4,7 @@ import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
 import { reserveSriEmission, saveSriResult } from '../src/services/sriEmission.js';
 import { parseSriAuthorization, sriDocumentLinks } from '../src/services/sriAuthorization.js';
 import { recoverInvoiceFromSri, recoveredInvoice } from '../src/services/sriRecovery.js';
-import { generarClaveAcceso, simularTransmisionSRI, reintentarDocumentoSRI } from '../src/services/sriService.js';
+import { generarClaveAcceso, simularTransmisionSRI, reintentarDocumentoSRI, generarFacturaXML, normalizarPagosFactura } from '../src/services/sriService.js';
 import { invoiceLineAmounts } from '../src/services/invoiceLine.js';
 import { notifyAuthorizedInvoice } from '../src/services/invoiceNotification.js';
 import { reconcileSriDocument, batchReconcileSriDocuments, scanAllTenantsPendingSri, getDocumentTypeName } from '../src/services/sriReconciliation.js';
@@ -406,3 +406,82 @@ test('cron reconcile-sri endpoint handles cron execution and document processing
   assert.equal(jsonResult.summary.failed, 2);
   assert.equal(jsonResult.results[0].status, 'error_clave');
 });
+
+test('credit payment breakdown deduplicates cruce_cuentas and credito to avoid SRI Error 52', () => {
+  const emisorConfig = {
+    ruc: '1792677588001',
+    razonSocial: 'WEB FIX S.A.',
+    nombreComercial: 'WEB FIX',
+    dirMatriz: 'QUITO',
+    establecimiento: '001',
+    puntoEmision: '001',
+    ambiente: '1',
+    obligadoContabilidad: false
+  };
+
+  const invoiceData = {
+    date: '2026-09-30',
+    documentNumber: '001-001-000000172',
+    secuencial: '172',
+    codigoNumerico: '12345678',
+    paymentMethod: 'credito',
+    paymentsBreakdown: {
+      efectivo: 0,
+      transferencia: 0,
+      tarjeta: 0,
+      cruce_cuentas: 138,
+      credito: 138
+    }
+  };
+
+  const tercero = {
+    name: 'CORPORACIÓN PREVENCION & SISTEMAS DE GESTIÓN EN EL TRABAJO CP&SGT S.A.',
+    ruc: '1792677588001',
+    tipoIdentificacion: '04'
+  };
+
+  const items = [
+    {
+      name: 'Soporte Digital',
+      quantity: 3,
+      price: 20,
+      tarifa_iva: 0.15,
+      tax_mode: 'MAS_IVA'
+    },
+    {
+      name: 'Soporte Digital',
+      quantity: 1,
+      price: 20,
+      tarifa_iva: 0.15,
+      tax_mode: 'MAS_IVA'
+    },
+    {
+      name: 'Soporte Digital',
+      quantity: 2,
+      price: 20,
+      tarifa_iva: 0.15,
+      tax_mode: 'MAS_IVA'
+    }
+  ];
+
+  // 1. Verificar normalizarPagosFactura
+  const normalized = normalizarPagosFactura(invoiceData, 138.00);
+  assert.equal(normalized.length, 1);
+  assert.equal(normalized[0].metodo, 'credito');
+  assert.equal(normalized[0].monto, 138.00);
+
+  // 2. Verificar que generarFacturaXML genera exactamente un bloque <pago> con código 20 y total 138.00
+  const { xml, claveAcceso } = generarFacturaXML(emisorConfig, invoiceData, tercero, items);
+  assert.ok(xml.includes('<importeTotal>138.00</importeTotal>'));
+  assert.ok(xml.includes('<formaPago>20</formaPago>'));
+  assert.ok(!xml.includes('<formaPago>15</formaPago>'));
+
+  // Extraer todos los valores de <total> dentro de <pagos>
+  const pagosSection = xml.match(/<pagos>([\s\S]*?)<\/pagos>/)[1];
+  const totales = [...pagosSection.matchAll(/<total>([^<]+)<\/total>/g)].map(m => Number(m[1]));
+  const sumaPagos = totales.reduce((acc, v) => acc + v, 0);
+
+  assert.equal(totales.length, 1);
+  assert.equal(sumaPagos, 138.00, 'La sumatoria de formas de pago debe ser exactamente 138.00, no 276.00');
+});
+

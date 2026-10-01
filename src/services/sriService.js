@@ -239,6 +239,58 @@ export function mapearFormaPagoSRI(method) {
   return '01'; // Sin utilización del sistema financiero (Efectivo)
 }
 
+// Normalizar desglose de formas de pago para evitar duplicaciones (por ejemplo cruce_cuentas y credito son alias)
+// y asegurar que la suma de pagos coincida exactamente con importeTotal según la ficha técnica del SRI (Error 52).
+export function normalizarPagosFactura(facturaData, importeTotal) {
+  const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+  const total = round2(importeTotal);
+
+  if (facturaData && facturaData.paymentsBreakdown) {
+    const raw = facturaData.paymentsBreakdown;
+    const items = [];
+
+    // Efectivo
+    if (Number(raw.efectivo) > 0) {
+      items.push({ metodo: 'efectivo', monto: round2(raw.efectivo) });
+    }
+    // Transferencia
+    if (Number(raw.transferencia) > 0) {
+      items.push({ metodo: 'transferencia', monto: round2(raw.transferencia) });
+    }
+    // Tarjeta
+    if (Number(raw.tarjeta) > 0) {
+      items.push({ metodo: 'tarjeta', monto: round2(raw.tarjeta) });
+    }
+    // Crédito / Cruce de Cuentas (se toma una sola vez ya que credito y cruce_cuentas son sinónimos internos)
+    const creditVal = Number(raw.credito ?? raw.cruce_cuentas ?? 0);
+    if (creditVal > 0) {
+      items.push({ metodo: 'credito', monto: round2(creditVal) });
+    }
+    // Otros métodos no estándar
+    for (const [key, val] of Object.entries(raw)) {
+      if (!['efectivo', 'transferencia', 'tarjeta', 'cruce_cuentas', 'credito'].includes(key) && Number(val) > 0) {
+        items.push({ metodo: key, monto: round2(val) });
+      }
+    }
+
+    if (items.length > 0) {
+      if (items.length === 1) {
+        items[0].monto = total;
+      } else {
+        const suma = items.reduce((acc, p) => acc + p.monto, 0);
+        const diff = round2(total - suma);
+        if (Math.abs(diff) > 0 && Math.abs(diff) <= 0.05) {
+          items[items.length - 1].monto = round2(items[items.length - 1].monto + diff);
+        }
+      }
+      return items;
+    }
+  }
+
+  // Fallback al método principal
+  return [{ metodo: facturaData?.paymentMethod || 'efectivo', monto: total }];
+}
+
 // Generar estructura XML para Factura
 export function generarFacturaXML(emisorConfig, facturaData, terceroData, items = []) {
   const codigoNumerico = facturaData.codigoNumerico ||
@@ -349,21 +401,12 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     <importeTotal>${importeTotal.toFixed(2)}</importeTotal>
     <moneda>DOLAR</moneda>
     <pagos>${(() => {
-      if (facturaData.paymentsBreakdown) {
-        const valid = Object.entries(facturaData.paymentsBreakdown).filter(([_, m]) => Number(m) > 0);
-        if (valid.length > 0) {
-          return valid.map(([metodo, monto]) => `
+      const pagos = normalizarPagosFactura(facturaData, importeTotal);
+      return pagos.map(p => `
       <pago>
-        <formaPago>${mapearFormaPagoSRI(metodo)}</formaPago>
-        <total>${round2(monto).toFixed(2)}</total>
+        <formaPago>${mapearFormaPagoSRI(p.metodo)}</formaPago>
+        <total>${round2(p.monto).toFixed(2)}</total>
       </pago>`).join('');
-        }
-      }
-      return `
-      <pago>
-        <formaPago>${mapearFormaPagoSRI(facturaData.paymentMethod)}</formaPago>
-        <total>${importeTotal.toFixed(2)}</total>
-      </pago>`;
     })()}
     </pagos>
   </infoFactura>
@@ -796,7 +839,7 @@ export async function simularTransmisionSRI(documentoData, configSRI, onLogUpdat
 export async function reintentarDocumentoSRI(document, onLogUpdate) {
   const ambiente = document.claveAcceso?.[23];
   const result = await consultarAutorizacionSRI(document.claveAcceso, ambiente);
-  if (result.status !== 'pendiente_sri') return result;
+  if (result.status === 'autorizado') return result;
   return simularTransmisionSRI(document, { ambiente }, onLogUpdate);
 }
 

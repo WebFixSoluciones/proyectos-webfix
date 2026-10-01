@@ -1363,8 +1363,48 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     try {
       const persisted = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', formData.id));
       if (!persisted.exists() || persisted.data().claveAcceso !== formData.claveAcceso) throw new Error('No se encontró la misma identidad fiscal guardada.');
-      const snapshot = { ...persisted.data(), id: formData.id };
-      const result = retry === true && snapshot.sriStatus === 'pendiente_sri'
+      let snapshot = { ...persisted.data(), id: formData.id };
+
+      let currentConfig = sriConfig;
+      if (!currentConfig?.certificadoBase64) {
+        try {
+          const configSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+          if (configSnap.exists()) currentConfig = configSnap.data();
+        } catch { /* use currentConfig */ }
+      }
+
+      // Si el comprobante NO está autorizado y tiene error de diferencias en formas de pago (error 52)
+      // o cruce_cuentas + credito duplicados en el XML, regeneramos el XML con la misma clave y lo refirmamos
+      const hasPaymentDiffError = Boolean(
+        snapshot.sriStatus !== 'autorizado' && (
+          (snapshot.sriLastError && (snapshot.sriLastError.includes('formas pago') || snapshot.sriLastError.includes('DIFERENCIAS') || snapshot.sriLastError.includes('[52]'))) ||
+          (snapshot.xml && snapshot.xml.includes('<formaPago>15</formaPago>') && snapshot.xml.includes('<formaPago>20</formaPago>'))
+        )
+      );
+
+      if (retry === true && hasPaymentDiffError && currentConfig?.certificadoBase64 && currentConfig?.certificadoClave) {
+        try {
+          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: 'Corrigiendo desglose de formas de pago y re-firmando XML...', status: 'info' }]);
+          const receiver = thirdParties.find(tp => tp.id === snapshot.thirdPartyId) || snapshot.thirdParty;
+          const generators = { factura: generarFacturaXML, retencion: generarRetencionXML, nota_credito: generarNotaCreditoXML, liquidacion: generarLiquidacionXML, guia_remision: generarGuiaRemisionXML };
+          const generate = generators[snapshot.documentType || 'factura'];
+          if (generate) {
+            const { xml, claveAcceso } = generate(currentConfig, snapshot, receiver, snapshot.items || []);
+            const signedXml = firmarComprobanteXML(xml, currentConfig.certificadoBase64, currentConfig.certificadoClave);
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', snapshot.id), {
+              xml: signedXml,
+              claveAcceso,
+              sriStatus: 'pendiente_sri',
+              sriLastError: ''
+            }, { merge: true });
+            snapshot = { ...snapshot, xml: signedXml, claveAcceso, sriStatus: 'pendiente_sri', sriLastError: '' };
+          }
+        } catch (repairErr) {
+          console.warn('Error al reparar y refirmar comprobante:', repairErr);
+        }
+      }
+
+      const result = retry === true && ['pendiente_sri', 'devuelto', 'no_autorizado'].includes(snapshot.sriStatus)
         ? await reintentarDocumentoSRI(snapshot, setSriLogs)
         : await consultarAutorizacionSRI(snapshot.claveAcceso, snapshot.sriAmbiente || snapshot.claveAcceso[23]);
       const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
@@ -1372,7 +1412,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       setCurrentStep(2);
       if (updated.sriStatus === 'autorizado') {
         await finishAuthorizedEmission(updated);
-        await enviarCorreoComprobante(updated, thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty, sriConfig);
+        await enviarCorreoComprobante(updated, thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty, currentConfig || sriConfig);
       }
       else showToast(result.message || 'Autorización pendiente; se conserva el mismo comprobante.', 'warning');
     } catch (error) {

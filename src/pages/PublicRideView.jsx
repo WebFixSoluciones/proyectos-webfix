@@ -226,18 +226,24 @@ export default function PublicRideView() {
     const getMethodLabel = (method) => {
       switch (method) {
         case 'efectivo': return '01 - SIN UTILIZACION DEL SISTEMA FINANCIERO (EFECTIVO)';
-        case 'tarjeta': return '19 - TARJETA DE CREDITO/DEBITO';
-        case 'transferencia': return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO';
+        case 'tarjeta': return '19 - TARJETA DE CREDITO';
+        case 'tarjeta_debito': return '16 - TARJETA DE DEBITO';
+        case 'transferencia': return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO (TRANSFERENCIA)';
+        case 'credito':
+        case 'credito_directo': return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO (CRÉDITO DIRECTO)';
         case 'cruce_cuentas': return '15 - COMPENSACION DE DEUDAS';
-        case 'credito': return '19 - TARJETA DE CREDITO/DEBITO (CRÉDITO)';
         default: return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO';
       }
     };
     if (Number(breakdown.efectivo || 0) > 0) rows.push({ method: getMethodLabel('efectivo'), val: breakdown.efectivo });
     if (Number(breakdown.transferencia || 0) > 0) rows.push({ method: getMethodLabel('transferencia'), val: breakdown.transferencia });
     if (Number(breakdown.tarjeta || 0) > 0) rows.push({ method: getMethodLabel('tarjeta'), val: breakdown.tarjeta });
-    if (Number(breakdown.cruce_cuentas || 0) > 0) rows.push({ method: getMethodLabel('cruce_cuentas'), val: breakdown.cruce_cuentas });
-    if (Number(breakdown.credito || 0) > 0) rows.push({ method: getMethodLabel('credito'), val: breakdown.credito });
+
+    // Deduplicar credito y cruce_cuentas: si ambos vienen con el mismo saldo o alias, mostrar una sola vez como crédito directo
+    const creditAmount = Number(breakdown.credito ?? breakdown.cruce_cuentas ?? 0);
+    if (creditAmount > 0) {
+      rows.push({ method: getMethodLabel('credito'), val: creditAmount });
+    }
 
     if (rows.length === 0) {
       rows.push({ method: getMethodLabel(tx.paymentMethod || 'efectivo'), val: tx.total || 0 });
