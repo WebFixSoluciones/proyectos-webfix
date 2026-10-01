@@ -6,7 +6,7 @@ import {
   Package, Plus, Search, Tag, BarChart3, 
   ArrowRightLeft, Settings, Database, RefreshCw, 
   Trash2, Briefcase, PlusCircle, CheckCircle, ShieldAlert,
-  SlidersHorizontal, Layers, Award, Edit2, X, Box
+  SlidersHorizontal, Layers, Award, Edit2, X, Box, ArrowRight
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import ProductCreationForm from './ProductCreationForm';
@@ -969,89 +969,137 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
       </UiBox>
 
       {/* --- MODAL DIALOGS --- */}
+      {/* --- MODAL DIALOGS: SELECCIONAR TIPO DE PRODUCTO --- */}
       {showProductTypeSelector && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300"}}>
-          <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-6"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
-            <UiBox {...{"className":"flex items-center justify-between mb-5"}}>
-              <UiHeading as="h3" {...{"size":"3","weight":"bold","className":"flex items-center gap-2"}}>
-                <Package {...{"style":{"color":"var(--blue-12)"}}} size={18} />
-                Seleccionar Tipo de Producto
-              </UiHeading>
-              <UiButton iconOnly
+        <div
+          style={{ backgroundColor: 'var(--black-a7)' }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setShowProductTypeSelector(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ backgroundColor: 'var(--color-panel-solid)', color: 'var(--gray-12)' }}
+            className="w-full max-w-lg p-6 rounded-2xl border border-slate-200 shadow-2xl space-y-4"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
+                  <Package size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 leading-tight">
+                    Seleccionar Tipo de Producto
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    ¿Qué tipo de artículo deseas registrar en tu catálogo?
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
                 onClick={() => setShowProductTypeSelector(false)}
-                {...mergeThemeProps({}, {}, {"color":"gray"})}
+                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center cursor-pointer transition-colors"
+                title="Cerrar"
               >
                 <X size={16} />
-              </UiButton>
-            </UiBox>
-            
-            <UiText as="p" {...mergeThemeProps({"size":"1","className":"mb-4"}, {}, {"color":"gray"})}>
-              ¿Qué tipo de producto deseas registrar en el catálogo?
-            </UiText>
-            
-            <UiBox {...{"className":"space-y-2.5"}}>
-              <UiButton
+              </button>
+            </div>
+
+            {/* Options List - Clean Cards without fixed heights */}
+            <div className="space-y-3 pt-1">
+              {/* 1. Producto Estándar */}
+              <button
+                type="button"
                 onClick={() => {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'STANDARD' });
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                {...mergeThemeProps({"variant":"outline","className":"w-full text-left flex items-start gap-3.5 group"}, {}, {"variant":"soft","color":"gray"})}
+                className="w-full p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 bg-white transition-all text-left flex items-start gap-3.5 cursor-pointer group shadow-none"
               >
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2.5 group-hover:scale-110 transition-transform"})}>
-                  <Package size={16} />
-                </UiBox>
-                <UiBox>
-                  <UiText {...{"size":"1","weight":"bold","className":"block"}}>Producto Estándar</UiText>
-                  <UiText {...mergeThemeProps({"size":"1","className":"block mt-0.5"}, {}, {"color":"gray"})}>
-                    Productos individuales sin variantes ni agrupaciones.
-                  </UiText>
-                </UiBox>
-              </UiButton>
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                  <Package size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                      Producto Estándar
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200/80">
+                      Recomendado
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    Artículos individuales con control de stock y precio propio, sin variantes ni agrupaciones.
+                  </p>
+                </div>
+                <ArrowRight size={16} className="text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all self-center shrink-0" />
+              </button>
 
-              <UiButton
+              {/* 2. Subproducto / Variante */}
+              <button
+                type="button"
                 onClick={() => {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'SUBPRODUCT' });
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                {...mergeThemeProps({"variant":"outline","className":"w-full text-left flex items-start gap-3.5 group"}, {}, {"variant":"soft","color":"gray"})}
+                className="w-full p-4 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/40 bg-white transition-all text-left flex items-start gap-3.5 cursor-pointer group shadow-none"
               >
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2.5 group-hover:scale-110 transition-transform"})}>
-                  <Layers size={16} />
-                </UiBox>
-                <UiBox>
-                  <UiText {...{"size":"1","weight":"bold","className":"block"}}>Subproducto / Variante</UiText>
-                  <UiText {...mergeThemeProps({"size":"1","className":"block mt-0.5"}, {}, {"color":"gray"})}>
-                    Mismo artículo con variaciones (talla, color o dimensiones).
-                  </UiText>
-                </UiBox>
-              </UiButton>
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                  <Layers size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">
+                      Subproducto / Variante
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200/80">
+                      Con Atributos
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    Mismo artículo con variaciones derivadas (talla, color o dimensiones) asociado a un producto padre.
+                  </p>
+                </div>
+                <ArrowRight size={16} className="text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all self-center shrink-0" />
+              </button>
 
-              <UiButton
+              {/* 3. Combo / Kit */}
+              <button
+                type="button"
                 onClick={() => {
                   setInlineFormMode('create_product');
                   setEditingProduct({ type: 'COMBO' });
                   setShowProductTypeSelector(false);
                   scrollToForm();
                 }}
-                {...mergeThemeProps({"variant":"outline","className":"w-full text-left flex items-start gap-3.5 group"}, {}, {"variant":"soft","color":"gray"})}
+                className="w-full p-4 rounded-xl border border-slate-200 hover:border-purple-500 hover:bg-purple-50/40 bg-white transition-all text-left flex items-start gap-3.5 cursor-pointer group shadow-none"
               >
-                <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-11)"},"className":"p-2.5 group-hover:scale-110 transition-transform"})}>
-                  <Box size={16} />
-                </UiBox>
-                <UiBox>
-                  <UiText {...{"size":"1","weight":"bold","className":"block"}}>Combo / Kit</UiText>
-                  <UiText {...mergeThemeProps({"size":"1","className":"block mt-0.5"}, {}, {"color":"gray"})}>
-                    Paquete que agrupa múltiples productos estándar o servicios.
-                  </UiText>
-                </UiBox>
-              </UiButton>
-            </UiBox>
-          </UiCard>
-        </UiBox>
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 border border-purple-200/80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                  <Box size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
+                      Combo / Kit Promocional
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200/80">
+                      Paquete
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    Paquete o kit que agrupa múltiples productos estándar o servicios con descuento o precio conjunto.
+                  </p>
+                </div>
+                <ArrowRight size={16} className="text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all self-center shrink-0" />
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {isCatBrandOpen && (

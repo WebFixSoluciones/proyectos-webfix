@@ -580,628 +580,780 @@ export default function ProductCreationForm({
       {...(isInline ? mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full"}) : mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"relative w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar"}))}
     >
       {/* Header */}
-      <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
-        <UiBox {...{"className":"flex items-center gap-3"}}>
-          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2"})}>
-            <Package size={20} />
+      <UiBox className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--gray-a6)] bg-[var(--color-panel-solid)] sticky top-0 z-20">
+        <UiBox className="flex items-center gap-3">
+          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-11)"},"className":"p-2 shrink-0 flex items-center justify-center"})}>
+            <Package size={18} />
           </UiBox>
           <UiBox>
-            <UiHeading as="h2" {...mergeThemeProps({"size":"2","weight":"bold","color":"gray","highContrast":true})}>
-              {productToEdit?.id ? 'Editar Producto' : 'Nuevo Producto'} - {
-                formData.type === 'STANDARD' ? 'Estándar' :
-                formData.type === 'SUBPRODUCT' ? 'Subproducto' :
-                formData.type === 'COMBO' ? 'Combo' : 'Estándar'
-              }
-            </UiHeading>
+            <UiBox className="flex items-center gap-2">
+              <UiHeading as="h2" {...mergeThemeProps({"size":"2","weight":"bold","color":"gray","highContrast":true})}>
+                {productToEdit?.id ? 'Editar Producto' : 'Nuevo Producto'}
+              </UiHeading>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[var(--blue-3)] text-[var(--blue-11)] border border-[var(--blue-a4)]">
+                {formData.type === 'STANDARD' ? 'Estándar' :
+                 formData.type === 'SUBPRODUCT' ? 'Subproducto' :
+                 formData.type === 'COMBO' ? 'Combo' : 'Estándar'}
+              </span>
+            </UiBox>
             <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray"})}>
-              {productToEdit?.id ? 'Edita los detalles del producto seleccionado' : 'Registra un nuevo artículo en tu inventario'}
+              {productToEdit?.id ? 'Edita los detalles del artículo en tu catálogo' : 'Registra un nuevo artículo en tu catálogo de inventario'}
             </UiText>
           </UiBox>
         </UiBox>
-        
-        <UiButton iconOnly
-          onClick={onClose}
-          type="button"
-          {...mergeThemeProps({"variant":"soft","color":"gray","className":"hover:scale-105"})}
-        >
-          <X size={18} />
-        </UiButton>
-      </UiCard>
+
+        <UiBox className="flex items-center gap-2.5">
+          {/* Switch Mostrar en Ventas y POS integrado en la cabecera */}
+          <label className="flex items-center gap-2 px-2.5 py-1 rounded-md border border-[var(--gray-a6)] bg-[var(--gray-2)] hover:bg-[var(--gray-3)] cursor-pointer transition-colors select-none">
+            <span className="text-[11px] font-medium text-[var(--gray-11)]">Mostrar en Ventas y POS</span>
+            <input
+              type="checkbox"
+              checked={formData.showInSales}
+              onChange={(e) => setFormData(prev => ({ ...prev, showInSales: e.target.checked }))}
+              className="w-3.5 h-3.5 rounded accent-[var(--accent-9)] cursor-pointer"
+            />
+          </label>
+
+          {/* Botón de Cierre */}
+          <UiButton iconOnly
+            onClick={onClose}
+            type="button"
+            variant="ghost"
+            color="gray"
+            size="2"
+            className="hover:bg-[var(--gray-3)] text-[var(--gray-11)]"
+            title="Cerrar"
+          >
+            <X size={16} />
+          </UiButton>
+        </UiBox>
+      </UiBox>
 
       {/* Content */}
-      <form onSubmit={formStep === 'product_details' ? handleSubmit : handleStep2Submit} {...{"className":"p-5 sm:p-6 space-y-6"}}>
+      <form onSubmit={formStep === 'product_details' ? handleSubmit : handleStep2Submit} className="p-4 sm:p-5 space-y-4">
         {error && (
-          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"flex items-center gap-3 p-4"})}>
-            <AlertCircle size={18} {...{"className":"shrink-0"}} />
-            <UiText as="p" {...{"size":"1","weight":"medium"}}>{error}</UiText>
+          <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--red-a6)","backgroundColor":"var(--red-3)","color":"var(--red-11)"},"className":"flex items-center gap-3 p-3"})}>
+            <AlertCircle size={16} className="shrink-0" />
+            <UiText as="p" size="1" weight="medium">{error}</UiText>
           </UiBox>
         )}
 
         {formStep === 'product_details' ? (
           <>
-        <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4 flex items-center justify-between"})}>
-          <UiBox>
-            <UiText {...{"size":"1","weight":"bold","className":"block"}}>Mostrar en Ventas</UiText>
-            <UiText {...mergeThemeProps({"size":"1","color":"gray","className":"block"})}>
-              Selecciona esta opción si deseas mostrar el producto en el módulo de ventas y POS.
-            </UiText>
-          </UiBox>
-          <UiLabel {...{"className":"relative inline-flex items-center cursor-pointer"}}>
-            <UiInput
-              type="checkbox" 
-              checked={formData.showInSales}
-              onChange={(e) => setFormData(prev => ({ ...prev, showInSales: e.target.checked }))}
-              {...{"className":"sr-only peer"}} 
-            />
-            <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"w-9 h-5 peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:h-4 after:w-4"}}></UiBox>
-          </UiLabel>
-        </UiBox>
+            {/* SUBPRODUCT: Selector de producto padre */}
+            {formData.type === 'SUBPRODUCT' && (
+              <UiBox className="p-3.5 rounded-lg border border-[var(--gray-a6)] bg-[var(--gray-2)] space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <UiLabel size="1" weight="bold" color="gray">Producto Padre Vinculado *</UiLabel>
+                  <UiText size="1" color="gray">El subproducto conserva sus propias existencias</UiText>
+                </div>
+                <UiSelect
+                  required
+                  value={formData.parentId}
+                  onChange={e => setFormData(prev => ({ ...prev, parentId: e.target.value }))}
+                  size="2"
+                  color="gray"
+                  className="w-full"
+                >
+                  <option value="">Seleccionar producto padre...</option>
+                  {relatedProducts.filter(p => p.id !== productToEdit?.id && p.type === 'STANDARD').map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </UiSelect>
+              </UiBox>
+            )}
 
-        {formData.type === 'SUBPRODUCT' && <UiLabel {...{}}>Producto padre
-          <UiSelect required value={formData.parentId} onChange={e => setFormData(prev => ({ ...prev, parentId: e.target.value }))} {...{"className":"mt-2 w-full"}}>
-            <option value="">Seleccionar producto padre</option>
-            {relatedProducts.filter(p => p.id !== productToEdit?.id && p.type === 'STANDARD').map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </UiSelect><UiText {...{"size":"1","color":"gray","className":"mt-2 block"}}>El subproducto conserva sus propias existencias.</UiText>
-        </UiLabel>}
-        {formData.type === 'COMBO' && <section {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"p-4 space-y-3"}}>
-          <UiHeading as="h3" {...{}}>Componentes del combo</UiHeading><UiText as="p" {...{"size":"2","color":"gray"}}>Al vender el combo se descuentan estas cantidades de cada componente.</UiText>
-          {formData.comboItems.map((item: any, index: number) => <UiBox key={index} {...{"className":"flex gap-3 items-center"}}>
-            <UiSelect required aria-label={`Componente ${index + 1}`} value={item.productId} onChange={e => setFormData(prev => ({ ...prev, comboItems: prev.comboItems.map((c: any, i: number) => i === index ? { ...c, productId: e.target.value } : c) }))} {...{"className":"flex-1 min-w-0"}}>
-              <option value="">Seleccionar componente</option>{relatedProducts.filter(p => p.id !== productToEdit?.id && p.type !== 'COMBO' && p.status !== 'INACTIVE').map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </UiSelect><UiInput aria-label={`Cantidad del componente ${index + 1}`} required type="number" min="0.001" step="0.001" value={item.quantity} onChange={e => setFormData(prev => ({ ...prev, comboItems: prev.comboItems.map((c: any, i: number) => i === index ? { ...c, quantity: Number(e.target.value) } : c) }))} {...{"className":"w-24"}} />
-            <UiButton iconOnly type="button" aria-label="Quitar componente" {...{"variant":"surface","color":"blue"}} onClick={() => setFormData(prev => ({ ...prev, comboItems: prev.comboItems.filter((_: any, i: number) => i !== index) }))}><X size={16} /></UiButton>
-          </UiBox>)}<UiButton type="button" {...{"variant":"surface","color":"blue"}} onClick={() => setFormData(prev => ({ ...prev, comboItems: [...prev.comboItems, { productId: '', quantity: 1 }] }))}><Plus size={16} />Agregar componente</UiButton>
-        </section>}
-        {/* Información Básica */}
-        <UiBox {...{"className":"space-y-4"}}>
-          <UiHeading as="h3" {...mergeThemeProps({"size":"1","weight":"bold","color":"blue","className":"flex items-center gap-2"})}>
-            <Box size={14} /> Información Básica
-          </UiHeading>
-          
-          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-12 gap-4"}}>
-            {/* Imagen del producto (compacta) */}
-            <UiBox {...{"className":"md:col-span-3 flex flex-col justify-center items-center"}}>
-              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Imagen del Producto</UiLabel>
-              <UiBox {...{"className":"mt-1 flex items-center justify-center"}}>
-                {formData.imageUrl ? (
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"relative w-20 h-20 overflow-hidden group"}}>
-                    <img src={formData.imageUrl} {...{"className":"w-full h-full object-cover"}} alt="Vista previa" />
+            {/* COMBO: Componentes del kit */}
+            {formData.type === 'COMBO' && (
+              <section className="p-3.5 rounded-lg border border-[var(--gray-a6)] bg-[var(--gray-2)] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <UiHeading as="h3" size="1" weight="bold" color="gray" highContrast>Componentes del Combo</UiHeading>
+                    <UiText as="p" size="1" color="gray">Al vender el combo se descuentan estas existencias de cada componente.</UiText>
+                  </div>
+                  <UiButton
+                    type="button"
+                    variant="surface"
+                    color="blue"
+                    size="1"
+                    onClick={() => setFormData(prev => ({ ...prev, comboItems: [...prev.comboItems, { productId: '', quantity: 1 }] }))}
+                  >
+                    <Plus size={14} className="mr-1" /> Componente
+                  </UiButton>
+                </div>
+                {formData.comboItems.map((item: any, index: number) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <UiSelect
+                      required
+                      aria-label={`Componente ${index + 1}`}
+                      value={item.productId}
+                      onChange={e => setFormData(prev => ({ ...prev, comboItems: prev.comboItems.map((c: any, i: number) => i === index ? { ...c, productId: e.target.value } : c) }))}
+                      size="2"
+                      color="gray"
+                      className="flex-1 min-w-0"
+                    >
+                      <option value="">Seleccionar componente...</option>
+                      {relatedProducts.filter(p => p.id !== productToEdit?.id && p.type !== 'COMBO' && p.status !== 'INACTIVE').map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </UiSelect>
+                    <UiInput
+                      aria-label={`Cantidad del componente ${index + 1}`}
+                      required
+                      type="number"
+                      min="0.001"
+                      step="0.001"
+                      value={item.quantity}
+                      onChange={e => setFormData(prev => ({ ...prev, comboItems: prev.comboItems.map((c: any, i: number) => i === index ? { ...c, quantity: Number(e.target.value) } : c) }))}
+                      size="2"
+                      color="gray"
+                      className="w-24 text-center font-medium"
+                    />
                     <UiButton
+                      iconOnly
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
-                      {...{"variant":"solid","color":"red","size":"2","className":"absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"}}
+                      aria-label="Quitar componente"
+                      variant="surface"
+                      color="red"
+                      size="2"
+                      onClick={() => setFormData(prev => ({ ...prev, comboItems: prev.comboItems.filter((_: any, i: number) => i !== index) }))}
                     >
-                      Quitar
+                      <X size={14} />
                     </UiButton>
-                  </UiBox>
-                ) : (
-                  <UiLabel {...mergeThemeProps({"className":"w-20 h-20 flex flex-col items-center justify-center cursor-pointer"})}>
-                    <Image size={18} {...{"style":{"color":"var(--gray-11)"},"className":"mb-1"}} />
-                    <UiText {...{"size":"1","color":"gray","weight":"bold"}}>Añadir</UiText>
-                    <UiInput type="file" accept="image/*" {...{"className":"hidden"}} onChange={handleImageChange} />
-                  </UiLabel>
-                )}
-              </UiBox>
-            </UiBox>
-
-            {/* Código y Nombre */}
-            <UiBox {...{"className":"md:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-4"}}>
-              <UiBox {...{"className":"relative group"}}>
-                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Código / SKU / Barras *</UiLabel>
-                <UiInput
-                  type="text"
-                  name="sku"
-                  required
-                  value={formData.sku}
-                  onChange={handleInputChange}
-                  placeholder="Ej. PROD-001 o Código de Barras"
-                  iconPrefix={<Tag size={14} className="text-[var(--gray-10)]" />}
-                  {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                />
-              </UiBox>
-
-              <UiBox {...{"className":"relative group"}}>
-                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Nombre del Producto *</UiLabel>
-                <UiInput
-                  type="text"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Ej. Martillo de Acero 16oz"
-                  iconPrefix={<Package size={14} className="text-[var(--gray-10)]" />}
-                  {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                />
-              </UiBox>
-
-              {/* Categoría Selector con Icono Popup */}
-              <UiBox {...{"className":"relative group"}}>
-                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Categoría</UiLabel>
-                <UiBox {...{"className":"flex items-center gap-2"}}>
-                  <UiBox {...{"className":"relative flex-1"}}>
-                    <UiSelect
-                      name="categoryId"
-                      value={formData.categoryId}
-                      onChange={handleInputChange}
-                      {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                    >
-                      <option value="">Sin Categoría</option>
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                      ))}
-                    </UiSelect>
-                  </UiBox>
-                  <UiButton iconOnly
-                    type="button"
-                    onClick={() => setShowCategoryPopup(true)}
-                    {...mergeThemeProps({"variant":"soft","color":"blue"})}
-                    title="Agregar Categoría"
-                  >
-                    <FolderPlus size={16} />
-                  </UiButton>
-                </UiBox>
-              </UiBox>
-
-              {/* Marca Selector con Icono Popup */}
-              <UiBox {...{"className":"relative group"}}>
-                <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Marca</UiLabel>
-                <UiBox {...{"className":"flex items-center gap-2"}}>
-                  <UiBox {...{"className":"relative flex-1"}}>
-                    <UiSelect
-                      name="brandId"
-                      value={formData.brandId}
-                      onChange={handleInputChange}
-                      {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-                    >
-                      <option value="">Sin Marca</option>
-                      {brands.map(brand => (
-                        <option key={brand.id} value={brand.id}>{brand.name}</option>
-                      ))}
-                    </UiSelect>
-                  </UiBox>
-                  <UiButton iconOnly
-                    type="button"
-                    onClick={() => setShowBrandPopup(true)}
-                    {...mergeThemeProps({"variant":"soft","color":"blue"})}
-                    title="Agregar Marca"
-                  >
-                    <Plus size={16} />
-                  </UiButton>
-                </UiBox>
-              </UiBox>
-            </UiBox>
-
-            {/* Descripción */}
-            <UiBox {...{"className":"md:col-span-12 relative group"}}>
-              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Descripción (Opcional)</UiLabel>
-              <UiTextarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Detalles adicionales del producto..."
-                rows={2}
-                {...mergeThemeProps({}, {"className":"resize-none"}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-              />
-            </UiBox>
-          </UiBox>
-        </UiBox>
-
-        {/* Gestión de Impuestos y Precio */}
-        <UiBox {...{"className":"space-y-4"}}>
-          <UiHeading as="h3" {...mergeThemeProps({"size":"1","weight":"bold","color":"green","className":"flex items-center gap-2"})}>
-            <DollarSign size={14} /> Gestión de Impuestos y Precio
-          </UiHeading>
-
-          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-12 gap-4 items-end"}}>
-            {/* Régimen de IVA */}
-            <UiBox {...{"className":"md:col-span-3"}}>
-              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Régimen de IVA</UiLabel>
-              <UiSelect
-                name="tax_mode"
-                value={formData.tax_mode}
-                onChange={(e) => {
-                  const mode = e.target.value as 'EXCLUIDO' | 'INCLUIDO';
-                  setFormData(prev => ({ ...prev, tax_mode: mode }));
-                  syncPrices(mode, formData.tarifa_iva, formData.precio_sin_iva, formData.precio_con_iva, formData.baseCost);
-                }}
-                {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
-              >
-                <option value="EXCLUIDO">Precio Excluye IVA (EXCLUIDO)</option>
-                <option value="INCLUIDO">Precio Incluye IVA (INCLUIDO)</option>
-              </UiSelect>
-            </UiBox>
-
-            {/* Tarifa IVA Selector */}
-            <UiBox {...{"className":"md:col-span-3"}}>
-              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Tarifa IVA (SRI)</UiLabel>
-              <UiSelect
-                name="tarifa_iva"
-                value={formData.tarifa_iva}
-                onChange={(e) => {
-                  const tarifa = parseFloat(e.target.value) || 0;
-                  setFormData(prev => ({ ...prev, tarifa_iva: tarifa, taxRate: tarifa * 100 }));
-                  syncPrices(formData.tax_mode, tarifa, formData.precio_sin_iva, formData.precio_con_iva, formData.baseCost);
-                }}
-                {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
-              >
-                <option value="0.15">IVA 15% (General)</option>
-                <option value="0.12">IVA 12%</option>
-                <option value="0.05">IVA 5% (Construcción)</option>
-                <option value="0">IVA 0% (Exento)</option>
-              </UiSelect>
-            </UiBox>
-
-            {/* Precio sin impuestos */}
-            <UiBox {...{"className":"md:col-span-3"}}>
-              <UiBox {...{"className":"flex items-center justify-between mb-1.5"}}>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Precio sin IVA</UiLabel>
-                {formData.tax_mode === 'INCLUIDO' && (
-                  <UiText {...{"size":"1","color":"gray","weight":"bold","className":"px-1.5 py-0.5"}}>Autocalculado</UiText>
-                )}
-              </UiBox>
-              <UiInput
-                type="number"
-                min="0"
-                step="0.0001"
-                required
-                disabled={formData.tax_mode === 'INCLUIDO'}
-                value={formData.precio_sin_iva || ''}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value) || 0;
-                  setFormData(prev => ({ ...prev, precio_sin_iva: val }));
-                  syncPrices('EXCLUIDO', formData.tarifa_iva, val, formData.precio_con_iva, formData.baseCost);
-                }}
-                iconPrefix={<DollarSign size={14} className="text-[var(--gray-10)]" />}
-                {...mergeThemeProps({}, {}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}), (formData.tax_mode === 'INCLUIDO' ? {"color":"gray"} : {}))}
-              />
-            </UiBox>
-
-            {/* Precio incluido impuestos */}
-            <UiBox {...{"className":"md:col-span-3"}}>
-              <UiBox {...{"className":"flex items-center justify-between mb-1.5"}}>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Precio con IVA *</UiLabel>
-                {formData.tax_mode === 'EXCLUIDO' && (
-                  <UiText {...{"size":"1","color":"gray","weight":"bold","className":"px-1.5 py-0.5"}}>Autocalculado</UiText>
-                )}
-              </UiBox>
-              <UiInput
-                type="number"
-                min="0"
-                step="0.01"
-                required
-                disabled={formData.tax_mode === 'EXCLUIDO'}
-                value={formData.precio_con_iva || ''}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value) || 0;
-                  setFormData(prev => ({ ...prev, precio_con_iva: val }));
-                  syncPrices('INCLUIDO', formData.tarifa_iva, formData.precio_sin_iva, val, formData.baseCost);
-                }}
-                placeholder="0.00"
-                iconPrefix={<DollarSign size={14} className="text-[var(--gray-10)]" />}
-                {...mergeThemeProps({}, {"color":"green"}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}), (formData.tax_mode === 'EXCLUIDO' ? {"color":"gray"} : {}))}
-              />
-            </UiBox>
-          </UiBox>
-          
-          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"italic flex items-center gap-1"}}>
-            <UiText>IVA Calculado:</UiText>
-            <UiText {...{"weight":"regular","color":"gray","highContrast":true}}>${formData.ivaCalculated.toFixed(2)}</UiText>
-          </UiBox>
-        </UiBox>
-
-        {/* Lista de Precios Adicionales */}
-        <UiBox {...{"className":"space-y-4"}}>
-          <UiHeading as="h3" {...mergeThemeProps({"size":"1","weight":"bold","color":"gray"})}>
-            Lista de Precios
-          </UiHeading>
-          
-          <UiBox {...{"className":"grid grid-cols-1 sm:grid-cols-4 gap-4"}}>
-            {/* Precio Base Display */}
-            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"p-4"})}>
-              <UiText {...{"size":"1","weight":"bold","color":"gray","className":"block mb-2"}}>Precio Base</UiText>
-              <UiBox {...{"className":"space-y-2"}}>
-                <UiBox>
-                  <UiText {...{"size":"1","color":"gray","className":"block"}}>Sin impuestos</UiText>
-                  <UiText {...{"size":"1","weight":"regular","className":"block"}}>${formData.priceWithoutTax.toFixed(2)}</UiText>
-                </UiBox>
-                <UiBox>
-                  <UiText {...{"size":"1","color":"gray","className":"block"}}>Incl. impuestos</UiText>
-                  <UiText {...{"size":"1","weight":"regular","color":"green","className":"block"}}>${priceIncludedTaxInput.toFixed(2)}</UiText>
-                </UiBox>
-              </UiBox>
-            </UiBox>
-
-            {/* Precio A */}
-            <UiCard {...mergeThemeProps({"className":"p-4"}, {}, (hasPriceA ? {"style":{"backgroundColor":"var(--color-panel-solid)"}} : {"style":{"backgroundColor":"var(--gray-2)"},"className":"opacity-60"}))}>
-              <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
-                <UiText {...{"size":"1","weight":"bold","className":"block"}}>Precio A</UiText>
-                <UiInput
-                  type="checkbox" 
-                  checked={hasPriceA} 
-                  onChange={(e) => {
-                    setHasPriceA(e.target.checked);
-                    if (!e.target.checked) {
-                      setFormData(prev => ({ ...prev, priceA: 0, priceASinImpuesto: 0 }));
-                    }
-                  }}
-                  {...{"color":"blue","className":"w-3.5 cursor-pointer"}}
-                />
-              </UiBox>
-              {hasPriceA ? (
-                <UiBox {...{"className":"space-y-2"}}>
-                  <UiBox>
-                    <UiLabel {...{"size":"1","color":"gray","className":"block"}}>Incl. impuestos ($)</UiLabel>
-                    <UiInput
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.priceA || ''}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value) || 0;
-                        const priceSin = val / (1 + formData.taxRate / 100);
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          priceA: val, 
-                          priceASinImpuesto: parseFloat(priceSin.toFixed(2)) 
-                        }));
-                      }}
-                      {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
-                    />
-                  </UiBox>
-                  <UiBox>
-                    <UiText {...{"size":"1","color":"gray","className":"block"}}>Sin impuestos</UiText>
-                    <UiText {...{"size":"1","weight":"regular","className":"block"}}>${(formData.priceASinImpuesto || 0).toFixed(2)}</UiText>
-                  </UiBox>
-                </UiBox>
-              ) : (
-                <UiText {...{"size":"1","color":"gray","className":"block italic"}}>Desactivado</UiText>
-              )}
-            </UiCard>
-
-            {/* Precio B */}
-            <UiCard {...mergeThemeProps({"className":"p-4"}, {}, (hasPriceB ? {"style":{"backgroundColor":"var(--color-panel-solid)"}} : {"style":{"backgroundColor":"var(--gray-2)"},"className":"opacity-60"}))}>
-              <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
-                <UiText {...{"size":"1","weight":"bold","className":"block"}}>Precio B</UiText>
-                <UiInput
-                  type="checkbox" 
-                  checked={hasPriceB} 
-                  onChange={(e) => {
-                    setHasPriceB(e.target.checked);
-                    if (!e.target.checked) {
-                      setFormData(prev => ({ ...prev, priceB: 0, priceBSinImpuesto: 0 }));
-                    }
-                  }}
-                  {...{"color":"blue","className":"w-3.5 cursor-pointer"}}
-                />
-              </UiBox>
-              {hasPriceB ? (
-                <UiBox {...{"className":"space-y-2"}}>
-                  <UiBox>
-                    <UiLabel {...{"size":"1","color":"gray","className":"block"}}>Incl. impuestos ($)</UiLabel>
-                    <UiInput
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.priceB || ''}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value) || 0;
-                        const priceSin = val / (1 + formData.taxRate / 100);
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          priceB: val, 
-                          priceBSinImpuesto: parseFloat(priceSin.toFixed(2)) 
-                        }));
-                      }}
-                      {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
-                    />
-                  </UiBox>
-                  <UiBox>
-                    <UiText {...{"size":"1","color":"gray","className":"block"}}>Sin impuestos</UiText>
-                    <UiText {...{"size":"1","weight":"regular","className":"block"}}>${(formData.priceBSinImpuesto || 0).toFixed(2)}</UiText>
-                  </UiBox>
-                </UiBox>
-              ) : (
-                <UiText {...{"size":"1","color":"gray","className":"block italic"}}>Desactivado</UiText>
-              )}
-            </UiCard>
-
-            {/* Precio C */}
-            <UiCard {...mergeThemeProps({"className":"p-4"}, {}, (hasPriceC ? {"style":{"backgroundColor":"var(--color-panel-solid)"}} : {"style":{"backgroundColor":"var(--gray-2)"},"className":"opacity-60"}))}>
-              <UiBox {...{"className":"flex items-center justify-between mb-2"}}>
-                <UiText {...{"size":"1","weight":"bold","className":"block"}}>Precio C</UiText>
-                <UiInput
-                  type="checkbox" 
-                  checked={hasPriceC} 
-                  onChange={(e) => {
-                    setHasPriceC(e.target.checked);
-                    if (!e.target.checked) {
-                      setFormData(prev => ({ ...prev, priceC: 0, priceCSinImpuesto: 0 }));
-                    }
-                  }}
-                  {...{"color":"blue","className":"w-3.5 cursor-pointer"}}
-                />
-              </UiBox>
-              {hasPriceC ? (
-                <UiBox {...{"className":"space-y-2"}}>
-                  <UiBox>
-                    <UiLabel {...{"size":"1","color":"gray","className":"block"}}>Incl. impuestos ($)</UiLabel>
-                    <UiInput
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.priceC || ''}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value) || 0;
-                        const priceSin = val / (1 + formData.taxRate / 100);
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          priceC: val, 
-                          priceCSinImpuesto: parseFloat(priceSin.toFixed(2)) 
-                        }));
-                      }}
-                      {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
-                    />
-                  </UiBox>
-                  <UiBox>
-                    <UiText {...{"size":"1","color":"gray","className":"block"}}>Sin impuestos</UiText>
-                    <UiText {...{"size":"1","weight":"regular","className":"block"}}>${(formData.priceCSinImpuesto || 0).toFixed(2)}</UiText>
-                  </UiBox>
-                </UiBox>
-              ) : (
-                <UiText {...{"size":"1","color":"gray","className":"block italic"}}>Desactivado</UiText>
-              )}
-            </UiCard>
-          </UiBox>
-        </UiBox>
-
-        {/* Costo Base e Inventario */}
-        <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-6 pt-2"}}>
-          {/* Costo Base */}
-          <UiBox {...{"className":"space-y-3"}}>
-            <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Costo Base de Adquisición ($)</UiLabel>
-            <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray"})}>
-              ¿Cuánto te costó adquirir o producir este artículo? (Para calcular ganancia real)
-            </UiText>
-            <UiInput
-              type="number"
-              name="baseCost"
-              min="0"
-              step="0.01"
-              value={formData.baseCost || ''}
-              onChange={handleInputChange}
-              placeholder="0.00"
-              iconPrefix={<DollarSign size={14} className="text-[var(--gray-10)]" />}
-              {...mergeThemeProps({}, {}, mergeThemeProps({"size":"2","color":"gray","className":"w-full"}))}
-            />
-            {formData.baseCost > 0 && (
-              <UiText {...{"size":"1","color":"green","weight":"bold","className":"block"}}>
-                Margen de ganancia calculado: {formData.marginPercentage.toFixed(1)}%
-              </UiText>
-            )}
-          </UiBox>
-
-          {/* Manejo de Inventario */}
-          <UiBox {...{"className":"space-y-3"}}>
-            <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Manejo de Inventario</UiLabel>
-            <UiText as="p" {...mergeThemeProps({"size":"1","color":"gray"})}>
-              Selecciona cómo deseas manejar el inventario de este producto
-            </UiText>
-            <UiBox {...{"className":"grid grid-cols-2 gap-4"}}>
-              <UiButton
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, inventoryType: 'PHYSICAL' }))}
-                {...mergeThemeProps({"variant":"outline","className":"text-center flex flex-col items-center justify-center gap-1.5"}, {}, (formData.inventoryType === 'PHYSICAL' ? {"variant":"soft","color":"blue"} : {"variant":"soft","color":"gray"}))}
-              >
-                <Box size={20} />
-                <UiText {...{"size":"1","weight":"bold"}}>Físico</UiText>
-              </UiButton>
-
-              <UiButton
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, inventoryType: 'VIRTUAL' }))}
-                {...mergeThemeProps({"variant":"outline","className":"text-center flex flex-col items-center justify-center gap-1.5"}, {}, (formData.inventoryType === 'VIRTUAL' ? {"variant":"soft","color":"blue"} : {"variant":"soft","color":"gray"}))}
-              >
-                <Layers size={20} />
-                <UiText {...{"size":"1","weight":"bold"}}>Virtual</UiText>
-              </UiButton>
-            </UiBox>
-          </UiBox>
-        </UiBox>
-
-        {/* PESTAÑA / APARTADO DE PROMOCIONES Y DESCUENTOS */}
-        <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-4 space-y-4"}}>
-          <UiBox {...{"style":{"color":"var(--blue-12)"},"className":"flex items-center gap-1.5"}}>
-            <Tag size={15} />
-            <UiHeading as="h3" {...{"size":"1","weight":"bold"}}>Promociones y Descuentos</UiHeading>
-          </UiBox>
-          
-          <UiBox {...{"className":"grid grid-cols-1 md:grid-cols-2 gap-4"}}>
-            {/* Selector de Descuento Individual */}
-            <UiBox>
-              <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1"})}>Asignar Descuento al Producto</UiLabel>
-              <UiSelect
-                name="id_descuento_asociado"
-                value={formData.id_descuento_asociado || ''}
-                onChange={handleInputChange}
-                {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
-              >
-                <option value="">-- Sin Descuento Individual --</option>
-                {discounts.map(d => (
-                  <option key={d.id} value={d.id}>
-                    {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
-                  </option>
+                  </div>
                 ))}
-              </UiSelect>
-              <UiText as="p" {...{"size":"1","color":"gray","weight":"bold","className":"mt-1"}}>
-                Este descuento se aplicará de forma automática en el POS y facturación para este producto.
-              </UiText>
-            </UiBox>
-
-            {/* Heredado de Categoría */}
-            <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"p-3.5 flex flex-col justify-center"}}>
-              <UiText {...{"size":"1","weight":"bold","color":"gray","className":"mb-1"}}>
-                Descuento Heredado de Categoría
-              </UiText>
-              {(() => {
-                const activeCat = categories.find(c => c.id === formData.categoryId);
-                if (activeCat && activeCat.id_descuento_asociado) {
-                  const disc = discounts.find(d => d.id === activeCat.id_descuento_asociado);
-                  if (disc) {
-                    return (
-                      <UiBox>
-                        <UiText as="p" {...{"size":"1","weight":"bold","color":"red","className":"flex items-center gap-1"}}>
-                          <Tag size={12} /> {disc.nombre}
-                        </UiText>
-                        <UiText as="p" {...{"size":"1","color":"gray","weight":"bold","className":"mt-1 leading-normal"}}>
-                          Heredado automáticamente de la categoría <strong>{activeCat.name}</strong>.
-                          {formData.id_descuento_asociado && (
-                            <UiText {...{"color":"orange","weight":"bold","className":"block mt-1"}}>
-                              * Nota: El descuento individual del producto tiene prioridad sobre el de la categoría.
-                            </UiText>
-                          )}
-                        </UiText>
-                      </UiBox>
-                    );
-                  }
-                }
-                return (
-                  <UiText as="p" {...{"size":"1","color":"gray","className":"italic"}}>
-                    La categoría seleccionada no tiene descuentos asociados.
-                  </UiText>
-                );
-              })()}
-            </UiBox>
-          </UiBox>
-        </UiBox>
-
-        {/* Submit Buttons */}
-        <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"pt-4 flex justify-end gap-4"}}>
-          <UiButton
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            {...mergeThemeProps({"size":"2","variant":"soft","color":"gray"})}
-          >
-            Cancelar
-          </UiButton>
-          <UiButton
-            type="submit"
-            disabled={loading}
-            {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"}}
-          >
-            {loading ? (
-              <>
-                <UiBox {...{"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"w-4 h-4 animate-spin"}} />
-                Guardando...
-              </>
-            ) : (
-              <>
-                <Save size={14} />
-                Guardar Producto
-              </>
+              </section>
             )}
-          </UiButton>
-        </UiBox>
+
+            {/* Información Básica Compacta */}
+            <UiBox className="space-y-3">
+              <div className="flex items-center gap-1.5 text-[var(--accent-9)] font-semibold text-xs uppercase tracking-wider">
+                <Box size={14} />
+                <span>Información Básica</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                {/* Imagen del producto compacta */}
+                <div className="w-24 h-24 shrink-0 rounded-lg border border-dashed border-[var(--gray-a7)] bg-[var(--gray-2)] flex flex-col items-center justify-center relative overflow-hidden group">
+                  {formData.imageUrl ? (
+                    <>
+                      <img src={formData.imageUrl} className="w-full h-full object-cover" alt="Vista previa" />
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
+                        className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs font-medium"
+                      >
+                        Quitar
+                      </button>
+                    </>
+                  ) : (
+                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-2 text-center hover:bg-[var(--gray-3)] transition-colors">
+                      <Image size={18} className="text-[var(--gray-10)] mb-1" />
+                      <span className="text-[11px] font-medium text-[var(--gray-11)] leading-tight">Foto</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                    </label>
+                  )}
+                </div>
+
+                {/* Inputs principales */}
+                <div className="flex-1 w-full space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    {/* SKU / Código */}
+                    <div className="sm:col-span-5">
+                      <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
+                        Código / SKU / Barras *
+                      </UiLabel>
+                      <UiInput
+                        type="text"
+                        name="sku"
+                        required
+                        value={formData.sku}
+                        onChange={handleInputChange}
+                        placeholder="Ej. PROD-001 o 7861..."
+                        iconPrefix={<Tag size={13} className="text-[var(--gray-10)]" />}
+                        size="2"
+                        color="gray"
+                        className="w-full font-mono text-xs"
+                      />
+                    </div>
+
+                    {/* Nombre */}
+                    <div className="sm:col-span-7">
+                      <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
+                        Nombre del Producto *
+                      </UiLabel>
+                      <UiInput
+                        type="text"
+                        name="name"
+                        required
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Ej. Martillo de Acero 16oz"
+                        iconPrefix={<Package size={13} className="text-[var(--gray-10)]" />}
+                        size="2"
+                        color="gray"
+                        className="w-full font-medium"
+                      />
+                    </div>
+
+                    {/* Categoría */}
+                    <div className="sm:col-span-6">
+                      <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
+                        Categoría
+                      </UiLabel>
+                      <div className="flex items-center gap-1.5">
+                        <UiSelect
+                          name="categoryId"
+                          value={formData.categoryId}
+                          onChange={handleInputChange}
+                          size="2"
+                          color="gray"
+                          className="w-full"
+                        >
+                          <option value="">Sin Categoría</option>
+                          {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          ))}
+                        </UiSelect>
+                        <UiButton iconOnly
+                          type="button"
+                          onClick={() => setShowCategoryPopup(true)}
+                          variant="soft"
+                          color="blue"
+                          size="2"
+                          title="Agregar Categoría"
+                          className="shrink-0"
+                        >
+                          <FolderPlus size={14} />
+                        </UiButton>
+                      </div>
+                    </div>
+
+                    {/* Marca */}
+                    <div className="sm:col-span-6">
+                      <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
+                        Marca
+                      </UiLabel>
+                      <div className="flex items-center gap-1.5">
+                        <UiSelect
+                          name="brandId"
+                          value={formData.brandId}
+                          onChange={handleInputChange}
+                          size="2"
+                          color="gray"
+                          className="w-full"
+                        >
+                          <option value="">Sin Marca</option>
+                          {brands.map(brand => (
+                            <option key={brand.id} value={brand.id}>{brand.name}</option>
+                          ))}
+                        </UiSelect>
+                        <UiButton iconOnly
+                          type="button"
+                          onClick={() => setShowBrandPopup(true)}
+                          variant="soft"
+                          color="blue"
+                          size="2"
+                          title="Agregar Marca"
+                          className="shrink-0"
+                        >
+                          <Plus size={14} />
+                        </UiButton>
+                      </div>
+                    </div>
+
+                    {/* Descripción */}
+                    <div className="sm:col-span-12">
+                      <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
+                        Descripción (Opcional)
+                      </UiLabel>
+                      <UiTextarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        placeholder="Detalles adicionales, garantía, notas de entrega..."
+                        rows={1}
+                        size="2"
+                        color="gray"
+                        className="w-full resize-none min-h-[34px] py-1.5"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </UiBox>
+
+            {/* Gestión de Precios, Costo e Impuestos */}
+            <UiBox className="space-y-3 pt-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs uppercase tracking-wider">
+                  <DollarSign size={14} />
+                  <span>Precios, Costo e Impuestos</span>
+                </div>
+                {/* Píldora de métricas resumidas */}
+                <div className="flex items-center gap-3 text-xs bg-[var(--gray-2)] border border-[var(--gray-a5)] px-2.5 py-1 rounded-md">
+                  <span className="text-[var(--gray-11)]">
+                    IVA: <strong className="text-[var(--gray-12)] font-mono">${formData.ivaCalculated.toFixed(2)}</strong>
+                  </span>
+                  <span className="w-px h-3 bg-[var(--gray-a6)]" />
+                  <span className="text-[var(--gray-11)]">
+                    PVP Final: <strong className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">${priceIncludedTaxInput.toFixed(2)}</strong>
+                  </span>
+                  {formData.baseCost > 0 && (
+                    <>
+                      <span className="w-px h-3 bg-[var(--gray-a6)]" />
+                      <span className="text-[var(--gray-11)]">
+                        Margen: <strong className={`font-mono font-bold ${formData.marginPercentage >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500'}`}>{formData.marginPercentage.toFixed(1)}%</strong>
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                {/* 1. Régimen de IVA */}
+                <div>
+                  <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
+                    Régimen de IVA
+                  </UiLabel>
+                  <UiSelect
+                    name="tax_mode"
+                    value={formData.tax_mode}
+                    onChange={(e) => {
+                      const mode = e.target.value as 'EXCLUIDO' | 'INCLUIDO';
+                      setFormData(prev => ({ ...prev, tax_mode: mode }));
+                      syncPrices(mode, formData.tarifa_iva, formData.precio_sin_iva, formData.precio_con_iva, formData.baseCost);
+                    }}
+                    size="2"
+                    color="gray"
+                    className="w-full text-xs"
+                  >
+                    <option value="EXCLUIDO">Precio Excluye IVA</option>
+                    <option value="INCLUIDO">Precio Incluye IVA</option>
+                  </UiSelect>
+                </div>
+
+                {/* 2. Tarifa IVA (SRI) */}
+                <div>
+                  <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
+                    Tarifa IVA (SRI)
+                  </UiLabel>
+                  <UiSelect
+                    name="tarifa_iva"
+                    value={formData.tarifa_iva}
+                    onChange={(e) => {
+                      const tarifa = parseFloat(e.target.value) || 0;
+                      setFormData(prev => ({ ...prev, tarifa_iva: tarifa, taxRate: tarifa * 100 }));
+                      syncPrices(formData.tax_mode, tarifa, formData.precio_sin_iva, formData.precio_con_iva, formData.baseCost);
+                    }}
+                    size="2"
+                    color="gray"
+                    className="w-full text-xs"
+                  >
+                    <option value="0.15">IVA 15% (General)</option>
+                    <option value="0.12">IVA 12%</option>
+                    <option value="0.05">IVA 5% (Construcción)</option>
+                    <option value="0">IVA 0% (Exento)</option>
+                  </UiSelect>
+                </div>
+
+                {/* 3. Precio sin IVA */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <UiLabel size="1" weight="bold" color="gray">
+                      Precio sin IVA *
+                    </UiLabel>
+                    {formData.tax_mode === 'INCLUIDO' && (
+                      <span className="text-[10px] text-[var(--gray-10)] font-medium">Auto</span>
+                    )}
+                  </div>
+                  <UiInput
+                    type="number"
+                    min="0"
+                    step="0.0001"
+                    required
+                    disabled={formData.tax_mode === 'INCLUIDO'}
+                    value={formData.precio_sin_iva || ''}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      setFormData(prev => ({ ...prev, precio_sin_iva: val }));
+                      syncPrices('EXCLUIDO', formData.tarifa_iva, val, formData.precio_con_iva, formData.baseCost);
+                    }}
+                    iconPrefix={<DollarSign size={13} className="text-[var(--gray-10)]" />}
+                    size="2"
+                    color="gray"
+                    className="w-full font-mono text-xs"
+                  />
+                </div>
+
+                {/* 4. Precio con IVA */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <UiLabel size="1" weight="bold" color="gray">
+                      Precio con IVA *
+                    </UiLabel>
+                    {formData.tax_mode === 'EXCLUIDO' && (
+                      <span className="text-[10px] text-[var(--gray-10)] font-medium">Auto</span>
+                    )}
+                  </div>
+                  <UiInput
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    disabled={formData.tax_mode === 'EXCLUIDO'}
+                    value={formData.precio_con_iva || ''}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      setFormData(prev => ({ ...prev, precio_con_iva: val }));
+                      syncPrices('INCLUIDO', formData.tarifa_iva, formData.precio_sin_iva, val, formData.baseCost);
+                    }}
+                    placeholder="0.00"
+                    iconPrefix={<DollarSign size={13} className="text-[var(--gray-10)]" />}
+                    size="2"
+                    color="gray"
+                    className="w-full font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400"
+                  />
+                </div>
+
+                {/* 5. Costo Base de Adquisición */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <UiLabel size="1" weight="bold" color="gray">
+                      Costo Base ($)
+                    </UiLabel>
+                    <span className="text-[10px] text-[var(--gray-10)] font-medium">Compra</span>
+                  </div>
+                  <UiInput
+                    type="number"
+                    name="baseCost"
+                    min="0"
+                    step="0.01"
+                    value={formData.baseCost || ''}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      const cost = parseFloat(e.target.value) || 0;
+                      syncPrices(formData.tax_mode, formData.tarifa_iva, formData.precio_sin_iva, formData.precio_con_iva, cost);
+                    }}
+                    placeholder="0.00"
+                    iconPrefix={<DollarSign size={13} className="text-[var(--gray-10)]" />}
+                    size="2"
+                    color="gray"
+                    className="w-full font-mono text-xs"
+                  />
+                </div>
+              </div>
+            </UiBox>
+
+            {/* Lista de Precios Adicionales */}
+            <UiBox className="space-y-2.5 pt-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[var(--gray-11)] uppercase tracking-wider">
+                  Lista de Precios Diferenciados
+                </span>
+                <span className="text-[11px] text-[var(--gray-10)]">
+                  Precios opcionales por volumen o fidelidad
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Precio Base */}
+                <div className="p-3 rounded-lg border border-[var(--gray-a6)] bg-[var(--gray-2)] min-h-[105px] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[var(--gray-12)]">Precio Base</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--gray-4)] text-[var(--gray-11)] font-medium">Principal</span>
+                  </div>
+                  <div className="space-y-1 mt-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[var(--gray-10)]">Sin IVA:</span>
+                      <span className="font-mono text-[var(--gray-12)]">${formData.priceWithoutTax.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[var(--gray-10)]">Con IVA:</span>
+                      <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">${priceIncludedTaxInput.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Precio A */}
+                <div className={`p-3 rounded-lg border min-h-[105px] flex flex-col justify-between transition-colors ${hasPriceA ? 'border-[var(--gray-a7)] bg-[var(--color-panel-solid)]' : 'border-[var(--gray-a5)] bg-[var(--gray-2)]/60 opacity-75'}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[var(--gray-12)]">Precio A (Mayorista)</span>
+                    <input
+                      type="checkbox"
+                      checked={hasPriceA}
+                      onChange={(e) => {
+                        setHasPriceA(e.target.checked);
+                        if (!e.target.checked) {
+                          setFormData(prev => ({ ...prev, priceA: 0, priceASinImpuesto: 0 }));
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded accent-[var(--accent-9)] cursor-pointer"
+                    />
+                  </div>
+                  {hasPriceA ? (
+                    <div className="space-y-1.5 mt-1.5">
+                      <UiInput
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Con IVA"
+                        value={formData.priceA || ''}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          const priceSin = val / (1 + formData.taxRate / 100);
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            priceA: val, 
+                            priceASinImpuesto: parseFloat(priceSin.toFixed(2)) 
+                          }));
+                        }}
+                        iconPrefix={<DollarSign size={12} className="text-[var(--gray-10)]" />}
+                        size="1"
+                        color="gray"
+                        className="w-full font-mono text-xs"
+                      />
+                      <div className="flex justify-between items-center text-[11px] text-[var(--gray-10)]">
+                        <span>Sin IVA:</span>
+                        <span className="font-mono text-[var(--gray-11)]">${(formData.priceASinImpuesto || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-[var(--gray-10)] italic text-center py-3">
+                      Desactivado
+                    </div>
+                  )}
+                </div>
+
+                {/* Precio B */}
+                <div className={`p-3 rounded-lg border min-h-[105px] flex flex-col justify-between transition-colors ${hasPriceB ? 'border-[var(--gray-a7)] bg-[var(--color-panel-solid)]' : 'border-[var(--gray-a5)] bg-[var(--gray-2)]/60 opacity-75'}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[var(--gray-12)]">Precio B (Especial)</span>
+                    <input
+                      type="checkbox"
+                      checked={hasPriceB}
+                      onChange={(e) => {
+                        setHasPriceB(e.target.checked);
+                        if (!e.target.checked) {
+                          setFormData(prev => ({ ...prev, priceB: 0, priceBSinImpuesto: 0 }));
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded accent-[var(--accent-9)] cursor-pointer"
+                    />
+                  </div>
+                  {hasPriceB ? (
+                    <div className="space-y-1.5 mt-1.5">
+                      <UiInput
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Con IVA"
+                        value={formData.priceB || ''}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          const priceSin = val / (1 + formData.taxRate / 100);
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            priceB: val, 
+                            priceBSinImpuesto: parseFloat(priceSin.toFixed(2)) 
+                          }));
+                        }}
+                        iconPrefix={<DollarSign size={12} className="text-[var(--gray-10)]" />}
+                        size="1"
+                        color="gray"
+                        className="w-full font-mono text-xs"
+                      />
+                      <div className="flex justify-between items-center text-[11px] text-[var(--gray-10)]">
+                        <span>Sin IVA:</span>
+                        <span className="font-mono text-[var(--gray-11)]">${(formData.priceBSinImpuesto || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-[var(--gray-10)] italic text-center py-3">
+                      Desactivado
+                    </div>
+                  )}
+                </div>
+
+                {/* Precio C */}
+                <div className={`p-3 rounded-lg border min-h-[105px] flex flex-col justify-between transition-colors ${hasPriceC ? 'border-[var(--gray-a7)] bg-[var(--color-panel-solid)]' : 'border-[var(--gray-a5)] bg-[var(--gray-2)]/60 opacity-75'}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[var(--gray-12)]">Precio C (Distribuidor)</span>
+                    <input
+                      type="checkbox"
+                      checked={hasPriceC}
+                      onChange={(e) => {
+                        setHasPriceC(e.target.checked);
+                        if (!e.target.checked) {
+                          setFormData(prev => ({ ...prev, priceC: 0, priceCSinImpuesto: 0 }));
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded accent-[var(--accent-9)] cursor-pointer"
+                    />
+                  </div>
+                  {hasPriceC ? (
+                    <div className="space-y-1.5 mt-1.5">
+                      <UiInput
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Con IVA"
+                        value={formData.priceC || ''}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          const priceSin = val / (1 + formData.taxRate / 100);
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            priceC: val, 
+                            priceCSinImpuesto: parseFloat(priceSin.toFixed(2)) 
+                          }));
+                        }}
+                        iconPrefix={<DollarSign size={12} className="text-[var(--gray-10)]" />}
+                        size="1"
+                        color="gray"
+                        className="w-full font-mono text-xs"
+                      />
+                      <div className="flex justify-between items-center text-[11px] text-[var(--gray-10)]">
+                        <span>Sin IVA:</span>
+                        <span className="font-mono text-[var(--gray-11)]">${(formData.priceCSinImpuesto || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-[var(--gray-10)] italic text-center py-3">
+                      Desactivado
+                    </div>
+                  )}
+                </div>
+              </div>
+            </UiBox>
+
+            {/* Inventario y Promociones */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              {/* Tipo de Inventario */}
+              <div className="p-3.5 rounded-lg border border-[var(--gray-a6)] bg-[var(--gray-2)]/40 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[var(--gray-12)] flex items-center gap-1.5">
+                    <Box size={14} className="text-[var(--accent-9)]" /> Tipo de Inventario
+                  </span>
+                  <span className="text-[11px] text-[var(--gray-10)]">Control de existencias</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, inventoryType: 'PHYSICAL' }))}
+                    className={`py-2 px-3 rounded-md border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                      formData.inventoryType === 'PHYSICAL'
+                        ? 'border-[var(--accent-9)] bg-[var(--accent-3)] text-[var(--accent-11)] ring-1 ring-[var(--accent-9)]'
+                        : 'border-[var(--gray-a6)] bg-[var(--color-panel-solid)] text-[var(--gray-11)] hover:bg-[var(--gray-3)]'
+                    }`}
+                  >
+                    <Box size={15} /> Físico (Kardex)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, inventoryType: 'VIRTUAL' }))}
+                    className={`py-2 px-3 rounded-md border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                      formData.inventoryType === 'VIRTUAL'
+                        ? 'border-[var(--accent-9)] bg-[var(--accent-3)] text-[var(--accent-11)] ring-1 ring-[var(--accent-9)]'
+                        : 'border-[var(--gray-a6)] bg-[var(--color-panel-solid)] text-[var(--gray-11)] hover:bg-[var(--gray-3)]'
+                    }`}
+                  >
+                    <Layers size={15} /> Virtual (Sin stock)
+                  </button>
+                </div>
+                <p className="text-[11px] text-[var(--gray-10)] leading-tight">
+                  {formData.inventoryType === 'PHYSICAL'
+                    ? 'El producto controlará entradas, salidas y existencias en el Kardex.'
+                    : 'Servicios, productos digitales o artículos que no requieren control de unidades.'}
+                </p>
+              </div>
+
+              {/* Promociones y Descuentos */}
+              <div className="p-3.5 rounded-lg border border-[var(--gray-a6)] bg-[var(--gray-2)]/40 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[var(--gray-12)] flex items-center gap-1.5">
+                    <Tag size={14} className="text-blue-500" /> Promoción y Descuento
+                  </span>
+                  <span className="text-[11px] text-[var(--gray-10)]">Aplicación automática</span>
+                </div>
+                <UiSelect
+                  name="id_descuento_asociado"
+                  value={formData.id_descuento_asociado || ''}
+                  onChange={handleInputChange}
+                  size="2"
+                  color="gray"
+                  className="w-full text-xs"
+                >
+                  <option value="">-- Sin Descuento Individual --</option>
+                  {discounts.map(d => (
+                    <option key={d.id} value={d.id}>
+                      {d.nombre} ({d.tipo_valor === 'PORCENTAJE' ? `${d.valor}%` : `$${d.valor}`})
+                    </option>
+                  ))}
+                </UiSelect>
+
+                {/* Info de Categoría */}
+                {(() => {
+                  const activeCat = categories.find(c => c.id === formData.categoryId);
+                  if (activeCat && activeCat.id_descuento_asociado) {
+                    const disc = discounts.find(d => d.id === activeCat.id_descuento_asociado);
+                    if (disc) {
+                      return (
+                        <div className="text-[11px] text-[var(--gray-11)] bg-[var(--gray-3)] p-1.5 rounded flex items-center justify-between">
+                          <span className="flex items-center gap-1">
+                            <Tag size={11} className="text-red-500" /> Heredado: <strong>{disc.nombre}</strong> ({activeCat.name})
+                          </span>
+                          {formData.id_descuento_asociado && (
+                            <span className="text-amber-600 dark:text-amber-400 font-medium text-[10px]">
+                              Prioridad: Individual
+                            </span>
+                          )}
+                        </div>
+                      );
+                    }
+                  }
+                  return (
+                    <p className="text-[11px] text-[var(--gray-10)] leading-tight">
+                      Se aplicará de forma automática en el POS y facturación electrónica.
+                    </p>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="pt-3 border-t border-[var(--gray-a6)] flex justify-end items-center gap-3">
+              <UiButton
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                size="2"
+                variant="soft"
+                color="gray"
+              >
+                Cancelar
+              </UiButton>
+              <UiButton
+                type="submit"
+                disabled={loading}
+                size="2"
+                variant="solid"
+                color="blue"
+                className="flex items-center gap-1.5"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Guardando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    <span>Guardar Producto</span>
+                  </>
+                )}
+              </UiButton>
+            </div>
           </>
         ) : (
           <UiBox {...{"className":"space-y-6"}}>

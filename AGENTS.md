@@ -753,6 +753,19 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Corregida la condición en `handleDelete` para permitir que los usuarios descarten y eliminen borradores sin toparse con el bloqueo de comprobantes autorizados con clave fiscal.
 - **Pruebas y Build**: 48 tests unitarios aprobados (`node --test`), compilación de producción exitosa en 5.94s (`npm run build`).
 
+### 57. Rediseño de Modal "Seleccionar Tipo de Producto" y Formulario de Producto Estándar (2026-09-30) — COMPLETADO
+- **Modal de Selección de Tipo de Producto (`src/components/inventory/InventoryModule.tsx`)**:
+  - Eliminado el uso de `UiButton` de Radix Themes que imponía altura fija CSS y provocaba que el texto "dimensiones)" se montara sobre la tarjeta de "Combo / Kit".
+  - Implementadas tarjetas interactivas `<button type="button">` con `h-auto`, iconos estilizados en pasteles (`Package`, `Layers`, `Box`), badges de tipo ("Recomendado", "Con Atributos", "Paquete"), descripciones con alto contraste y sin solapamiento, flecha `ArrowRight` y botón de cierre `[X]` en la cabecera.
+- **Formulario de Creación de Producto Estándar Compacto (`src/components/inventory/ProductCreationForm.tsx`)**:
+  - **Cabecera Limpia**: Corregido el bug visual donde el botón de cerrar `[X]` caía en una fila huérfana inferior. Barra horizontal única con título, badge de tipo, switch "Mostrar en Ventas y POS" y botón `[X]` alineados. Ahorro de ~70px de espacio vertical desperdiciado.
+  - **Información Básica Horizontal**: Uploader de foto compacto (`w-24 h-24`), grid fluido para SKU/Código, Nombre, selectores de Categoría y Marca con accesos rápidos directos `+` para creación in-situ, y descripción de altura reducida.
+  - **Precios, Costo e Impuestos Unificados**: Grid de 5 columnas (Régimen de IVA, Tarifa SRI, Precio sin IVA, Precio con IVA y Costo Base de Adquisición). Barra superior con píldora en tiempo real de IVA, PVP Final y Margen de Rentabilidad (%).
+  - **Lista de Precios Diferenciados (Base, A, B, C)**: Tarjetas homogéneas de altura uniforme (`min-h-[105px]`), conmutadores limpios y recálculo automático sin impuestos.
+  - **Control de Inventario y Promociones**: Distribución en 2 columnas: Físico vs Virtual (segment control limpio) y Descuento individual con visualización del descuento heredado de la categoría.
+  - **Preservación Integral de Funcionalidades**: 100% compatible con subproductos, combos, Paso 2 de inicialización de stock por compra, popups de categoría/marca/proveedor y validaciones fiscales.
+- **Pruebas y Build**: 48 tests unitarios aprobados, compilación limpia de producción en 6.61s.
+
 
 
 
