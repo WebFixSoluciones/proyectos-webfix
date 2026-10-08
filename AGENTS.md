@@ -784,6 +784,74 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Iconos de Acción Monocromáticos (Estilo Brevo)**: Sustituidos los botones multicolores chillones por botones compactos y limpios (`w-7 h-7 text-slate-700 hover:text-black hover:bg-slate-100`): *Ver Detalle* (`Eye`), *Registrar Abono* (`Wallet`), *Editar* (`Edit2`) y *Anular* (`Trash2`).
 - **Pruebas y Build**: 48 tests unitarios aprobados, compilación limpia de producción en 7.26s.
 
+### 59. Corrección Integral y Diagnóstico de Envío de Correos en Emisión de Comprobantes (2026-10-06) — COMPLETADO
+- **Diagnóstico y Validación SMTP Directa**:
+  - Verificada conectividad y autenticación directa con el servidor SMTP `mail.webfixsoluciones.net:465` (SSL) y `587` (STARTTLS) con credenciales autorizadas, confirmando respuesta exitosa en ambos puertos.
+- **Corrección en Endpoint de Envío (`api/send-email/index.js`)**:
+  - Eliminado el descarte de correo de cliente cuando coincide con el correo emisor (`client.toLowerCase() !== emitter.toLowerCase()`). Ambos destinatarios (`client` y `emitter`) se procesan y reportan de forma independiente para permitir pruebas y respaldo sin falsos negativos.
+- **Robustez en Servicio de Notificación (`src/services/invoiceNotification.js`)**:
+  - Agregado parámetro `force = false` a `notifyAuthorizedInvoice`: permite forzar el reenvío bajo demanda sin quedar bloqueado por envíos previos o por estado `'sent'`.
+  - Reducido el tiempo de bloqueo de concurrencia (`claimedAt`) de 120s a 20s, y liberado inmediatamente a `claimedAt: ''` tanto en éxito como en fallo para no trabar reintentos.
+  - Soporte de Notas de Venta internas sin requerir `claveAcceso` ni autorización SRI.
+- **Experiencia de Emisión y Confirmación (`src/components/finances/TransactionForm.jsx`)**:
+  - Detección reactiva de configuración SMTP fresca directamente desde Firestore en caso de que falte en el estado local.
+  - Paso 2 con diagnóstico en tiempo real: estado detallado de cliente (entregado, error o sin correo) y emisor (copia enviada, fallo o SMTP no configurado).
+  - Botón directo **"Enviar Ahora" / "Reenviar"** para el cliente registrado, botón de **"Reintentar Copia"** para el emisor y caja de envío rápido a correo alternativo.
+  - Verificación en segundo plano ampliada con recálculo y envío forzado al autorizarse el SRI.
+- **Historial de Ventas (`src/components/finances/TransactionsView.jsx`)**:
+  - Soporte en `handleSendEmail` para Notas de Venta (`effectivePdf` con enlace RIDE por `txId` y campos XML limpios).
+  - Manejo de estados de respuesta de `notifyAuthorizedInvoice` al verificar SRI con mensajes informativos específicos (`sent`, `partial`, `unconfigured`, `failed`).
+- **Pruebas y Build**: 50 tests unitarios aprobados (`tests/commerce.test.mjs`, `tests/sri.test.mjs`, `tests/phase1-security-fiscal.test.mjs`), compilación limpia de producción en 1m 37s.
+
+### 60. Sanitización Estricta de RUC/Cédula y Reparación Automática de Error SRI [69] (2026-10-08) — COMPLETADO
+- **Causa Raíz Diagnosticada**:
+  - Al ingresar o pegar un RUC con espacios (`1754376901001 ` o ` 1754376901001`), la consulta SRI autocompletaba el cliente pero el campo guardaba el string con espacios en la base de datos de terceros.
+  - Al facturar, el generador XML insertaba el RUC con el espacio en `<identificacionComprador>`, incrementando la longitud a 14 caracteres.
+  - El validador XSD del SRI rechazaba de inmediato el comprobante con `[69] ERROR EN LA IDENTIFICACION DEL RECEPTOR La longitud del número de RUC debe ser 13`.
+- **Sanitización Global de Identificaciones (`sriService.js`)**:
+  - Creada función exportada `limpiarIdentificacion(val)` que purga agresivamente espacios iniciales, finales, intermedios, tabs y saltos de línea (`replace(/\s+/g, '').trim()`).
+  - `validarIdentificacion`: Comprueba estrictamente la longitud (10 para Cédula, 13 para RUC terminando en 001) incluso si `isValidated` es verdadero, previniendo emisiones con longitudes anómalas.
+  - `obtenerTipoIdentificacionSRI`: Mapea limpiamente según la longitud real sanitizada (10 $\rightarrow$ `'05'` Cédula, 13 $\rightarrow$ `'04'` RUC, 9999999999999 $\rightarrow$ `'07'`).
+  - Todos los generadores XML (`generarFacturaXML`, `generarRetencionXML`, `generarNotaCreditoXML`, `generarLiquidacionXML`, `generarGuiaRemisionXML`): Sanitizan estrictamente `<ruc>`, `<identificacionComprador>`, `<identificacionSujetoRetenido>`, `<identificacionProveedor>` e `<identificacionDestinatario>`.
+- **Sanitización en Tiempo Real en Formularios**:
+  - `TransactionForm.jsx` (Modal Rápido y Venta): `onChange` elimina espacios al escribir/pegar; `queryQuickAddSRI` actualiza `ruc` con el valor limpio; `handleQuickAddSave` persiste el RUC sanitizado y autocuración en background si el tercero guardado tenía espacios.
+  - `CustomerDetailView.jsx`: `onChange` limpia espacios inmediatamente; `querySRI` asigna el RUC limpio; `handleSubmit` guarda el RUC sanitizado.
+  - `PosView.jsx`: Limpieza en `onChange`, auto-query, `queryQuickClientSRI` y `getSelectedClient`.
+  - `PurchaseForm.jsx`: `handleQuickAddSupplier` limpia el RUC antes de persistir.
+- **Auto-Reparación y Reemisión en Caliente de Comprobantes con Error 69**:
+  - `recoverSriEmission` en `TransactionForm.jsx`: Detecta comprobantes devueltos/no autorizados con `[69]`, `IDENTIFICACION DEL RECEPTOR` o espacios residuales en el XML.
+  - Reconstruye automáticamente el XML con la identificación limpia del cliente, refirma con el certificado digital y retransmite al SRI con la misma clave de acceso y secuencial reservado, permitiendo resolver comprobantes devueltos con un solo clic en **"Editar y Corregir Comprobante"**.
+- **Pruebas y Build**: 51 tests unitarios aprobados (+1 nuevo test de sanitización e integración XML en `tests/commerce.test.mjs`), compilación limpia de producción en 16.07s.
+
+### 61. Corrección Integral del Flujo "Editar y Corregir Comprobante" y Desbloqueo SRI (2026-10-08) — COMPLETADO
+- **Causa Raíz Diagnosticada**:
+  1. **Redirección Forzada al Paso 2**: Al pulsar "Editar y Corregir Comprobante" o el lápiz en `TransactionsView`, `TransactionForm` evaluaba `Boolean(tx.claveAcceso)` y forzaba `setCurrentStep(2)` (pantalla de resumen/confirmación) incluso para comprobantes no autorizados, devueltos o pendientes, impidiendo al usuario editar los datos en el Paso 1.
+  2. **Bloqueo Inmutable `isEditable`**: `isEditable` evaluaba `!formData.claveAcceso`, bloqueando los inputs y ocultando los botones de emisión/corrección si la factura ya tenía clave generada.
+  3. **Falla en el Botón Naranja de Reemisión (`recoverSriEmission`)**:
+     - `getDoc` comparaba `persisted.data().claveAcceso !== formData.claveAcceso` arrojando error de identidad si la clave había sido regenerada previamente.
+     - `needsXmlRepair` requería condiciones restrictivas (e.g. RUCs comenzando únicamente en `17\d{11}`), ignorando comprobantes de otras provincias como Santo Domingo (`2398632846001`).
+     - Al refirmar y persistir una nueva clave en Firestore, se ejecutaba `saveSriResult` pasando `document: formData` (con la clave vieja) en lugar de `snapshot` (con la clave nueva), provocando la excepción `'La identidad fiscal cambió; no se sobrescribirá el comprobante.'`.
+- **Correcciones Implementadas**:
+  - **Apertura Inteligente de Pasos en `TransactionForm.jsx`**:
+    - Se abre en **Paso 1** para todo comprobante que NO esté autorizado ni anulado (salvo que se abra explícitamente con `viewDetails: true`).
+    - Al abrir desde "Editar y Corregir Comprobante" o el lápiz de edición, se envía `forceEdit: true, viewDetails: false`, garantizando acceso directo e inmediato al editor de la factura.
+  - **Edición Habilitada para Comprobantes No Autorizados**:
+    - `isEditable` ahora es verdadero mientras el comprobante no esté autorizado ni anulado (`!isAuthorized && !isAnulado && !isSaving && !isEmitting`), permitiendo editar cliente, productos, cantidades y métodos de pago.
+    - El botón de emisión en Paso 1 se transforma dinámicamente en **"Corregir y Reemitir Factura Electrónica (SRI)"** con acceso secundario para **"Consultar Autorización en SRI"**.
+  - **Botón de Edición Directa en el Paso 2 (Pantalla de Resumen)**:
+    - Agregado botón principal **"Editar y Corregir Factura"** en la barra superior del Paso 2.
+    - Junto al estado fiscal se integraron tanto el botón primario naranja **"Corregir y Reemitir al SRI"** como el botón secundario **"Editar en Formulario"**.
+  - **Robustez Total en `recoverSriEmission`**:
+    - Sincronización transparente de `claveAcceso` y datos persistidos sin arrojar excepciones de identidad.
+    - Reconstrucción universal del XML: limpia identificación del receptor (sin espacios), regenera un nuevo código numérico de 8 dígitos para bypass inmediato del límite de intentos del SRI manteniendo el mismo secuencial (`001-001-000000175`), refirma con el `.p12` y actualiza Firestore.
+    - `saveSriResult` recibe `document: snapshot` sincronizado, completando la autorización y el despacho automático de correos.
+  - **Acciones en `TransactionsView.jsx`**:
+    - Agregado botón de edición `<Edit2 />` en facturas con estado pendiente SRI.
+    - Los botones de edición y el modal de rechazo pasan `{ ...tx, forceEdit: true, viewDetails: false }`.
+- **Pruebas y Build**: 51 tests unitarios aprobados, compilación limpia de producción en 5.93s sin errores.
+
+
+
 
 
 

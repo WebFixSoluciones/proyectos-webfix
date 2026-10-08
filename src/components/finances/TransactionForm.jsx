@@ -336,20 +336,22 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   });
 
   const queryQuickAddSRI = async () => {
-    if (!quickAddFormData.ruc) {
+    const cleanInputRuc = String(quickAddFormData.ruc || '').replace(/\s+/g, '').trim();
+    if (!cleanInputRuc) {
       showToast('Por favor, ingresa un número de RUC o Cédula', 'error');
       return;
     }
     setIsQueryingSri(true);
     try {
-      const result = await consultarRucSri(quickAddFormData.ruc);
+      const result = await consultarRucSri(cleanInputRuc);
       setQuickAddFormData(prev => ({
         ...prev,
-        name: result.name,
-        tipoIdentificacion: result.tipoIdentificacion,
-        direccion: result.direccion,
+        ruc: result.ruc || cleanInputRuc,
+        name: result.name || prev.name,
+        tipoIdentificacion: result.tipoIdentificacion || (cleanInputRuc.length === 10 ? 'cedula' : 'ruc'),
+        direccion: result.direccion || prev.direccion,
         ciudad: result.ciudad || '',
-        telefono: result.telefono,
+        telefono: result.telefono || prev.telefono,
         email: result.email || prev.email,
         tipoContribuyente: result.tipoContribuyente || 'general'
       }));
@@ -364,12 +366,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   const handleQuickAddSave = async (e) => {
     e.preventDefault();
-    if (!quickAddFormData.name || !quickAddFormData.ruc) {
+    const cleanRuc = String(quickAddFormData.ruc || '').replace(/\s+/g, '').trim();
+    if (!quickAddFormData.name || !cleanRuc) {
       showToast('Nombre y RUC/Identificación son obligatorios', 'error');
       return;
     }
-    const trimmedRuc = quickAddFormData.ruc.trim();
-    const isDuplicate = (thirdParties || []).some(tp => tp.ruc && String(tp.ruc).trim() === trimmedRuc);
+    const isDuplicate = (thirdParties || []).some(tp => tp.ruc && String(tp.ruc).replace(/\s+/g, '').trim() === cleanRuc);
     if (isDuplicate) {
       showToast('Ya existe un contacto con este RUC/Identificación', 'error');
       return;
@@ -377,22 +379,29 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     try {
       const docId = `tp_${new Date().getTime()}`;
       const relationType = formData.type === 'ingreso' ? 'cliente' : 'proveedor';
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), sanitizeFirestoreData({
-        name: quickAddFormData.name,
-        ruc: quickAddFormData.ruc,
-        email: quickAddFormData.email || '',
+      const cleanTipo = cleanRuc.length === 10 ? 'cedula' : (cleanRuc.length === 13 ? 'ruc' : (quickAddFormData.tipoIdentificacion || 'ruc'));
+      const contactPayload = sanitizeFirestoreData({
+        id: docId,
+        name: quickAddFormData.name.trim(),
+        ruc: cleanRuc,
+        email: quickAddFormData.email ? quickAddFormData.email.trim() : '',
         type: relationType,
-        tipoIdentificacion: quickAddFormData.tipoIdentificacion || 'ruc',
-        direccion: quickAddFormData.direccion || '',
-        ciudad: quickAddFormData.ciudad || '',
-        telefono: quickAddFormData.telefono || '',
+        tipoIdentificacion: cleanTipo,
+        direccion: quickAddFormData.direccion ? quickAddFormData.direccion.trim() : '',
+        ciudad: quickAddFormData.ciudad ? quickAddFormData.ciudad.trim() : '',
+        telefono: quickAddFormData.telefono ? quickAddFormData.telefono.trim() : '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
         isValidated: true,
         validado: true,
         updatedAt: new Date().toISOString()
-      }));
+      });
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), contactPayload);
       showToast('Contacto guardado y seleccionado', 'success');
-      setFormData(prev => ({ ...prev, thirdPartyId: docId }));
+      setFormData(prev => ({
+        ...prev,
+        thirdPartyId: docId,
+        thirdParty: { ...contactPayload, id: docId }
+      }));
       setIsQuickAddOpen(false);
     } catch (err) {
       console.error(err);
@@ -515,17 +524,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         cruce_cuentas: Number(breakdownCr) > 0 || tx.paymentMethod === 'cruce_cuentas' || tx.paymentMethod === 'credito'
       });
 
-      // Si el documento ya fue emitido/autorizado o anulado, o si se visualiza detalle de venta emitida, ir directo al paso 2
-      const isEmittedOrDetail = tx.sriStatus === 'autorizado' || 
-        tx.sriStatus === 'anulado' || 
-        tx.sriStatus === 'emitido' || 
-        tx.sriStatus === 'registrado' ||
-        Boolean(tx.claveAcceso) || 
-        Boolean(tx.documentNumber && tx.sriStatus !== 'borrador') ||
-        Boolean(tx.viewDetails && tx.sriStatus !== 'borrador');
+      // Solo ir directo al paso 2 (resumen/detalle) si:
+      // - El usuario explícitamente abrió para ver detalles (tx.viewDetails === true)
+      // - O el comprobante ya está plenamente AUTORIZADO o ANULADO (estos no se editan en el paso 1)
+      const isEmittedOrDetail = !tx.forceEdit && (
+        tx.viewDetails === true ||
+        tx.sriStatus === 'autorizado' || 
+        tx.sriStatus === 'anulado'
+      );
 
       if (isEmittedOrDetail) {
         setCurrentStep(2);
+      } else {
+        setCurrentStep(1);
       }
       if (tx.referencia || tx.description) {
         setShowAdditionalData(true);
@@ -967,7 +978,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const validateForm = (isDraftMode = false) => {
-    const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+    let matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+    if (matchedTercero) {
+      const cleanRuc = String(matchedTercero.ruc || '').replace(/\s+/g, '').trim();
+      const cleanTipo = cleanRuc.length === 10 ? 'cedula' : (cleanRuc.length === 13 ? 'ruc' : (matchedTercero.tipoIdentificacion || 'ruc'));
+      matchedTercero = { ...matchedTercero, ruc: cleanRuc, tipoIdentificacion: cleanTipo };
+    }
     const issues = getAdministrativeSaleIssues({
       clientId: formData.thirdPartyId, client: matchedTercero,
       identificationValid: matchedTercero ? validarIdentificacion(matchedTercero.ruc, matchedTercero.tipoIdentificacion, matchedTercero.isValidated || matchedTercero.validado) : false,
@@ -1257,7 +1273,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         setCurrentStep(2);
         if (formData.documentType === 'nota_venta' && isFinalizingNotaVenta) {
           const receiver = thirdParties.find(tp => tp.id === finalTxData.thirdPartyId) || finalTxData.thirdParty;
-          enviarCorreoComprobante(finalTxData, receiver, sriConfig);
+          enviarCorreoComprobante(finalTxData, receiver, sriConfig, null, true);
         }
       }
     } catch (err) {
@@ -1288,18 +1304,33 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setPrintTx(formData);
   };
 
-  const enviarCorreoComprobante = async (txData, cliente, configSRI, overrideEmail = null) => {
+  const enviarCorreoComprobante = async (txData, cliente, configSRI, overrideEmail = null, force = false) => {
     setEmailSending(true);
     try {
       const isNotaVenta = txData?.documentType === 'nota_venta';
-      const docLabel = isNotaVenta ? 'Recibo' : 'Factura';
+      const docLabel = isNotaVenta ? 'Nota de Venta' : 'Factura';
       const effectiveClient = overrideEmail
         ? { ...(cliente || {}), email: overrideEmail, correo: overrideEmail }
         : cliente;
 
+      // Garantizar que la configuración SMTP esté fresca desde la base de datos si falta en configSRI
+      let effectiveConfig = configSRI;
+      if (!effectiveConfig?.smtpHost || !effectiveConfig?.smtpUser) {
+        try {
+          const cfgSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+          if (cfgSnap.exists()) {
+            effectiveConfig = cfgSnap.data();
+            setSriConfig(effectiveConfig);
+          }
+        } catch (e) {
+          console.warn('Error al recargar config SMTP:', e);
+        }
+      }
+
       const result = await notifyAuthorizedInvoice({
-        db, appId, document: txData, customer: effectiveClient, config: configSRI,
+        db, appId, document: txData, customer: effectiveClient, config: effectiveConfig,
         api: { doc, getDoc, setDoc, runTransaction },
+        force
       });
       setEmailDeliveryResult(result);
       if (result.delivery) {
@@ -1311,7 +1342,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         const emitterSent = result.delivery?.emitter?.status === 'sent';
 
         if (clientSent && emitterSent) {
-          showToast(`${docLabel} enviada al cliente y copia al emisor.`, 'success');
+          showToast(`${docLabel} enviada al cliente y copia de respaldo al emisor.`, 'success');
         } else if (clientSent) {
           showToast(`${docLabel} enviada al cliente exitosamente.`, 'success');
         } else if (clientSkipped && emitterSent) {
@@ -1320,17 +1351,28 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           showToast(`Copia de ${docLabel.toLowerCase()} enviada al emisor.`, 'success');
         }
       } else if (result.status === 'partial') {
-        showToast(`${docLabel} emitida. Se envió a uno de los destinatarios.`, 'warning');
+        const clientSent = result.delivery?.client?.status === 'sent';
+        const errMsg = result.error || (clientSent ? result.delivery?.emitter?.error : result.delivery?.client?.error);
+        showToast(`${docLabel} enviada parcialmente (${clientSent ? 'Cliente recibido' : 'Copia emisor recibida'}). Falló: ${errMsg}`, 'warning');
+      } else if (result.status === 'failed') {
+        const errorDetail = result.error || result.delivery?.client?.error || result.delivery?.emitter?.error || 'Servidor SMTP no confirmó entrega.';
+        showToast(`No se pudo enviar el correo: ${errorDetail}`, 'error');
       } else if (result.status === 'unconfigured') {
-        showToast(`${docLabel} emitida. Configura el correo emisor en Ajustes.`, 'warning');
+        showToast(`${docLabel} emitida. Configura el servidor SMTP en Ajustes para enviar correos.`, 'warning');
       } else if (result.status === 'disabled') {
-        showToast(`${docLabel} emitida. Activa el envío automático en Ajustes.`, 'warning');
+        showToast(`${docLabel} emitida. El envío automático está desactivado en Ajustes.`, 'info');
+      } else if (result.status === 'not_authorized') {
+        showToast(`El comprobante aún está en proceso con el SRI. Se enviará por correo automáticamente al autorizarse.`, 'info');
+      } else if (result.status === 'in_progress') {
+        showToast(`Envío de correo en proceso. Espera unos momentos.`, 'info');
+      } else if (result.status === 'already_sent') {
+        showToast(`El comprobante ya fue entregado por correo anteriormente.`, 'info');
       }
       return result;
     } catch (error) {
       console.warn('Error al notificar comprobante por correo:', error);
-      showToast('Comprobante emitido, pero ocurrió un problema al enviar por correo.', 'warning');
-      setEmailDeliveryResult({ status: 'error', error: error.message });
+      showToast('Problema al enviar correo: ' + (error.message || 'Error de red'), 'error');
+      setEmailDeliveryResult({ status: 'failed', error: error.message });
     } finally {
       setEmailSending(false);
     }
@@ -1357,13 +1399,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   const recoverSriEmission = async (retry = false) => {
-    if (operationRef.current || !formData.claveAcceso) return;
+    if (operationRef.current || !formData.id) return;
     operationRef.current = true;
     setIsEmitting(true);
     try {
-      const persisted = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', formData.id));
-      if (!persisted.exists() || persisted.data().claveAcceso !== formData.claveAcceso) throw new Error('No se encontró la misma identidad fiscal guardada.');
-      let snapshot = { ...persisted.data(), id: formData.id };
+      const txDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', formData.id);
+      const persisted = await getDoc(txDocRef);
+      if (!persisted.exists()) throw new Error('No se encontró el comprobante en la base de datos.');
+      
+      // Sincronizar snapshot con datos persistidos y cualquier modificación local
+      let snapshot = { ...persisted.data(), ...formData, id: formData.id };
 
       let currentConfig = sriConfig;
       if (!currentConfig?.certificadoBase64) {
@@ -1373,52 +1418,87 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         } catch { /* use currentConfig */ }
       }
 
-      // Si el comprobante NO está autorizado y tiene error de diferencias en formas de pago (error 52)
-      // o cruce_cuentas + credito duplicados en el XML, regeneramos el XML con la misma clave y lo refirmamos
-      const hasPaymentDiffError = Boolean(
-        snapshot.sriStatus !== 'autorizado' && (
-          (snapshot.sriLastError && (snapshot.sriLastError.includes('formas pago') || snapshot.sriLastError.includes('DIFERENCIAS') || snapshot.sriLastError.includes('[52]'))) ||
-          (snapshot.xml && snapshot.xml.includes('<formaPago>15</formaPago>') && snapshot.xml.includes('<formaPago>20</formaPago>'))
-        )
-      );
-
-      if (retry === true && hasPaymentDiffError && currentConfig?.certificadoBase64 && currentConfig?.certificadoClave) {
+      // Si el comprobante NO está autorizado y se solicita reintento/corrección:
+      if (retry === true && snapshot.sriStatus !== 'autorizado' && currentConfig?.certificadoBase64 && currentConfig?.certificadoClave) {
         try {
-          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: 'Corrigiendo desglose de formas de pago y re-firmando XML...', status: 'info' }]);
-          const receiver = thirdParties.find(tp => tp.id === snapshot.thirdPartyId) || snapshot.thirdParty;
+          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: 'Regenerando clave de acceso y re-firmando XML con datos limpios...', status: 'info' }]);
+          let receiver = thirdParties.find(tp => tp.id === (formData.thirdPartyId || snapshot.thirdPartyId)) || formData.thirdParty || snapshot.thirdParty;
+          if (receiver) {
+            const cleanRuc = String(receiver.ruc || '').replace(/\s+/g, '').trim();
+            const cleanTipo = cleanRuc.length === 10 ? 'cedula' : (cleanRuc.length === 13 ? 'ruc' : (receiver.tipoIdentificacion || 'ruc'));
+            receiver = { ...receiver, ruc: cleanRuc, tipoIdentificacion: cleanTipo };
+            if (receiver.id && receiver.ruc !== cleanRuc) {
+              setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', receiver.id), { ruc: cleanRuc, tipoIdentificacion: cleanTipo }, { merge: true }).catch(() => {});
+            }
+          }
+
           const generators = { factura: generarFacturaXML, retencion: generarRetencionXML, nota_credito: generarNotaCreditoXML, liquidacion: generarLiquidacionXML, guia_remision: generarGuiaRemisionXML };
           const generate = generators[snapshot.documentType || 'factura'];
           if (generate) {
-            const { xml, claveAcceso } = generate(currentConfig, snapshot, receiver, snapshot.items || []);
+            // Generar siempre un nuevo código numérico de 8 dígitos para generar una clave inédita en el SRI
+            // y evitar el bloqueo por límite de intentos diarios, manteniendo el mismo secuencial fiscal
+            const newCodigoNumerico = String(crypto.getRandomValues(new Uint32Array(1))[0] % 100000000).padStart(8, '0');
+            const itemsForInvoice = (formData.items && formData.items.length > 0) ? formData.items : (snapshot.items || []);
+            const invoiceForGen = {
+              ...snapshot,
+              ...formData,
+              codigoNumerico: newCodigoNumerico,
+              claveAcceso: null // Provoca la generación limpia de la nueva clave de acceso
+            };
+
+            const { xml, claveAcceso } = generate(currentConfig, invoiceForGen, receiver, itemsForInvoice);
             const signedXml = firmarComprobanteXML(xml, currentConfig.certificadoBase64, currentConfig.certificadoClave);
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', snapshot.id), {
+
+            await setDoc(txDocRef, {
               xml: signedXml,
               claveAcceso,
+              codigoNumerico: newCodigoNumerico,
               sriStatus: 'pendiente_sri',
-              sriLastError: ''
+              sriLastError: '',
+              thirdParty: receiver,
+              items: itemsForInvoice
             }, { merge: true });
-            snapshot = { ...snapshot, xml: signedXml, claveAcceso, sriStatus: 'pendiente_sri', sriLastError: '' };
+
+            snapshot = {
+              ...snapshot,
+              xml: signedXml,
+              claveAcceso,
+              codigoNumerico: newCodigoNumerico,
+              sriStatus: 'pendiente_sri',
+              sriLastError: '',
+              thirdParty: receiver,
+              items: itemsForInvoice
+            };
+            setFormData(prev => ({ ...prev, ...snapshot }));
           }
         } catch (repairErr) {
           console.warn('Error al reparar y refirmar comprobante:', repairErr);
         }
       }
 
+      // Si se hizo retry o el comprobante está pendiente/devuelto/no_autorizado, transmitir o consultar
       const result = retry === true && ['pendiente_sri', 'devuelto', 'no_autorizado'].includes(snapshot.sriStatus)
         ? await reintentarDocumentoSRI(snapshot, setSriLogs)
         : await consultarAutorizacionSRI(snapshot.claveAcceso, snapshot.sriAmbiente || snapshot.claveAcceso[23]);
-      const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
+
+      const updated = await saveSriResult({ db, appId, document: snapshot, result, api: fiscalApi });
       setFormData(updated);
       setCurrentStep(2);
+
       if (updated.sriStatus === 'autorizado') {
         await finishAuthorizedEmission(updated);
-        await enviarCorreoComprobante(updated, thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty, currentConfig || sriConfig);
+        await enviarCorreoComprobante(updated, thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty, currentConfig || sriConfig, null, true);
+        showToast(`¡Factura ${updated.documentNumber || ''} AUTORIZADA por el SRI con éxito!`, 'success');
+      } else {
+        showToast(result.message || 'El comprobante sigue en estado pendiente ante el SRI.', 'warning');
       }
-      else showToast(result.message || 'Autorización pendiente; se conserva el mismo comprobante.', 'warning');
     } catch (error) {
       setCurrentStep(2);
-      showToast('No se pudo confirmar el estado. Se conserva la clave y el secuencial. ' + error.message, 'warning');
-    } finally { operationRef.current = false; setIsEmitting(false); }
+      showToast('No se pudo confirmar el estado: ' + error.message, 'warning');
+    } finally {
+      operationRef.current = false;
+      setIsEmitting(false);
+    }
   };
 
   // Verificación reactiva en segundo plano cuando se emite y queda pendiente en Step 2
@@ -1426,7 +1506,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     if (currentStep !== 2 || formData.sriStatus !== 'pendiente_sri' || !formData.claveAcceso) return;
     let cancelled = false;
     let pollCount = 0;
-    const maxPolls = 6;
+    const maxPolls = 12;
 
     const pollInterval = setInterval(async () => {
       if (cancelled || operationRef.current) return;
@@ -1443,8 +1523,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           setFormData(updated);
           await finishAuthorizedEmission(updated);
           const receiver = thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty;
-          await enviarCorreoComprobante(updated, receiver, sriConfig);
-          showToast(`¡Factura ${updated.documentNumber} AUTORIZADA por el SRI! Copia enviada al emisor y cliente.`, 'success');
+          let freshConfig = sriConfig;
+          try {
+            const cfgSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+            if (cfgSnap.exists()) freshConfig = cfgSnap.data();
+          } catch {}
+          await enviarCorreoComprobante(updated, receiver, freshConfig, null, true);
+          showToast(`¡Factura ${updated.documentNumber} AUTORIZADA por el SRI! Correo despachado.`, 'success');
         }
       } catch (err) {
         console.warn('Verificación en segundo plano SRI:', err.message);
@@ -1464,10 +1549,16 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   }, [currentStep]);
 
   const executeEmitirSRI = async () => {
-    if (formData.claveAcceso) { await recoverSriEmission(); return; }
+    if (formData.claveAcceso) { await recoverSriEmission(true); return; }
     if (operationRef.current || !validateForm()) return;
-    const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
-    if (!receiver) { showToast('Seleccione un cliente antes de emitir.', 'error'); return; }
+    const rawReceiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+    if (!rawReceiver) { showToast('Seleccione un cliente antes de emitir.', 'error'); return; }
+    const cleanRuc = String(rawReceiver.ruc || '').replace(/\s+/g, '').trim();
+    const cleanTipo = cleanRuc.length === 10 ? 'cedula' : (cleanRuc.length === 13 ? 'ruc' : (rawReceiver.tipoIdentificacion || 'ruc'));
+    const receiver = { ...rawReceiver, ruc: cleanRuc, tipoIdentificacion: cleanTipo };
+    if (rawReceiver.id && rawReceiver.ruc !== cleanRuc) {
+      setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', rawReceiver.id), { ruc: cleanRuc, tipoIdentificacion: cleanTipo }, { merge: true }).catch(() => {});
+    }
     operationRef.current = true;
     setIsEmitting(true);
     setSriLogs([]);
@@ -1548,7 +1639,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       setCurrentStep(2);
       if (saved.sriStatus === 'autorizado') {
         await finishAuthorizedEmission(saved);
-        await enviarCorreoComprobante(saved, receiver, reservation.config);
+        await enviarCorreoComprobante(saved, receiver, reservation.config, null, true);
       } else {
         showToast(result.message || 'Comprobante emitido con clave oficial. Verificando autorización en el SRI...', 'info');
       }
@@ -1707,17 +1798,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   // Auto-emisión/Guardado directo para transacciones iniciadas desde el POS
 
 
-  const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+  const matchedTercero = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
   const isAuthorized = formData.sriStatus === 'autorizado';
   const isAnulado = formData.sriStatus === 'anulado';
   const isNotaVenta = formData.documentType === 'nota_venta';
   const emailDeliveryData = emailDeliveryResult?.delivery || formData.emailDelivery || {};
   const clientSent = emailDeliveryData.client?.status === 'sent';
   const clientFailed = emailDeliveryData.client?.status === 'failed';
+  const clientError = emailDeliveryData.client?.error || emailDeliveryResult?.error || '';
   const clientAddress = emailDeliveryData.client?.address || matchedTercero?.email || matchedTercero?.correo || '';
 
   const emitterSent = emailDeliveryData.emitter?.status === 'sent';
   const emitterFailed = emailDeliveryData.emitter?.status === 'failed';
+  const emitterError = emailDeliveryData.emitter?.error || emailDeliveryResult?.error || '';
   const emitterAddress = emailDeliveryData.emitter?.address || sriConfig?.correoContacto || sriConfig?.email || sriConfig?.smtpUser || '';
 
   const isSmtpConfigured = Boolean(sriConfig?.smtpHost && sriConfig?.smtpUser && sriConfig?.smtpPass);
@@ -1729,7 +1822,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       ? '¡Factura Electrónica Emitida y Autorizada!' 
       : '¡Transacción Guardada con Éxito!';
 
-  const isEditable = !formData.claveAcceso && !isAuthorized && !isAnulado && !isSaving && !isEmitting;
+  const isEditable = !isAuthorized && !isAnulado && !isSaving && !isEmitting;
   // Documento finalizado en paso 2 — no se puede regresar ni editar desde aquí
   const isLockedInStep2 = (isAuthorized || isAnulado) && currentStep === 2;
   // eslint-disable-next-line no-unused-vars
@@ -3273,17 +3366,34 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <>
                       {/* Emit SRI (Factura Electrónica) */}
                       {formData.type === 'ingreso' && formData.documentType !== 'nota_venta' && (
-                        <button
-                          type="button" 
-                          onClick={handleEmitirSRI} 
-                          disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
-                            isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        >
-                          <Sparkles size={15} className="text-[#c0ffa5]" />
-                          <span>Emitir Factura Electrónica (SRI)</span>
-                        </button>
+                        <>
+                          <button
+                            type="button" 
+                            onClick={handleEmitirSRI} 
+                            disabled={isUploading || isEmitting || isSaving}
+                            className={`w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
+                              isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <Sparkles size={15} className="text-[#c0ffa5]" />
+                            <span>
+                              {formData.claveAcceso && !isAuthorized
+                                ? 'Corregir y Reemitir Factura Electrónica (SRI)'
+                                : 'Emitir Factura Electrónica (SRI)'}
+                            </span>
+                          </button>
+                          {formData.claveAcceso && !isAuthorized && (
+                            <button
+                              type="button"
+                              onClick={() => recoverSriEmission(false)}
+                              disabled={isUploading || isEmitting || isSaving}
+                              className="w-full py-2 px-4 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                            >
+                              <RefreshCw size={12} className={isEmitting ? "animate-spin" : ""} />
+                              <span>Consultar Autorización en SRI</span>
+                            </button>
+                          )}
+                        </>
                       )}
 
                       {/* Register Nota de Venta / Recibo */}
@@ -3476,6 +3586,19 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     <span>WhatsApp</span>
                   </button>
 
+                  {/* Editar / Corregir si no está autorizado */}
+                  {!isAuthorized && !isAnulado && (
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(1)}
+                      className="py-2 px-3 sm:px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                      title="Volver al formulario para editar cliente, productos o pagos"
+                    >
+                      <Edit2 size={14} className="text-amber-700" />
+                      <span>Editar y Corregir Factura</span>
+                    </button>
+                  )}
+
                   {/* Nueva Venta */}
                   <button
                     type="button"
@@ -3569,17 +3692,29 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   )}
 
-                  {/* Botón para consultar autorización si está pendiente */}
+                  {/* Botón para consultar autorización o reemitir si está pendiente */}
                   {!isAuthorized && formData.claveAcceso && formData.documentType !== 'nota_venta' && (
-                    <button
-                      type="button"
-                      disabled={isEmitting}
-                      onClick={() => recoverSriEmission(true)}
-                      className="mt-1 py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
-                    >
-                      <RefreshCw size={12} className={isEmitting ? "animate-spin" : ""} />
-                      <span>{isEmitting ? "Consultando..." : "Consultar SRI"}</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                      <button
+                        type="button"
+                        disabled={isEmitting}
+                        onClick={() => recoverSriEmission(true)}
+                        className="py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer shadow-none"
+                        title="Desbloquear clave en SRI, firmar XML y retransmitir"
+                      >
+                        <RefreshCw size={12} className={isEmitting ? "animate-spin" : ""} />
+                        <span>{isEmitting ? "Procesando..." : "Corregir y Reemitir al SRI"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(1)}
+                        className="py-1.5 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                        title="Ir al formulario para editar cliente, productos o pagos"
+                      >
+                        <Edit2 size={12} />
+                        <span>Editar en Formulario</span>
+                      </button>
+                    </div>
                   )}
 
                   {/* Botón para anular si está autorizado o registrado */}
@@ -3712,62 +3847,143 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                   )}
 
-                  {/* Estado de Notificación por Correo & Input rápido */}
-                  <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+                  {/* Estado de Notificación por Correo & Controles Rápidos */}
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Mail size={14} className="text-slate-600" />
+                        <Mail size={15} className="text-slate-700" />
                         <span className="font-bold text-slate-900 text-xs">Notificación por Correo Electrónico</span>
                       </div>
                       {emailSending && (
-                        <span className="text-[11px] text-blue-600 flex items-center gap-1 font-medium">
-                          <RefreshCw size={11} className="animate-spin" /> Enviando...
+                        <span className="text-[11px] text-blue-600 flex items-center gap-1 font-medium bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                          <RefreshCw size={11} className="animate-spin" /> Enviando correo...
                         </span>
                       )}
                     </div>
 
-                    <div className="text-[11.5px] text-slate-600 space-y-1">
-                      <div>
-                        Cliente: {clientSent ? (
-                          <span className="text-emerald-700 font-medium">Entregado a {clientAddress}</span>
-                        ) : clientAddress ? (
-                          <span>Registrado: {clientAddress}</span>
-                        ) : (
-                          <span className="text-slate-400">Sin correo en ficha</span>
+                    {/* Aviso si la factura está pendiente de autorización SRI */}
+                    {!isNotaVenta && formData.sriStatus === 'pendiente_sri' && (
+                      <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11.5px] flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Clock size={13} className="shrink-0 text-amber-600 animate-pulse" />
+                          <span>Verificando con el SRI. Al autorizarse se enviará automáticamente.</span>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={isEmitting}
+                          onClick={() => recoverSriEmission(false)}
+                          className="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold text-[11px] shrink-0 transition-colors cursor-pointer"
+                        >
+                          Verificar Ahora
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Estado detallado Cliente y Emisor */}
+                    <div className="text-[11.5px] text-slate-700 space-y-2">
+                      {/* Fila Cliente */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="font-semibold text-slate-900 w-14 shrink-0">Cliente:</span>
+                          {clientSent ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">
+                              <CheckCircle2 size={11} className="text-emerald-600" /> Entregado a {clientAddress}
+                            </span>
+                          ) : clientFailed ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200 font-medium" title={clientError}>
+                              <AlertTriangle size={11} className="text-rose-600" /> Error: {clientError || 'Fallo de entrega'}
+                            </span>
+                          ) : clientAddress ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                              Registrado: {clientAddress}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic">Sin correo en ficha de cliente</span>
+                          )}
+                        </div>
+
+                        {/* Botón de acción para el cliente */}
+                        {clientAddress && (formData.sriStatus === 'autorizado' || isNotaVenta) && (
+                          <button
+                            type="button"
+                            disabled={emailSending}
+                            onClick={() => {
+                              const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+                              enviarCorreoComprobante(formData, receiver, sriConfig, null, true);
+                            }}
+                            className="px-2 py-1 rounded bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                          >
+                            <Send size={10} />
+                            <span>{clientSent ? 'Reenviar' : 'Enviar Ahora'}</span>
+                          </button>
                         )}
                       </div>
-                      <div>
-                        Emisor: {emitterSent ? (
-                          <span className="text-emerald-700 font-medium">Copia de respaldo enviada</span>
-                        ) : emitterAddress ? (
-                          <span>Copia configurada ({emitterAddress})</span>
-                        ) : (
-                          <span className="text-slate-400">Sin correo configurado</span>
+
+                      {/* Fila Emisor */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="font-semibold text-slate-900 w-14 shrink-0">Emisor:</span>
+                          {emitterSent ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">
+                              <CheckCircle2 size={11} className="text-emerald-600" /> Copia de respaldo enviada a {emitterAddress}
+                            </span>
+                          ) : emitterFailed ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200 font-medium" title={emitterError}>
+                              <AlertTriangle size={11} className="text-rose-600" /> Falló copia: {emitterError || 'Fallo SMTP'}
+                            </span>
+                          ) : !isSmtpConfigured ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                              <AlertTriangle size={11} className="text-amber-600" /> SMTP no configurado en Ajustes
+                            </span>
+                          ) : emitterAddress ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                              Copia configurada: {emitterAddress}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic">Sin correo emisor</span>
+                          )}
+                        </div>
+
+                        {emitterFailed && (formData.sriStatus === 'autorizado' || isNotaVenta) && (
+                          <button
+                            type="button"
+                            disabled={emailSending}
+                            onClick={() => {
+                              const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+                              enviarCorreoComprobante(formData, receiver, sriConfig, null, true);
+                            }}
+                            className="px-2 py-1 rounded bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                          >
+                            <RefreshCw size={10} />
+                            <span>Reintentar Copia</span>
+                          </button>
                         )}
                       </div>
                     </div>
 
                     {/* Input para reenviar a correo alternativo */}
-                    <div className="flex items-center gap-2 pt-1">
-                      <UiInput
-                        type="email"
-                        value={customClientEmail}
-                        onChange={e => setCustomClientEmail(e.target.value)}
-                        placeholder="Enviar copia a otro correo..."
-                        className="flex-1 h-8 text-xs bg-white rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        disabled={emailSending || !customClientEmail || !customClientEmail.includes('@')}
-                        onClick={() => {
-                          const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
-                          enviarCorreoComprobante(formData, receiver, sriConfig, customClientEmail);
-                        }}
-                        className="h-8 px-3 rounded-lg bg-[#1b1b1b] hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1 shrink-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        <Send size={11} />
-                        <span>Enviar</span>
-                      </button>
+                    <div className="pt-2 border-t border-slate-200/80">
+                      <div className="flex items-center gap-2">
+                        <UiInput
+                          type="email"
+                          value={customClientEmail}
+                          onChange={e => setCustomClientEmail(e.target.value)}
+                          placeholder="Enviar copia a otro correo..."
+                          className="flex-1 h-8 text-xs bg-white rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          disabled={emailSending || !customClientEmail || !customClientEmail.includes('@')}
+                          onClick={() => {
+                            const receiver = thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
+                            enviarCorreoComprobante(formData, receiver, sriConfig, customClientEmail, true);
+                          }}
+                          className="h-8 px-3 rounded-lg bg-[#1b1b1b] hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1 shrink-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          <Send size={11} />
+                          <span>Enviar</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -4120,7 +4336,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       type="text" 
                       required 
                       value={quickAddFormData.ruc} 
-                      onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
+                      onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value.replace(/\s+/g, '')})} 
                       className="w-full rounded-xl bg-white" 
                       placeholder="1790000000001" 
                     />

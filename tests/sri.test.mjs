@@ -72,6 +72,9 @@ test('authorization recovery notifies customer and issuer once and records both 
   assert.equal(store.data.get(path('finances_transactions', 'recovered')).emailDelivery.emitter.status, 'sent');
   assert.equal((await send()).status, 'already_sent');
   assert.equal(calls.length, 1);
+  const resendForced = await notifyAuthorizedInvoice({ db: {}, appId: 'test', document, customer, api: store.api, fetchEmail, force: true });
+  assert.equal(resendForced.status, 'sent');
+  assert.equal(calls.length, 2);
 });
 
 test('a failed issuer copy can be retried without emailing the customer twice', async () => {

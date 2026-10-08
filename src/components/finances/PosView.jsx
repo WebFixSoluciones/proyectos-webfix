@@ -391,11 +391,14 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   const changeDue = Math.max(0, paidTotal - totalToPay);
   const remainingDue = Math.max(0, totalToPay - paidTotal);
 
-  // Cliente SRI selector
   const getSelectedClient = () => {
     if (selectedClientId) {
       const found = thirdParties.find(tp => tp.id === selectedClientId);
-      if (found) return found;
+      if (found) {
+        const cleanRuc = String(found.ruc || '').replace(/\s+/g, '').trim();
+        const cleanTipo = cleanRuc.length === 10 ? 'cedula' : (cleanRuc.length === 13 ? 'ruc' : (found.tipoIdentificacion || 'ruc'));
+        return { ...found, ruc: cleanRuc, tipoIdentificacion: cleanTipo };
+      }
     }
     return {
       name: 'Consumidor Final',
@@ -696,7 +699,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   // Auto consulta de SRI al rellenar cédula/RUC en agregar cliente
   useEffect(() => {
     if (!isQuickAddOpen) return;
-    const rucVal = quickAddFormData.ruc.trim();
+    const rucVal = String(quickAddFormData.ruc || '').replace(/\s+/g, '').trim();
     const type = quickAddFormData.tipoIdentificacion;
     const shouldQuery = (type === 'cedula' && rucVal.length === 10) || 
                         (type === 'ruc' && rucVal.length === 13);
@@ -708,6 +711,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           const result = await consultarRucSri(rucVal);
           setQuickAddFormData(prev => ({
             ...prev,
+            ruc: result.ruc || rucVal,
             name: result.name,
             tipoIdentificacion: result.tipoIdentificacion,
             direccion: result.direccion,
@@ -1138,20 +1142,22 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
   // Quick Client Creation inside POS
   const queryQuickClientSRI = async () => {
-    if (!quickAddFormData.ruc) {
+    const cleanInputRuc = String(quickAddFormData.ruc || '').replace(/\s+/g, '').trim();
+    if (!cleanInputRuc) {
       showToast("Ingresa un número RUC/CI", "error");
       return;
     }
     setIsQueryingSri(true);
     try {
-      const result = await consultarRucSri(quickAddFormData.ruc);
+      const result = await consultarRucSri(cleanInputRuc);
       setQuickAddFormData(prev => ({
         ...prev,
-        name: result.name,
-        tipoIdentificacion: result.tipoIdentificacion,
-        direccion: result.direccion,
+        ruc: result.ruc || cleanInputRuc,
+        name: result.name || prev.name,
+        tipoIdentificacion: result.tipoIdentificacion || (cleanInputRuc.length === 10 ? 'cedula' : 'ruc'),
+        direccion: result.direccion || prev.direccion,
         ciudad: result.ciudad || '',
-        telefono: result.telefono,
+        telefono: result.telefono || prev.telefono,
         email: result.email || prev.email,
         tipoContribuyente: result.tipoContribuyente || 'general'
       }));
@@ -1166,28 +1172,29 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
   const handleQuickClientSave = async (e) => {
     e.preventDefault();
-    if (!quickAddFormData.name || !quickAddFormData.ruc) {
+    const cleanRuc = String(quickAddFormData.ruc || '').replace(/\s+/g, '').trim();
+    if (!quickAddFormData.name || !cleanRuc) {
       showToast("Nombre e identificación obligatorios", "error");
       return;
     }
-    const trimmedRuc = quickAddFormData.ruc.trim();
-    const isDuplicate = (thirdParties || []).some(tp => tp.ruc && String(tp.ruc).trim() === trimmedRuc);
+    const isDuplicate = (thirdParties || []).some(tp => tp.ruc && String(tp.ruc).replace(/\s+/g, '').trim() === cleanRuc);
     if (isDuplicate) {
       showToast("Ya existe un cliente con este RUC/Identificación", "error");
       return;
     }
     try {
       const docId = `tp_${new Date().getTime()}`;
+      const cleanTipo = cleanRuc.length === 10 ? 'cedula' : (cleanRuc.length === 13 ? 'ruc' : (quickAddFormData.tipoIdentificacion || 'ruc'));
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), sanitizeData({
         id: docId,
-        name: quickAddFormData.name,
-        ruc: quickAddFormData.ruc,
-        email: quickAddFormData.email || '',
+        name: quickAddFormData.name.trim(),
+        ruc: cleanRuc,
+        email: quickAddFormData.email ? quickAddFormData.email.trim() : '',
         type: 'cliente',
-        tipoIdentificacion: quickAddFormData.tipoIdentificacion || 'ruc',
-        direccion: quickAddFormData.direccion || '',
-        ciudad: quickAddFormData.ciudad || '',
-        telefono: quickAddFormData.telefono || '',
+        tipoIdentificacion: cleanTipo,
+        direccion: quickAddFormData.direccion ? quickAddFormData.direccion.trim() : '',
+        ciudad: quickAddFormData.ciudad ? quickAddFormData.ciudad.trim() : '',
+        telefono: quickAddFormData.telefono ? quickAddFormData.telefono.trim() : '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
         isValidated: true,
         validado: true,
@@ -3443,7 +3450,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                       type="text" 
                       required 
                       value={quickAddFormData.ruc} 
-                      onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value})} 
+                      onChange={e => setQuickAddFormData({...quickAddFormData, ruc: e.target.value.replace(/\s+/g, '')})} 
                       {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
                       placeholder="1790000000001" 
                     />

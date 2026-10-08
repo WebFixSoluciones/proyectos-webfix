@@ -5,42 +5,42 @@ const emailAddress = value => {
 
 const firstEmail = (...values) => values.map(emailAddress).find(Boolean) || '';
 
-export async function notifyAuthorizedInvoice({ db, appId, document, customer, config, api, fetchEmail = fetch }) {
+export async function notifyAuthorizedInvoice({ db, appId, document, customer, config, api, fetchEmail = fetch, force = false }) {
   const isNotaVenta = (document?.documentType === 'nota_venta');
   if (isNotaVenta) {
-    if (!document?.documentNumber) return { status: 'not_authorized' };
+    if (!document?.documentNumber) return { status: 'not_authorized', message: 'La nota de venta no tiene número emitido.' };
   } else {
-    if (document?.sriStatus !== 'autorizado') return { status: 'not_authorized' };
+    if (document?.sriStatus !== 'autorizado') return { status: 'not_authorized', message: 'El comprobante aún no está autorizado por el SRI.' };
   }
 
   const documentRef = api.doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', document.id);
   const settings = config || (await api.getDoc(api.doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'))).data();
-  if (settings?.smtpActivo === false) return { status: 'disabled' };
-  if (!settings?.smtpHost || !settings?.smtpUser || !settings?.smtpPass) return { status: 'unconfigured' };
+  if (settings?.smtpActivo === false) return { status: 'disabled', message: 'El envío automático de correos está desactivado en Ajustes.' };
+  if (!settings?.smtpHost || !settings?.smtpUser || !settings?.smtpPass) return { status: 'unconfigured', message: 'Configuración SMTP incompleta en Ajustes.' };
 
   const emitterEmail = firstEmail(settings.correoContacto, settings.email, settings.smtpUser);
   const customerEmail = firstEmail(customer?.email, customer?.correo, customer?.correoElectronico, customer?.mail);
   const clientEmail = customerEmail.includes('consumidorfinal') ? '' : customerEmail;
-  if (!emitterEmail) return { status: 'unconfigured' };
+  if (!emitterEmail) return { status: 'unconfigured', message: 'No hay correo emisor configurado en Ajustes.' };
 
   const now = new Date();
   const claim = await api.runTransaction(db, async transaction => {
     const snapshot = await transaction.get(documentRef);
-    if (!snapshot.exists()) return { status: 'not_authorized' };
+    if (!snapshot.exists()) return { status: 'not_authorized', message: 'Comprobante no encontrado en base de datos.' };
     const docData = snapshot.data();
     const isDocNotaVenta = document.documentType === 'nota_venta' || docData.documentType === 'nota_venta';
     if (!isDocNotaVenta) {
-      if (docData.claveAcceso !== document.claveAcceso || docData.sriStatus !== 'autorizado') return { status: 'not_authorized' };
+      if (docData.claveAcceso !== document.claveAcceso || docData.sriStatus !== 'autorizado') return { status: 'not_authorized', message: 'Comprobante no autorizado en el sistema.' };
     } else {
-      if (!docData.documentNumber && !document.documentNumber) return { status: 'not_authorized' };
+      if (!docData.documentNumber && !document.documentNumber) return { status: 'not_authorized', message: 'Nota de venta sin secuencial emitido.' };
     }
 
     const previous = snapshot.data().emailDelivery || {};
     const claimedAt = Date.parse(previous.claimedAt || '');
-    if (Number.isFinite(claimedAt) && now.getTime() - claimedAt < 120000) return { status: 'in_progress' };
-    const sendClient = !!clientEmail && !(previous.client?.status === 'sent' && String(previous.client.address || '').toLowerCase() === clientEmail.toLowerCase());
-    const sendEmitter = !(previous.emitter?.status === 'sent' && String(previous.emitter.address || '').toLowerCase() === emitterEmail.toLowerCase());
-    if (!sendClient && !sendEmitter) return { status: 'already_sent', delivery: previous };
+    if (!force && Number.isFinite(claimedAt) && now.getTime() - claimedAt < 20000) return { status: 'in_progress', message: 'Envío de correo en curso. Espera unos segundos.' };
+    const sendClient = !!clientEmail && (force || !(previous.client?.status === 'sent' && String(previous.client.address || '').toLowerCase() === clientEmail.toLowerCase()));
+    const sendEmitter = force || !(previous.emitter?.status === 'sent' && String(previous.emitter.address || '').toLowerCase() === emitterEmail.toLowerCase());
+    if (!sendClient && !sendEmitter) return { status: 'already_sent', delivery: previous, message: 'El comprobante ya fue enviado.' };
     transaction.set(documentRef, { emailDelivery: { ...previous, claimedAt: now.toISOString() } }, { merge: true });
     return { status: 'claimed', previous, sendClient, sendEmitter };
   });
@@ -92,5 +92,7 @@ export async function notifyAuthorizedInvoice({ db, appId, document, customer, c
   await api.setDoc(documentRef, { emailDelivery: delivery }, { merge: true });
   const clientOk = !clientEmail || delivery.client?.status === 'sent';
   const emitterOk = delivery.emitter?.status === 'sent';
-  return { status: clientOk && emitterOk ? 'sent' : 'partial', delivery };
+  const finalStatus = clientOk && emitterOk ? 'sent' : (delivery.client?.status === 'sent' || delivery.emitter?.status === 'sent') ? 'partial' : 'failed';
+  const finalError = requestError || (!clientOk ? delivery.client?.error : '') || (!emitterOk ? delivery.emitter?.error : '');
+  return { status: finalStatus, delivery, error: finalError };
 }

@@ -48,7 +48,7 @@ export function invoiceEmailRecipients(to, emitterEmail) {
   const client = String(to || '').trim();
   const emitter = String(emitterEmail || '').trim();
   const recipients = [];
-  if (client && client.toLowerCase() !== emitter.toLowerCase()) recipients.push({ role: 'client', address: client });
+  if (client) recipients.push({ role: 'client', address: client });
   if (emitter) recipients.push({ role: 'emitter', address: emitter });
   return recipients;
 }

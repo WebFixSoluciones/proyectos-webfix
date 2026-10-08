@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { normalizeProduct, validateCartStock, makeCartItem, appendInvoiceLine } from '../src/services/productModel.js';
 import { settlePayments, cashSessionTotals } from '../src/services/paymentModel.js';
 import { calculateTransactionTotals } from '../src/services/discountCalcService.js';
-import { generarFacturaXML, validarIdentificacion } from '../src/services/sriService.js';
+import { generarFacturaXML, validarIdentificacion, limpiarIdentificacion, obtenerTipoIdentificacionSRI } from '../src/services/sriService.js';
 import { registerInventoryOperations, CENTRAL_BRANCH } from '../src/services/inventoryLedger.js';
 import { sincronizarVenta } from '../src/services/integracionFinanzasService.js';
 import handler, { resolveSmtpConfig, invoiceEmailRecipients, deliverInvoiceMessages } from '../api/send-email/index.js';
@@ -175,6 +175,29 @@ test('identification validation strictly rejects invalid RUC and protects sequen
   assert.equal(validarIdentificacion('1712345678'), false); // invalid checksum
 });
 
+test('identification sanitization and XML generation removes spaces and assigns correct SRI type', () => {
+  // Test limpiarIdentificacion
+  assert.equal(limpiarIdentificacion('  1754376901001  '), '1754376901001');
+  assert.equal(limpiarIdentificacion('1754 3769 01001'), '1754376901001');
+  assert.equal(limpiarIdentificacion('1712345678 \n'), '1712345678');
+  assert.equal(limpiarIdentificacion(''), '');
+
+  // Test obtenerTipoIdentificacionSRI with spaces
+  assert.equal(obtenerTipoIdentificacionSRI({ ruc: ' 1754376901001 ' }), '04'); // RUC
+  assert.equal(obtenerTipoIdentificacionSRI({ ruc: ' 1712345678 ' }), '05'); // Cédula
+  assert.equal(obtenerTipoIdentificacionSRI({ ruc: ' 9999999999999 ' }), '07'); // Consumidor Final
+
+  // Test XML generator strictly strips spaces from identificacionComprador
+  const config = { ruc: '1790011234001', razonSocial: 'EMISOR PRUEBA', ambiente: '1', establecimiento: '001', puntoEmision: '001', direccionMatriz: 'Quito' };
+  const tx = { secuencial: '1', date: '2026-10-08', items: [{ code: 'P1', name: 'Item', quantity: 1, precio_base_unitario: 10, tarifa_iva: 0.15, monto_descuento_linea: 0, descuento_prorrateado: 0 }] };
+  const customerWithSpaces = { ruc: ' 1754376901001 \t\n', name: 'CLIENTE CON ESPACIOS', tipoIdentificacion: 'ruc' };
+  const { xml } = generarFacturaXML(config, tx, customerWithSpaces, tx.items);
+  assert.ok(xml.includes('<identificacionComprador>1754376901001</identificacionComprador>'));
+  assert.ok(!xml.includes('<identificacionComprador> '));
+  assert.ok(!xml.includes(' </identificacionComprador>'));
+  assert.ok(xml.includes('<tipoIdentificacionComprador>04</tipoIdentificacionComprador>'));
+});
+
 test('volume discount A_PARTIR_DE with SIN_IVA applies on threshold and matches $200 invoice total', () => {
   const zapatoDisc = {
     id: 'desc_zapato_iva',
@@ -327,7 +350,7 @@ test('send-email handler accepts empty smtpPort and validates required fields wi
 test('invoice email sends an independent client message and issuer copy, reporting partial SMTP rejection', async () => {
   const recipients = invoiceEmailRecipients('cliente@example.com', 'emisor@example.com');
   assert.deepEqual(recipients.map(item => item.role), ['client', 'emitter']);
-  assert.deepEqual(invoiceEmailRecipients('emisor@example.com', 'emisor@example.com').map(item => item.role), ['emitter']);
+  assert.deepEqual(invoiceEmailRecipients('emisor@example.com', 'emisor@example.com').map(item => item.role), ['client', 'emitter']);
   const sent = [];
   const deliveries = await deliverInvoiceMessages({
     async sendMail(options) {

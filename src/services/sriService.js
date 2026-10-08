@@ -40,27 +40,39 @@ export function getEcuadorDateTimeString(d = new Date()) {
   return `${dateStr} ${timeStr}`;
 }
 
+// Sanitizador estricto de número de identificación (RUC, Cédula, Pasaporte)
+// Elimina espacios en blanco iniciales, finales e intermedios, saltos de línea y tabulaciones
+export function limpiarIdentificacion(identificacion) {
+  if (!identificacion) return '';
+  return String(identificacion).replace(/\s+/g, '').trim();
+}
+
 // Validador de RUC / CI Ecuatoriano
 export function validarIdentificacion(identificacion, tipoIdentificacion = '', isValidated = false) {
   if (!identificacion) return false;
-  const clean = String(identificacion).trim();
+  const clean = limpiarIdentificacion(identificacion);
   if (clean === '9999999999999') return true; // Consumidor Final es válido de inmediato
 
-  // Omitir validación local si es pasaporte, extranjero o ya fue validado
-  const cleanTipo = String(tipoIdentificacion || '').toLowerCase();
+  // Omitir validación local si es pasaporte o extranjero
+  const cleanTipo = String(tipoIdentificacion || '').toLowerCase().trim();
   if (
     cleanTipo === 'pasaporte' || 
     cleanTipo === '06' || 
     cleanTipo === 'exterior' || 
-    cleanTipo === '08' || 
-    isValidated === true || 
-    isValidated === 'true'
+    cleanTipo === '08'
   ) {
-    return true;
+    return clean.length >= 3;
   }
 
   const len = clean.length;
+  // Cédula debe tener 10 dígitos y RUC 13 dígitos
   if (len !== 10 && len !== 13) return false;
+
+  // Si fue validado externamente (ej: consulta autoritativa SRI), comprobar estructura básica
+  if (isValidated === true || isValidated === 'true') {
+    if (len === 13 && !clean.endsWith('001')) return false;
+    return true;
+  }
 
   // Si es RUC de 13 dígitos, los 3 últimos deben ser 001
   if (len === 13 && !clean.endsWith('001')) {
@@ -136,12 +148,12 @@ export function calcularModulo11(clave) {
 // Mapeador de tipo de identificación tributaria para el SRI
 export function obtenerTipoIdentificacionSRI(terceroData) {
   if (!terceroData) return '07'; // Por defecto Consumidor Final si no hay datos
-  const ruc = String(terceroData.ruc || '').trim();
-  if (ruc === '9999999999999') {
+  const ruc = limpiarIdentificacion(terceroData.ruc);
+  if (ruc === '9999999999999' || !ruc) {
     return '07'; // Consumidor Final
   }
 
-  const tipo = String(terceroData.tipoIdentificacion || '').toLowerCase();
+  const tipo = String(terceroData.tipoIdentificacion || '').toLowerCase().trim();
   if (tipo === 'consumidor_final' || tipo === '07') {
     return '07';
   }
@@ -154,7 +166,7 @@ export function obtenerTipoIdentificacionSRI(terceroData) {
   if (tipo === 'cedula' || tipo === '05' || ruc.length === 10) {
     return '05';
   }
-  return '04'; // RUC
+  return '04'; // RUC (13 dígitos)
 }
 
 // Generar clave de acceso de 49 dígitos
@@ -378,7 +390,7 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     <tipoEmision>1</tipoEmision>
     <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
     <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
-    <ruc>${emisorConfig.ruc}</ruc>
+    <ruc>${escaparXml(limpiarIdentificacion(emisorConfig.ruc))}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>01</codDoc>
     <estab>${emisorConfig.establecimiento}</estab>
@@ -390,9 +402,9 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     <fechaEmision>${facturaData.date.split('-').reverse().join('/')}</fechaEmision>
     <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
-    <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionComprador>
-    <razonSocialComprador>${escaparXml(terceroData.name)}</razonSocialComprador>
-    <identificacionComprador>${terceroData.ruc}</identificacionComprador>
+    <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI({ ...terceroData, ruc: limpiarIdentificacion(terceroData.ruc) })}</tipoIdentificacionComprador>
+    <razonSocialComprador>${escaparXml(terceroData.name || terceroData.razonSocial || 'Cliente')}</razonSocialComprador>
+    <identificacionComprador>${escaparXml(limpiarIdentificacion(terceroData.ruc))}</identificacionComprador>
     <totalSinImpuestos>${totalSinImpuestos.toFixed(2)}</totalSinImpuestos>
     <totalDescuento>${totalDescuento.toFixed(2)}</totalDescuento>
     <totalConImpuestos>${totalImpuestosXml}
@@ -462,7 +474,7 @@ export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
     <tipoEmision>1</tipoEmision>
     <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
     <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
-    <ruc>${emisorConfig.ruc}</ruc>
+    <ruc>${escaparXml(limpiarIdentificacion(emisorConfig.ruc))}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>07</codDoc>
     <estab>${emisorConfig.establecimiento}</estab>
@@ -474,9 +486,9 @@ export function generarRetencionXML(emisorConfig, retencionData, terceroData) {
     <fechaEmision>${retencionData.date.split('-').reverse().join('/')}</fechaEmision>
     <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
-    <tipoIdentificacionSujetoRetenido>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionSujetoRetenido>
-    <razonSocialSujetoRetenido>${escaparXml(terceroData.name)}</razonSocialSujetoRetenido>
-    <identificacionSujetoRetenido>${escaparXml(terceroData.ruc)}</identificacionSujetoRetenido>
+    <tipoIdentificacionSujetoRetenido>${obtenerTipoIdentificacionSRI({ ...terceroData, ruc: limpiarIdentificacion(terceroData.ruc) })}</tipoIdentificacionSujetoRetenido>
+    <razonSocialSujetoRetenido>${escaparXml(terceroData.name || terceroData.razonSocial || '')}</razonSocialSujetoRetenido>
+    <identificacionSujetoRetenido>${escaparXml(limpiarIdentificacion(terceroData.ruc))}</identificacionSujetoRetenido>
     <periodoFiscal>${periodoFiscal}</periodoFiscal>
   </infoCompRetencion>
   <impuestos>${impuestosXml}
@@ -538,7 +550,7 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
     <tipoEmision>1</tipoEmision>
     <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
     <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
-    <ruc>${emisorConfig.ruc}</ruc>
+    <ruc>${escaparXml(limpiarIdentificacion(emisorConfig.ruc))}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>04</codDoc>
     <estab>${emisorConfig.establecimiento}</estab>
@@ -549,9 +561,9 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
   <infoNotaCredito>
     <fechaEmision>${ncData.date.split('-').reverse().join('/')}</fechaEmision>
     <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
-    <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionComprador>
-    <razonSocialComprador>${escaparXml(terceroData.name)}</razonSocialComprador>
-    <identificacionComprador>${escaparXml(terceroData.ruc)}</identificacionComprador>
+    <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI({ ...terceroData, ruc: limpiarIdentificacion(terceroData.ruc) })}</tipoIdentificacionComprador>
+    <razonSocialComprador>${escaparXml(terceroData.name || terceroData.razonSocial || '')}</razonSocialComprador>
+    <identificacionComprador>${escaparXml(limpiarIdentificacion(terceroData.ruc))}</identificacionComprador>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
     <codDocModificado>${ncData.codDocModificado || '01'}</codDocModificado>
     <numDocModificado>${ncData.numDocModificado || '001-001-000000000'}</numDocModificado>
@@ -628,7 +640,7 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
     <tipoEmision>1</tipoEmision>
     <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
     <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
-    <ruc>${emisorConfig.ruc}</ruc>
+    <ruc>${escaparXml(limpiarIdentificacion(emisorConfig.ruc))}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>03</codDoc>
     <estab>${emisorConfig.establecimiento}</estab>
@@ -640,9 +652,9 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
     <fechaEmision>${liqData.date.split('-').reverse().join('/')}</fechaEmision>
     <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
-    <tipoIdentificacionProveedor>${obtenerTipoIdentificacionSRI(terceroData)}</tipoIdentificacionProveedor>
-    <razonSocialProveedor>${escaparXml(terceroData.name)}</razonSocialProveedor>
-    <identificacionProveedor>${escaparXml(terceroData.ruc)}</identificacionProveedor>
+    <tipoIdentificacionProveedor>${obtenerTipoIdentificacionSRI({ ...terceroData, ruc: limpiarIdentificacion(terceroData.ruc) })}</tipoIdentificacionProveedor>
+    <razonSocialProveedor>${escaparXml(terceroData.name || terceroData.razonSocial || '')}</razonSocialProveedor>
+    <identificacionProveedor>${escaparXml(limpiarIdentificacion(terceroData.ruc))}</identificacionProveedor>
     <totalSinImpuestos>${Number(liqData.baseImponible).toFixed(2)}</totalSinImpuestos>
     <totalDescuento>0.00</totalDescuento>
     <totalConImpuestos>
@@ -722,7 +734,7 @@ export function generarGuiaRemisionXML(emisorConfig, guiaData, destinatarioData,
     <dirPartida>${escaparXml(guiaData.dirPartida || emisorConfig.direccionMatriz || 'Ecuador')}</dirPartida>
     <razonSocialTransportista>${escaparXml(guiaData.razonSocialTransportista || emisorConfig.razonSocial)}</razonSocialTransportista>
     <tipoIdentificacionTransportista>${guiaData.tipoIdentificacionTransportista || '04'}</tipoIdentificacionTransportista>
-    <rucTransportista>${guiaData.rucTransportista || emisorConfig.ruc}</rucTransportista>
+    <rucTransportista>${escaparXml(limpiarIdentificacion(guiaData.rucTransportista || emisorConfig.ruc))}</rucTransportista>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
     <fechaIniTransporte>${fechaDDMMYYYY(fechaIni)}</fechaIniTransporte>
     <fechaFinTransporte>${fechaDDMMYYYY(fechaFin)}</fechaFinTransporte>
@@ -730,7 +742,7 @@ export function generarGuiaRemisionXML(emisorConfig, guiaData, destinatarioData,
   </infoGuiaRemision>
   <destinatarios>
     <destinatario>
-      <identificacionDestinatario>${destinatarioData.ruc}</identificacionDestinatario>
+      <identificacionDestinatario>${escaparXml(limpiarIdentificacion(destinatarioData.ruc))}</identificacionDestinatario>
       <razonSocialDestinatario>${escaparXml(destinatarioData.name)}</razonSocialDestinatario>
       <dirDestinatario>${escaparXml(destinatarioData.address || guiaData.dirDestino || 'Ecuador')}</dirDestinatario>
       <motivoTraslado>${escaparXml(guiaData.motivoTraslado || 'Venta')}</motivoTraslado>
@@ -934,7 +946,7 @@ async function fetchConProxy(url, timeoutMs = 12000) {
 // Usa la API de CipherByte como fuente principal con proxy CORS automático.
 // NUNCA genera datos falsos — si la consulta falla, lanza un error transparente.
 export async function consultarRucSri(rucOrCi) {
-  const clean = String(rucOrCi).trim();
+  const clean = limpiarIdentificacion(rucOrCi);
   if (clean.length !== 10 && clean.length !== 13) {
     throw new Error("La identificación debe tener 10 (Cédula) o 13 (RUC) dígitos.");
   }

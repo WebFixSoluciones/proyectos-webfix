@@ -74,7 +74,7 @@ export default function CustomerDetailView({
       setFormData({
         name: client.name || client.razonSocial || '',
         tradeName: client.tradeName || client.nombreComercial || '',
-        ruc: client.ruc || client.identificacion || '',
+        ruc: String(client.ruc || client.identificacion || '').replace(/\s+/g, '').trim(),
         tipoIdentificacion: client.tipoIdentificacion || 'ruc',
         tipoContribuyente: client.tipoContribuyente || 'general',
         type: client.type || forcedType || 'cliente',
@@ -170,13 +170,14 @@ export default function CustomerDetailView({
   }, [client, formData.ruc, transactions]);
 
   const querySRI = async () => {
-    if (!formData.ruc) {
+    const cleanInputRuc = String(formData.ruc || '').replace(/\s+/g, '').trim();
+    if (!cleanInputRuc) {
       showToast?.('Por favor, ingresa un número de RUC o Cédula', 'error');
       return;
     }
     setIsQueryingSri(true);
     try {
-      const result = await consultarRucSri(formData.ruc);
+      const result = await consultarRucSri(cleanInputRuc);
       const guessCity = (address) => {
         if (!address) return '';
         const cleanAddr = address.toLowerCase();
@@ -193,9 +194,10 @@ export default function CustomerDetailView({
 
       setFormData(prev => ({
         ...prev,
+        ruc: result.ruc || cleanInputRuc,
         name: result.name || result.razonSocial || prev.name,
         tradeName: result.nombreComercial || prev.tradeName,
-        tipoIdentificacion: result.tipoIdentificacion || (formData.ruc.length === 10 ? 'cedula' : 'ruc'),
+        tipoIdentificacion: result.tipoIdentificacion || (cleanInputRuc.length === 10 ? 'cedula' : 'ruc'),
         direccion: result.direccion || prev.direccion,
         telefono: result.telefono || prev.telefono,
         email: result.email || prev.email,
@@ -235,16 +237,17 @@ export default function CustomerDetailView({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.ruc.trim()) {
+    const cleanRuc = String(formData.ruc || '').replace(/\s+/g, '').trim();
+    if (!formData.name.trim() || !cleanRuc) {
       showToast?.('Nombre y RUC/Identificación son obligatorios.', 'error');
       return;
     }
 
     // Validation check for ID
     if (formData.tipoIdentificacion !== 'consumidor_final' && formData.tipoIdentificacion !== 'pasaporte') {
-      const isValid = validarIdentificacion(formData.ruc, formData.tipoIdentificacion);
-      if (!isValid && formData.ruc.length >= 10) {
-        const proceed = window.confirm(`El número de identificación "${formData.ruc}" no parece cumplir con el formato estándar del SRI. ¿Deseas guardarlo de todas formas?`);
+      const isValid = validarIdentificacion(cleanRuc, formData.tipoIdentificacion);
+      if (!isValid && cleanRuc.length >= 10) {
+        const proceed = window.confirm(`El número de identificación "${cleanRuc}" no parece cumplir con el formato estándar del SRI. ¿Deseas guardarlo de todas formas?`);
         if (!proceed) return;
       }
     }
@@ -252,14 +255,15 @@ export default function CustomerDetailView({
     setSaving(true);
     try {
       const docId = client?.id || `tp_${Date.now()}`;
+      const cleanTipo = cleanRuc.length === 10 ? 'cedula' : (cleanRuc.length === 13 ? 'ruc' : (formData.tipoIdentificacion || 'ruc'));
       const payload = {
         id: docId,
         name: formData.name.trim(),
         tradeName: formData.tradeName.trim(),
         razonSocial: formData.name.trim(),
         nombreComercial: formData.tradeName.trim(),
-        ruc: formData.ruc.trim(),
-        tipoIdentificacion: formData.tipoIdentificacion,
+        ruc: cleanRuc,
+        tipoIdentificacion: cleanTipo,
         tipoContribuyente: formData.tipoContribuyente,
         type: formData.type || forcedType || 'cliente',
         obligadoContabilidad: !!formData.obligadoContabilidad,
@@ -585,7 +589,7 @@ export default function CustomerDetailView({
                   type="text"
                   required
                   value={formData.ruc}
-                  onChange={e => setFormData(p => ({ ...p, ruc: e.target.value }))}
+                  onChange={e => setFormData(p => ({ ...p, ruc: e.target.value.replace(/\s+/g, '') }))}
                   placeholder={isSupplier ? "Ej: 1790011234001" : "Ej: 1790011234001 o 1712345678"}
                   size="2"
                   className="w-full font-mono"

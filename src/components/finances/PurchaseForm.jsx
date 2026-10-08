@@ -158,9 +158,11 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
 
   // Quick add supplier
   const handleQuickAddSupplier = async () => {
-    if (!newSupplier.name || !newSupplier.ruc) { showToast?.('Nombre y RUC son requeridos', 'warning'); return; }
+    const cleanRuc = String(newSupplier.ruc || '').replace(/\s+/g, '').trim();
+    if (!newSupplier.name || !cleanRuc) { showToast?.('Nombre y RUC son requeridos', 'warning'); return; }
     const supId = `sup_${Date.now()}`;
-    const sup = { id: supId, name: newSupplier.name, ruc: newSupplier.ruc, email: newSupplier.email, phone: newSupplier.phone, type: 'proveedor' };
+    const cleanTipo = cleanRuc.length === 10 ? 'cedula' : 'ruc';
+    const sup = { id: supId, name: newSupplier.name.trim(), ruc: cleanRuc, tipoIdentificacion: cleanTipo, email: (newSupplier.email || '').trim(), phone: (newSupplier.phone || '').trim(), type: 'proveedor', isValidated: true, validado: true };
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', supId), sup);
       setForm(prev => ({ ...prev, supplierId: supId, supplierName: sup.name, supplierRuc: sup.ruc }));

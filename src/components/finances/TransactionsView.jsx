@@ -377,11 +377,21 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         }
         const cliente = getTransactionParty(saved);
         try {
-          await notifyAuthorizedInvoice({
-            db, appId, document: saved, customer: cliente,
+          const emailResult = await notifyAuthorizedInvoice({
+            db, appId, document: saved, customer: cliente, force: true,
             api: { doc, getDoc, setDoc, runTransaction }
           });
-          showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO por el SRI! Copia enviada al propietario y cliente.`, 'success');
+          if (emailResult.status === 'sent') {
+            showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO por el SRI! Copia enviada al propietario y cliente.`, 'success');
+          } else if (emailResult.status === 'partial') {
+            showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO! Envío de correo parcial: ${emailResult.error || ''}`, 'warning');
+          } else if (emailResult.status === 'unconfigured') {
+            showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO! SMTP no configurado en Ajustes.`, 'warning');
+          } else if (emailResult.status === 'failed') {
+            showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO! No se pudo enviar copia por correo: ${emailResult.error || 'Error al despachar'}`, 'warning');
+          } else {
+            showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO por el SRI!`, 'success');
+          }
         } catch (emailErr) {
           showToast(`¡${docLabel} ${tx.documentNumber} AUTORIZADO! No se pudo enviar copia por correo: ${emailErr.message}`, 'warning');
         }
@@ -532,9 +542,12 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
       const cliente = getTransactionParty(emailModalTx);
 
+      const isNotaVenta = emailModalTx.documentType === 'nota_venta';
       const effectivePdf = (emailModalTx.pdfUrl && !emailModalTx.pdfUrl.includes('srienlinea.sri.gob.ec'))
         ? emailModalTx.pdfUrl
-        : (emailModalTx.claveAcceso ? `/#/public/ride?txId=${emailModalTx.id}&claveAcceso=${emailModalTx.claveAcceso}&tenantId=${appId || ''}` : '');
+        : (emailModalTx.claveAcceso
+            ? `/#/public/ride?txId=${encodeURIComponent(emailModalTx.id || '')}&claveAcceso=${encodeURIComponent(emailModalTx.claveAcceso)}&tenantId=${encodeURIComponent(appId || '')}`
+            : (emailModalTx.id ? `/#/public/ride?txId=${encodeURIComponent(emailModalTx.id)}&tenantId=${encodeURIComponent(appId || '')}` : ''));
 
       const emailPayload = {
         smtpHost: configData.smtpHost,
@@ -549,8 +562,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         documentNumber: emailModalTx.documentNumber,
         total: emailModalTx.total,
         pdfUrl: effectivePdf,
-        xmlUrl: emailModalTx.xmlUrl || '',
-        xmlContent: emailModalTx.xmlAutorizado || emailModalTx.xml || '',
+        xmlUrl: isNotaVenta ? '' : (emailModalTx.xmlUrl || ''),
+        xmlContent: isNotaVenta ? '' : (emailModalTx.xmlAutorizado || emailModalTx.xml || ''),
         companyName: configData.nombreComercial || configData.razonSocial || 'Facturación Electrónica',
         logoUrl: configData.logoUrl || '',
         companyRuc: configData.ruc || '',
@@ -558,7 +571,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         companyPhone: configData.telefono || configData.telefonoContacto || '',
         claveAcceso: emailModalTx.claveAcceso || '',
         fechaAutorizacion: emailModalTx.fechaAutorizacion || emailModalTx.date || getEcuadorDateTimeString(),
-        documentType: emailModalTx.documentType || 'factura',
+        documentType: emailModalTx.documentType || (isNotaVenta ? 'nota_venta' : 'factura'),
         date: emailModalTx.date || ''
       };
 
@@ -1061,7 +1074,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         {/* Editar comprobante */}
                         <button
                           type="button"
-                          onClick={() => onOpenForm?.(tx)}
+                          onClick={() => onOpenForm?.({ ...tx, forceEdit: true, viewDetails: false })}
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                           title="Editar comprobante"
                         >
@@ -1084,7 +1097,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                               <AlertTriangle size={13} />
                               <span>Ver Motivo de Rechazo</span>
                             </DropdownMenu.Item>
-                            <DropdownMenu.Item onClick={() => onOpenForm?.(tx)} className="cursor-pointer gap-2">
+                            <DropdownMenu.Item onClick={() => onOpenForm?.({ ...tx, forceEdit: true, viewDetails: false })} className="cursor-pointer gap-2">
                               <Edit2 size={13} className="text-slate-600" />
                               <span>Editar Datos</span>
                             </DropdownMenu.Item>
@@ -1109,6 +1122,18 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                           >
                             <RefreshCw size={12} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
                             <span>{verifyingTxId === tx.id ? "Consultando..." : "Consultar SRI"}</span>
+                          </button>
+                        )}
+
+                        {/* Editar comprobante si está pendiente */}
+                        {isPendingSriTx(tx) && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenForm?.({ ...tx, forceEdit: true, viewDetails: false })}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                            title="Editar y corregir datos del comprobante"
+                          >
+                            <Edit2 size={13} />
                           </button>
                         )}
 
@@ -1387,7 +1412,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                 onClick={() => {
                   const txToEdit = rejectionModalTx;
                   setRejectionModalTx(null);
-                  if (onOpenForm) onOpenForm(txToEdit);
+                  if (onOpenForm) onOpenForm({ ...txToEdit, forceEdit: true, viewDetails: false });
                 }}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors cursor-pointer shadow-none"
               >
