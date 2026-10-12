@@ -1171,7 +1171,7 @@ export default function App() {
 
               {activePageId === 'ventas' && (
                 <ErrorBoundary title="Error en el módulo de Ventas">
-                  <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                  <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} categories={globalCategories} isLoading={isLoadingFinances} />
                 </ErrorBoundary>
               )}
               {activePageId === 'inventario' && (
@@ -1181,12 +1181,12 @@ export default function App() {
               )}
               {activePageId === 'finances' && (
                 <ErrorBoundary title="Error en el módulo de Control Financiero">
-                  <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                  <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} categories={globalCategories} isLoading={isLoadingFinances} />
                 </ErrorBoundary>
               )}
               {activePageId === 'compras' && (
                 <ErrorBoundary title="Error en el módulo de Compras">
-                  <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} isLoading={isLoadingFinances} />
+                  <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} categories={globalCategories} isLoading={isLoadingFinances} />
                 </ErrorBoundary>
               )}
               {activePageId === 'gastos_creditos' && (

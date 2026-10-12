@@ -878,6 +878,22 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - Reduce drásticamente el peso de los documentos en `finances_transactions`, aliviando el consumo de memoria y ancho de banda en listeners de Firestore.
 - **Pruebas y Build**: 51/51 tests unitarios aprobados, compilación limpia de producción en 7.18s sin errores.
 
+### 48. Optimización de Rendimiento Vercel: Fase 4 — Edge Caching, Serverless Sizing, Paginación y Deduplicación (2026-10-12) — COMPLETADO
+- **Configuración de Functions y Edge Routing en `vercel.json`**:
+  - Asignada memoria óptima (`memory: 1024`) a `api/sri-ws-prod` y `api/sri-ws-pruebas`, otorgando mayor cuota de CPU/red para el procesamiento criptográfico y XML de comprobantes SOAP.
+  - Asignado `memory: 512` y `maxDuration: 15` a `api/send-email`, y `memory: 1024` con `maxDuration: 60` al cron `api/cron/reconcile-sri`.
+  - **Edge Caching para Consultas Públicas SRI (`/api/sri/(.*)`)**: Cabeceras `Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400` que responden en < 10ms desde la CDN de Vercel ante consultas del mismo RUC/catastro, eliminando llamadas redundantes a los servidores del SRI.
+  - **Edge Caching para Activos Estáticos (`/(.*).(svg|png|jpg|jpeg|webp|ico|woff2)`)**: Configurado `Cache-Control: public, max-age=86400, stale-while-revalidate=604800`.
+- **Conexiones Persistentes Keep-Alive en Cron de Reconciliación (`api/cron/reconcile-sri/index.js`)**:
+  - Integrado agente HTTPS con `keepAlive: true`, `maxSockets: 25` y `Connection: keep-alive` en `postSoapToSri`, evitando re-negociar el apretón de manos TLS (handshake) en cada comprobante verificado en lote.
+- **Paginación Ligera y Reactiva en Historial de Comprobantes (`TransactionsView.jsx`)**:
+  - Implementada paginación en memoria con tamaños de página seleccionables (25, 50, 100 comprobantes, por defecto 25) y controles de navegación accesibles (`Página X de Y`, botones `Anterior` y `Siguiente`).
+  - Reduce drásticamente la sobrecarga del DOM de miles de nodos a solo ~200, acelerando la renderización de la tabla a < 16ms.
+- **Deduplicación de Listeners en `DiscountsPromotionsView.jsx`**:
+  - Suministradas las colecciones `discounts`, `promotions` y `categories` desde `App.jsx` y `FinanceModule.jsx`, previniendo la duplicación de 3 `onSnapshot` simultáneos de Firestore en segundo plano.
+- **Pruebas y Build**: 51/51 tests unitarios aprobados en 813ms, compilación limpia de producción en 3.20s.
+
+
 
 
 

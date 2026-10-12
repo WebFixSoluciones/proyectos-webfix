@@ -47,6 +47,7 @@ export default function FinanceModule({
   products = [],
   discounts = [],
   promotions = [],
+  categories = [],
   isLoading = false
 }) {
   const getInitialTab = (m) => {
@@ -484,7 +485,7 @@ export default function FinanceModule({
                       <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} isPreventaTab={true} forcedType="ingreso" />
                     )}
                     {subTabVentas === 'discounts' && (
-                      <DiscountsPromotionsView db={db} appId={appId} showToast={showToast} products={products} />
+                      <DiscountsPromotionsView db={db} appId={appId} showToast={showToast} products={products} discounts={discounts} promotions={promotions} categories={categories} />
                     )}
 
                   </>

@@ -48,6 +48,24 @@
       ]
     },
     {
+      "source": "/api/sri/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).(svg|png|jpg|jpeg|webp|ico|woff2)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
       "source": "/(.*).html",
       "headers": [
         {
@@ -66,6 +84,24 @@
       ]
     }
   ],
+  "functions": {
+    "api/sri-ws-prod/index.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/sri-ws-pruebas/index.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/send-email/index.js": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/cron/reconcile-sri/index.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/api/cron/reconcile-sri",

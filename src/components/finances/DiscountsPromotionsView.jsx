@@ -8,11 +8,31 @@ import {
 } from 'lucide-react';
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from '../../services/financeStore.js';
 
-export default function DiscountsPromotionsView({ db, appId, showToast, products = [] }) {
+export default function DiscountsPromotionsView({ 
+  db, 
+  appId, 
+  showToast, 
+  products = [],
+  discounts: propDiscounts,
+  promotions: propPromotions,
+  categories: propCategories
+}) {
   const [activeTab, setActiveTab] = useState('discounts'); // 'discounts' | 'promotions'
-  const [discounts, setDiscounts] = useState([]);
-  const [promotions, setPromotions] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [discounts, setDiscounts] = useState(propDiscounts || []);
+  const [promotions, setPromotions] = useState(propPromotions || []);
+  const [categories, setCategories] = useState(propCategories || []);
+
+  useEffect(() => {
+    if (propDiscounts !== undefined) setDiscounts(propDiscounts);
+  }, [propDiscounts]);
+
+  useEffect(() => {
+    if (propPromotions !== undefined) setPromotions(propPromotions);
+  }, [propPromotions]);
+
+  useEffect(() => {
+    if (propCategories !== undefined) setCategories(propCategories);
+  }, [propCategories]);
 
   // Form Modals States
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
@@ -43,29 +63,44 @@ export default function DiscountsPromotionsView({ db, appId, showToast, products
     activo: true
   }));
 
-  // Listen to Firestore
+  // Listen to Firestore ONLY if props are not provided
   useEffect(() => {
-    const discCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_discounts');
-    const unsubDisc = onSnapshot(discCol, (snap) => {
-      setDiscounts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    if (propDiscounts !== undefined && propPromotions !== undefined && propCategories !== undefined) {
+      return;
+    }
+    if (!db || !appId) return;
 
-    const promoCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_promotions');
-    const unsubPromo = onSnapshot(promoCol, (snap) => {
-      setPromotions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    let unsubDisc = () => {};
+    let unsubPromo = () => {};
+    let unsubCat = () => {};
 
-    const catCol = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_categories');
-    const unsubCat = onSnapshot(catCol, (snap) => {
-      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    if (propDiscounts === undefined) {
+      const discCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_discounts');
+      unsubDisc = onSnapshot(discCol, (snap) => {
+        setDiscounts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+    }
+
+    if (propPromotions === undefined) {
+      const promoCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_promotions');
+      unsubPromo = onSnapshot(promoCol, (snap) => {
+        setPromotions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+    }
+
+    if (propCategories === undefined) {
+      const catCol = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_categories');
+      unsubCat = onSnapshot(catCol, (snap) => {
+        setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+    }
 
     return () => {
       unsubDisc();
       unsubPromo();
       unsubCat();
     };
-  }, [db, appId]);
+  }, [db, appId, propDiscounts, propPromotions, propCategories]);
 
   // Discount Actions
   const handleSaveDiscount = async (e) => {

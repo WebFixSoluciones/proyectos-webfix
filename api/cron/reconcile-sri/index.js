@@ -10,6 +10,14 @@ export const config = {
 const SRI_HOST_PROD = 'https://cel.sri.gob.ec';
 const SRI_HOST_TEST = 'https://celcer.sri.gob.ec';
 
+// Reutilizar conexiones TLS con Keep-Alive para procesar lotes de comprobantes eficientemente
+const httpsAgent = new https.Agent({
+  keepAlive: true,
+  maxSockets: 25,
+  keepAliveMsecs: 30000,
+  rejectUnauthorized: false
+});
+
 function postSoapToSri(targetUrl, soapBody, timeoutMs = 20000) {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(targetUrl);
@@ -17,6 +25,7 @@ function postSoapToSri(targetUrl, soapBody, timeoutMs = 20000) {
       'Content-Type': 'text/xml;charset=utf-8',
       'SOAPAction': '',
       'Content-Length': Buffer.byteLength(soapBody),
+      'Connection': 'keep-alive'
     };
 
     const req = https.request({
@@ -26,6 +35,7 @@ function postSoapToSri(targetUrl, soapBody, timeoutMs = 20000) {
       path: urlObj.pathname + (urlObj.search || ''),
       method: 'POST',
       headers: reqHeaders,
+      agent: httpsAgent,
       rejectUnauthorized: false, // Bypass cert chain issues on SRI government servers
       timeout: timeoutMs,
     }, (res) => {

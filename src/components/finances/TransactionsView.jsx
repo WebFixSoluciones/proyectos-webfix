@@ -1,9 +1,9 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { DropdownMenu } from '@radix-ui/themes';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, FileDown, Printer, FileMinus, MessageCircle, MoreHorizontal, Copy, Check } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, FileDown, Printer, FileMinus, MessageCircle, MoreHorizontal, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { doc, deleteDoc, setDoc, getDoc, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
@@ -25,6 +25,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   const [subDocTypeFilter, setSubDocTypeFilter] = useState('all'); // Filtro específico: Facturas vs Notas de Venta
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterYear, setFilterYear] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   useEffect(() => {
     if (forcedDocType) {
@@ -171,6 +173,20 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
     return sortDirection === 'asc' ? comparison : -comparison;
   });
+
+  // Resetear a la primera página cuando cambian los filtros
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, filterDocType, subDocTypeFilter, filterMonth, filterYear]);
+
+  const totalItems = sortedFiltered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedTransactions = useMemo(() => {
+    const start = (validCurrentPage - 1) * pageSize;
+    return sortedFiltered.slice(start, start + pageSize);
+  }, [sortedFiltered, validCurrentPage, pageSize]);
 
   // Procesar archivo (PDF, Imagen o XML) para captura inteligente
   const handleFileCapture = async (file) => {
@@ -988,7 +1004,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               </UiTableRow>
             </UiTableHeader>
             <UiTableBody>
-              {sortedFiltered.map(tx => (
+              {paginatedTransactions.map(tx => (
                 <UiTableRow key={tx.id} className="hover:bg-slate-50/60 transition-colors">
                   <UiTableCell className="px-6 py-2.5">
                     <div className="leading-none text-xs font-medium text-slate-900">{tx.date}</div>
@@ -1259,6 +1275,56 @@ export default function TransactionsView({ transactions, thirdParties, showToast
               )}
             </UiTableBody>
           </UiTable>
+
+          {/* Barra de Paginación */}
+          {totalItems > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-3 border-t border-[var(--gray-a4)] bg-[var(--gray-2)]/40 text-xs text-[var(--gray-11)]">
+              <div className="flex items-center gap-2">
+                <span>Mostrar</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 rounded border border-[var(--gray-a6)] bg-[var(--color-panel-solid)] text-[var(--gray-12)] text-xs focus:outline-none"
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span>por página</span>
+                <span className="text-[var(--gray-a8)] mx-1">•</span>
+                <span>
+                  Mostrando <strong className="text-[var(--gray-12)] font-mono">{(validCurrentPage - 1) * pageSize + 1}</strong> - <strong className="text-[var(--gray-12)] font-mono">{Math.min(validCurrentPage * pageSize, totalItems)}</strong> de <strong className="text-[var(--gray-12)] font-mono">{totalItems}</strong>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="font-medium mr-1">
+                  Página <strong className="text-[var(--gray-12)] font-mono">{validCurrentPage}</strong> de <strong className="text-[var(--gray-12)] font-mono">{totalPages}</strong>
+                </span>
+                <button
+                  type="button"
+                  disabled={validCurrentPage <= 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="p-1 rounded border border-[var(--gray-a6)] bg-[var(--color-panel-solid)] text-[var(--gray-12)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--gray-3)] transition-colors cursor-pointer"
+                  title="Página anterior"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  disabled={validCurrentPage >= totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="p-1 rounded border border-[var(--gray-a6)] bg-[var(--color-panel-solid)] text-[var(--gray-12)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--gray-3)] transition-colors cursor-pointer"
+                  title="Página siguiente"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </UiBox>
       </div>
 
