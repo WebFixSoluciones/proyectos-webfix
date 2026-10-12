@@ -1165,7 +1165,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         tenantId: appId,
         appId: appId,
         ...(emisorSnapshotData ? { emisorSnapshot: emisorSnapshotData } : {}),
-        logoUrl: sriConfig?.logoUrl || sriConfig?.logo || updatedFormData.logoUrl || '',
+        logoUrl: (!emisorSnapshotData?.logoUrl || !emisorSnapshotData.logoUrl.startsWith('data:') || emisorSnapshotData.logoUrl.length < 1000)
+          ? (sriConfig?.logoUrl || sriConfig?.logo || updatedFormData.logoUrl || '')
+          : '',
         paidAmount,
         paymentStatus,
         paymentMethod: primaryMethod,
@@ -1635,7 +1637,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           return sanitizeFirestoreData({
             ...invoice, documentNumber: `${config.establecimiento || '001'}-${config.puntoEmision || '001'}-${secuencial.padStart(9, '0')}`,
             claveAcceso, xml: signedXml, sriStatus: 'pendiente_sri', sriAmbiente: String(config.ambiente), emisorSnapshot: emitter,
-            logoUrl: emitter.logoUrl || '',
+            logoUrl: (!emitter.logoUrl || !emitter.logoUrl.startsWith('data:') || emitter.logoUrl.length < 1000) ? (emitter.logoUrl || '') : '',
             tenantId: appId,
             appId: appId,
             sriReservedAt: timestamp.toISOString(), financialSyncStatus: 'awaiting_authorization',

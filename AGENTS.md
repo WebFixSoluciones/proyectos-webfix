@@ -864,6 +864,21 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
   - **Caché Inmutable en Edge CDN para Estáticos**: En `vercel.json`, se configuró `Cache-Control: public, max-age=31536000, immutable` para `/assets/(.*)`.
 - **Pruebas y Build**: 51/51 tests unitarios aprobados, compilación limpia de producción en 3.83s con 0 warnings.
 
+### 47. Optimización de Rendimiento Vercel y Firestore: Fase 3 — Limpieza de Blobs y Base64 (2026-10-12) — COMPLETADO
+- **Compresión y Subida a Firebase Storage en Catálogo de Productos (`ProductCreationForm.tsx`)**:
+  - Implementada compresión client-side en canvas (`compressImageFile`: max 600×600 px, JPEG calidad 0.82, reduciendo archivos a ~30-50 KB).
+  - Subida directa del Blob generado a Firebase Storage en `artifacts/${appId}/inventory/products/${Date.now()}_${cleanName}`, almacenando en Firestore únicamente la URL pública de descarga del CDN (`downloadUrl`).
+  - Respaldo resiliente: Si Storage no estuviera disponible, utiliza el dataUrl comprimido de tamaño reducido (< 50 KB en vez del raw de > 1 MB).
+  - Indicador visual `Loader2` con estado de carga ("Subiendo...") en la vista previa del formulario.
+- **Compresión y Almacenamiento en Storage para Logotipos de Empresa (`GeneralSettings.jsx`)**:
+  - `compressImage` optimizado a 450×220 px con calidad 0.82, generando tanto Blob como dataUrl.
+  - `handleLogoUpload` sube el Blob comprimido a Firebase Storage (`artifacts/${appId}/finances/logo_...`), almacenando la URL pública en `finances_settings/config` y `meta/info`.
+- **Deduplicación de Base64 en Emisión de Facturas (`TransactionForm.jsx`)**:
+  - Eliminada la duplicación redundante de cadenas Base64 pesadas (> 1000 caracteres) entre `tx.emisorSnapshot.logoUrl` y `tx.logoUrl` tanto en `finalTxData` como en la reserva de emisión SRI.
+  - Reduce drásticamente el peso de los documentos en `finances_transactions`, aliviando el consumo de memoria y ancho de banda en listeners de Firestore.
+- **Pruebas y Build**: 51/51 tests unitarios aprobados, compilación limpia de producción en 7.18s sin errores.
+
+
 
 
 

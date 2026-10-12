@@ -5,10 +5,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   Package, DollarSign, Tag, Save, X, Box, 
   Percent, FileText, AlertCircle, Image, Edit2, 
-  Plus, Layers, FolderPlus, HelpCircle
+  Plus, Layers, FolderPlus, HelpCircle, Loader2
 } from 'lucide-react';
 import { collection, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
-import { db, appId } from '../../firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, appId, storage } from '../../firebase';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { categoryBrandRepository } from '../../modules/inventory/repositories/CategoryBrandRepository';
 import { Category, Brand } from '../../modules/inventory/domain/schemas/category-brand.schema';
@@ -22,6 +23,56 @@ interface ProductCreationFormProps {
   isInline?: boolean;
   productToEdit?: any;
   showToast?: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
+}
+
+function compressImageFile(file: File, maxWidth = 600, maxHeight = 600, quality = 0.82): Promise<{ blob: Blob; dataUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new window.Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          return reject(new Error('Canvas context not available'));
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve({ blob, dataUrl });
+            } else {
+              reject(new Error('Blob creation failed'));
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => reject(new Error('Image failed to load'));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('File reading failed'));
+    reader.readAsDataURL(file);
+  });
 }
 
 export default function ProductCreationForm({ 
@@ -77,6 +128,7 @@ export default function ProductCreationForm({
   const [hasPriceA, setHasPriceA] = useState(!!productToEdit?.priceA);
   const [hasPriceB, setHasPriceB] = useState(!!productToEdit?.priceB);
   const [hasPriceC, setHasPriceC] = useState(!!productToEdit?.priceC);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // In-situ Dialogs states
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
@@ -260,19 +312,39 @@ export default function ProductCreationForm({
     });
   };
 
-  // Image Upload Base64 conversion
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Image Upload with Client-Side Compression & Firebase Storage
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 1024 * 1024) {
-        alert("La imagen no debe superar 1MB");
-        return;
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      if (showToast) showToast('El archivo seleccionado debe ser una imagen', 'warning');
+      else alert('El archivo seleccionado debe ser una imagen');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      // 1. Comprimir en cliente a tamaño óptimo (< 50 KB)
+      const { blob, dataUrl } = await compressImageFile(file, 600, 600, 0.82);
+
+      // Mostrar vista previa inmediata
+      setFormData(prev => ({ ...prev, imageUrl: dataUrl }));
+
+      // 2. Subir el Blob comprimido a Firebase Storage
+      if (storage) {
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const path = `artifacts/${appId}/inventory/products/${Date.now()}_${cleanName}`;
+        const sRef = storageRef(storage, path);
+        await uploadBytes(sRef, blob, { contentType: 'image/jpeg' });
+        const downloadUrl = await getDownloadURL(sRef);
+        setFormData(prev => ({ ...prev, imageUrl: downloadUrl }));
+        if (showToast) showToast('Foto de producto subida a la nube exitosamente', 'success');
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    } catch (err: any) {
+      console.warn('Error subiendo imagen a Storage, usando respaldo comprimido:', err);
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -735,7 +807,12 @@ export default function ProductCreationForm({
               <div className="flex flex-col sm:flex-row gap-4 items-start">
                 {/* Imagen del producto compacta */}
                 <div className="w-24 h-24 shrink-0 rounded-lg border border-dashed border-[var(--gray-a7)] bg-[var(--gray-2)] flex flex-col items-center justify-center relative overflow-hidden group">
-                  {formData.imageUrl ? (
+                  {isUploadingImage ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-[var(--gray-2)]">
+                      <Loader2 size={18} className="animate-spin text-[var(--blue-9)] mb-1" />
+                      <span className="text-[10px] text-[var(--gray-11)] font-medium">Subiendo...</span>
+                    </div>
+                  ) : formData.imageUrl ? (
                     <>
                       <img src={formData.imageUrl} className="w-full h-full object-cover" alt="Vista previa" />
                       <button

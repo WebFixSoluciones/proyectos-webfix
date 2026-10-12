@@ -373,114 +373,122 @@ export default function GeneralSettings({
  return false;
  };
 
- const compressImage = (base64Str, maxWidth = 500, maxHeight = 500) => {
- return new Promise((resolve) => {
- const img = new Image();
- img.src = base64Str;
- img.onload = () => {
- let width = img.width;
- let height = img.height;
- 
- if (width > maxWidth || height > maxHeight) {
- if (width > height) {
- height = Math.round((height * maxWidth) / width);
- width = maxWidth;
- } else {
- width = Math.round((width * maxHeight) / height);
- height = maxHeight;
- }
- }
- 
- const canvas = document.createElement('canvas');
- canvas.width = width;
- canvas.height = height;
- const ctx = canvas.getContext('2d');
- if (ctx) {
- ctx.drawImage(img, 0, 0, width, height);
- const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
- resolve(compressedDataUrl);
- } else {
- resolve(base64Str);
- }
- };
- img.onerror = () => {
- resolve(base64Str);
- };
- });
+ const compressImage = (base64Str, maxWidth = 450, maxHeight = 220) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > maxWidth || height > maxHeight) {
+        if (width > height) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        canvas.toBlob((blob) => {
+          resolve({ dataUrl: compressedDataUrl, blob: blob || null });
+        }, 'image/jpeg', 0.82);
+      } else {
+        resolve({ dataUrl: base64Str, blob: null });
+      }
+    };
+    img.onerror = () => {
+      resolve({ dataUrl: base64Str, blob: null });
+    };
+  });
  };
 
- const handleLogoUpload = async (e) => {
- const file = e.target.files[0];
- if (!file) return;
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
- if (!file.type.startsWith('image/')) {
- showToast("El archivo debe ser una imagen","error");
- return;
- }
+    if (!file.type.startsWith('image/')) {
+      showToast("El archivo debe ser una imagen", "error");
+      return;
+    }
 
- setIsUploadingLogo(true);
- 
- const reader = new FileReader();
- reader.onload = async (event) => {
- const rawBase64 = event.target.result;
- 
- let finalBase64 = rawBase64;
- if (file.type !=='image/svg+xml' && file.size > 300 * 1024) {
- try {
- finalBase64 = await compressImage(rawBase64);
- } catch (compressErr) {
- console.warn("Error compressing image:", compressErr);
- }
- }
- 
- try {
- const extension = file.name.split('.').pop();
- const path =`artifacts/${appId}/finances/logo_${new Date().getTime()}.${extension}`;
- 
- let logoUrl = finalBase64;
- if (storage) {
- const storageRef = ref(storage, path);
- const uploadTask = await uploadBytesResumable(storageRef, file);
- logoUrl = await getDownloadURL(uploadTask.ref);
- }
- 
- setCompanyProfile(prev => {
- const updated = { ...prev, logoUrl };
- 
- // Auto-save RUC logo to config
- const configRef = doc(db,'artifacts', appId,'public','data','finances_settings','config');
- setDoc(configRef, { logoUrl }, { merge: true }).catch(console.error);
- 
- const infoRef = doc(db,'artifacts', appId,'public','data','meta','info');
- setDoc(infoRef, { companyProfile: { ...prev, logoUrl } }, { merge: true }).catch(console.error);
- 
- return updated;
- });
- showToast("Logotipo cargado y guardado exitosamente","success");
- } catch (err) {
- console.warn("Storage upload failed, using fallback:", err);
- setCompanyProfile(prev => {
- const updated = { ...prev, logoUrl: finalBase64 };
- 
- const configRef = doc(db,'artifacts', appId,'public','data','finances_settings','config');
- setDoc(configRef, { logoUrl: finalBase64 }, { merge: true }).catch(console.error);
- 
- const infoRef = doc(db,'artifacts', appId,'public','data','meta','info');
- setDoc(infoRef, { companyProfile: { ...prev, logoUrl: finalBase64 } }, { merge: true }).catch(console.error);
- 
- return updated;
- });
- showToast("Logotipo cargado y guardado localmente (Base64)","success");
- } finally {
- setIsUploadingLogo(false);
- }
- };
- reader.onerror = () => {
- showToast("Error al leer el archivo de imagen","error");
- setIsUploadingLogo(false);
- };
- reader.readAsDataURL(file);
- };
+    setIsUploadingLogo(true);
+    
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const rawBase64 = event.target.result;
+      
+      let finalDataUrl = rawBase64;
+      let uploadBlob = null;
+      if (file.type !== 'image/svg+xml') {
+        try {
+          const compResult = await compressImage(rawBase64);
+          finalDataUrl = compResult.dataUrl;
+          uploadBlob = compResult.blob;
+        } catch (compressErr) {
+          console.warn("Error compressing logo image:", compressErr);
+        }
+      }
+      
+      try {
+        const extension = file.type === 'image/svg+xml' ? 'svg' : 'jpg';
+        const path = `artifacts/${appId}/finances/logo_${new Date().getTime()}.${extension}`;
+        
+        let logoUrl = finalDataUrl;
+        if (storage) {
+          const storageRef = ref(storage, path);
+          const uploadPayload = uploadBlob || file;
+          const uploadTask = await uploadBytesResumable(storageRef, uploadPayload, {
+            contentType: file.type === 'image/svg+xml' ? 'image/svg+xml' : 'image/jpeg'
+          });
+          logoUrl = await getDownloadURL(uploadTask.ref);
+        }
+        
+        setCompanyProfile(prev => {
+          const updated = { ...prev, logoUrl };
+          
+          // Auto-save RUC logo to config
+          const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+          setDoc(configRef, { logoUrl }, { merge: true }).catch(console.error);
+          
+          const infoRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+          setDoc(infoRef, { companyProfile: { ...prev, logoUrl } }, { merge: true }).catch(console.error);
+          
+          return updated;
+        });
+        showToast("Logotipo optimizado y guardado exitosamente", "success");
+      } catch (err) {
+        console.warn("Storage upload failed, using fallback:", err);
+        setCompanyProfile(prev => {
+          const updated = { ...prev, logoUrl: finalDataUrl };
+          
+          const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
+          setDoc(configRef, { logoUrl: finalDataUrl }, { merge: true }).catch(console.error);
+          
+          const infoRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+          setDoc(infoRef, { companyProfile: { ...prev, logoUrl: finalDataUrl } }, { merge: true }).catch(console.error);
+          
+          return updated;
+        });
+        showToast("Logotipo optimizado y guardado localmente", "success");
+      } finally {
+        setIsUploadingLogo(false);
+      }
+    };
+    reader.onerror = () => {
+      showToast("Error al leer el archivo de imagen", "error");
+      setIsUploadingLogo(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
  const handleRemoveLogo = () => {
  setCompanyProfile(prev => ({
