@@ -238,6 +238,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   // Quick Client Creation Modal (inside POS Checkout)
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [isQueryingSri, setIsQueryingSri] = useState(false);
+  const lastAutoQueriedRucRef = useRef('');
+  const quickAddFormDataRef = useRef({ ruc: '', tipoIdentificacion: 'ruc' });
   const [quickAddFormData, setQuickAddFormData] = useState({
     name: '',
     ruc: '',
@@ -698,13 +700,17 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
   // Auto consulta de SRI al rellenar cédula/RUC en agregar cliente
   useEffect(() => {
-    if (!isQuickAddOpen) return;
+    if (!isQuickAddOpen) {
+      lastAutoQueriedRucRef.current = '';
+      return;
+    }
     const rucVal = String(quickAddFormData.ruc || '').replace(/\s+/g, '').trim();
     const type = quickAddFormData.tipoIdentificacion;
     const shouldQuery = (type === 'cedula' && rucVal.length === 10) || 
                         (type === 'ruc' && rucVal.length === 13);
                         
-    if (shouldQuery && !isQueryingSri) {
+    if (shouldQuery && !isQueryingSri && lastAutoQueriedRucRef.current !== rucVal) {
+      lastAutoQueriedRucRef.current = rucVal;
       const autoQuery = async () => {
         setIsQueryingSri(true);
         try {

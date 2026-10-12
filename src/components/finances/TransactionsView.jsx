@@ -52,6 +52,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [rejectionModalTx, setRejectionModalTx] = useState(null);
   const [copiedClave, setCopiedClave] = useState(false);
+  const autoVerifiedTxIdsRef = useRef(new Set());
 
   // Sorting State
   const [sortField, setSortField] = useState('date');
@@ -409,12 +410,26 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     }
   };
 
-  // Auto-verificar comprobantes pendientes de forma transparente al cargar la vista
+  // Auto-verificar comprobantes pendientes de forma transparente y controlada al cargar la vista
   useEffect(() => {
     if (!transactions?.length) return;
-    const pendingDocuments = transactions.filter(t => t.sriStatus === 'pendiente_sri' && t.claveAcceso);
+    const now = Date.now();
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+    const pendingDocuments = transactions.filter(t => {
+      if (t.sriStatus !== 'pendiente_sri' || !t.claveAcceso) return false;
+      if (autoVerifiedTxIdsRef.current.has(t.id)) return false;
+
+      // Ignorar comprobantes antiguos (> 24h) para no saturar peticiones históricas
+      const txTime = t.createdAt ? new Date(t.createdAt).getTime() : (t.date ? new Date(t.date).getTime() : 0);
+      if (txTime && (now - txTime) > ONE_DAY_MS) return false;
+
+      return true;
+    });
+
     if (pendingDocuments.length > 0) {
       const target = pendingDocuments[0];
+      autoVerifiedTxIdsRef.current.add(target.id);
       const timer = setTimeout(() => {
         verifySriTransaction(target);
       }, 1500);

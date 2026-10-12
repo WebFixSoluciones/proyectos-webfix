@@ -850,6 +850,20 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
     - Los botones de edición y el modal de rechazo pasan `{ ...tx, forceEdit: true, viewDetails: false }`.
 - **Pruebas y Build**: 51 tests unitarios aprobados, compilación limpia de producción en 5.93s sin errores.
 
+### 46. Optimización de Rendimiento Vercel: Fases 1 y 2 (2026-10-12) — COMPLETADO
+- **Fase 1: Descongestionar Peticiones Serverless**:
+  - **Eliminación de Bucle Infinito en Historial de Ventas**: `TransactionsView.jsx` ahora rastrea comprobantes verificados con `autoVerifiedTxIdsRef` y omite comprobantes con más de 24 horas de antigüedad. Elimina el bucle continuo que saturaba endpoints Serverless tras cambios de estado en Firestore.
+  - **Sockets Persistentes TLS / Keep-Alive en Proxies SRI**: `api/sri-ws-prod/index.js` y `api/sri-ws-pruebas/index.js` reutilizan conexiones TLS mediante `https.Agent({ keepAlive: true, maxSockets: 50, keepAliveMsecs: 30000 })`. Se eliminó la cascada de 6 reintentos (que consumía hasta 120s por petición), implementando 1 intento principal (12s) + 1 fallback (10s), con `maxDuration: 30`.
+  - **Polling con Backoff Exponencial en Emisión**: En `TransactionForm.jsx` (Paso 2), se reemplazó el intervalo fijo de 2.5s × 12 por delays escalonados `[3000, 6000, 10000, 15000]` con detención inmediata ante estados terminales (`autorizado`, `devuelto`, `no_autorizado`), reduciendo las consultas en un 75%.
+  - **Caché en Memoria y Sesión de RUC/CI**: En `src/services/sriService.js`, `consultarRucSri` consulta primero el caché en memoria (`Map`) y `sessionStorage`, evitando peticiones de red repetidas para un mismo RUC.
+  - **Guardia de Auto-Consulta en POS**: En `PosView.jsx`, se agregó `lastAutoQueriedRucRef` para evitar peticiones duplicadas durante re-renderizados o cambios de foco en el modal rápido de cliente.
+  - **Caché CDN en Vercel para CipherByte**: En `vercel.json`, se agregaron cabeceras `s-maxage=86400, stale-while-revalidate=86400` para `/api/cipherbyte/(.*)`.
+- **Fase 2: Optimización de Bundles, Caché CDN y Eliminación de Sourcemaps**:
+  - **Eliminación de Sourcemaps de Producción**: Configurado `sourcemap: false` en `vite.config.js`, eliminando 10.16 MB de archivos `.map` transferidos y almacenados por cada despliegue en Vercel.
+  - **Rollup Code-Splitting Estratégico**: Se implementó `manualChunks` en `vite.config.js` segmentando dependencias pesadas en paquetes independientes: `vendor-firebase` (494 KB), `vendor-crypto` (281 KB), `vendor-react` (221 KB), `vendor-radix` (172 KB), `vendor-icons` (39 KB), `vendor-dnd`. El bundle principal se redujo de 2.87 MB a 1.66 MB (352 KB gzipped), y compila en 3.83s.
+  - **Caché Inmutable en Edge CDN para Estáticos**: En `vercel.json`, se configuró `Cache-Control: public, max-age=31536000, immutable` para `/assets/(.*)`.
+- **Pruebas y Build**: 51/51 tests unitarios aprobados, compilación limpia de producción en 3.83s con 0 warnings.
+
 
 
 

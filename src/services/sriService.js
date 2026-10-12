@@ -942,6 +942,36 @@ async function fetchConProxy(url, timeoutMs = 12000) {
 // CONSULTA REAL DE RUC — Función principal
 // ═══════════════════════════════════════════════════════════
 
+const rucMemoryCache = new Map();
+
+function getCachedRuc(id) {
+  if (!id) return null;
+  if (rucMemoryCache.has(id)) return rucMemoryCache.get(id);
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const stored = window.sessionStorage.getItem(`sri_ruc_${id}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        rucMemoryCache.set(id, parsed);
+        return parsed;
+      }
+    }
+  } catch {}
+  return null;
+}
+
+function saveCachedRuc(clean, ruc13, data) {
+  if (!data) return;
+  if (clean) rucMemoryCache.set(clean, data);
+  if (ruc13) rucMemoryCache.set(ruc13, data);
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      if (clean) window.sessionStorage.setItem(`sri_ruc_${clean}`, JSON.stringify(data));
+      if (ruc13 && ruc13 !== clean) window.sessionStorage.setItem(`sri_ruc_${ruc13}`, JSON.stringify(data));
+    }
+  } catch {}
+}
+
 // Consulta REAL de RUC / CI desde APIs del SRI de Ecuador
 // Usa la API de CipherByte como fuente principal con proxy CORS automático.
 // NUNCA genera datos falsos — si la consulta falla, lanza un error transparente.
@@ -953,6 +983,13 @@ export async function consultarRucSri(rucOrCi) {
 
   // Si es cédula de 10 dígitos, convertir a RUC de 13 para la consulta
   const rucParaConsulta = clean.length === 10 ? clean + '001' : clean;
+
+  // Verificar caché en memoria / sesión antes de cualquier llamada a red
+  const cached = getCachedRuc(clean) || getCachedRuc(rucParaConsulta);
+  if (cached) {
+    console.info(`⚡ RUC ${clean} obtenido desde caché local`);
+    return cached;
+  }
 
   // Validación estructural básica antes de consultar al SRI.
   // NO se aplica el check-digit local aquí porque el SRI es la fuente autoritativa.
@@ -985,7 +1022,9 @@ export async function consultarRucSri(rucOrCi) {
       let apiData = JSON.parse(text);
       if (apiData && (apiData.razonSocial || apiData.numeroRuc)) {
         console.info(`✅ RUC ${rucParaConsulta} consultado con éxito vía Proxy Servidor`);
-        return mapearRespuestaCipherByte(apiData, clean, rucParaConsulta);
+        const mapped = mapearRespuestaCipherByte(apiData, clean, rucParaConsulta);
+        saveCachedRuc(clean, rucParaConsulta, mapped);
+        return mapped;
       }
     } else if (res.status === 404) {
       throw new Error(`RUC no encontrado (HTTP 404)`);
@@ -1018,7 +1057,9 @@ export async function consultarRucSri(rucOrCi) {
 
     if (apiData && (apiData.razonSocial || apiData.numeroRuc)) {
       console.info(`✅ RUC ${rucParaConsulta} consultado exitosamente via ${via}`);
-      return mapearRespuestaCipherByte(apiData, clean, rucParaConsulta);
+      const mapped = mapearRespuestaCipherByte(apiData, clean, rucParaConsulta);
+      saveCachedRuc(clean, rucParaConsulta, mapped);
+      return mapped;
     } else {
       errores.push(`CipherByte (${via}): Sin datos válidos en la respuesta.`);
     }
@@ -1041,7 +1082,9 @@ export async function consultarRucSri(rucOrCi) {
       let sriData = JSON.parse(text);
       if (sriData && (sriData.razonSocial || sriData.nombreComercial)) {
         console.info(`✅ RUC ${rucParaConsulta} consultado con éxito en SRI vía Proxy Servidor`);
-        return mapearRespuestaSRI(sriData, clean, rucParaConsulta);
+        const mapped = mapearRespuestaSRI(sriData, clean, rucParaConsulta);
+        saveCachedRuc(clean, rucParaConsulta, mapped);
+        return mapped;
       }
     }
   } catch (sriErr) {
@@ -1063,7 +1106,9 @@ export async function consultarRucSri(rucOrCi) {
 
     if (sriData && (sriData.razonSocial || sriData.nombreComercial)) {
       console.info(`✅ RUC ${rucParaConsulta} consultado desde SRI via ${sriVia}`);
-      return mapearRespuestaSRI(sriData, clean, rucParaConsulta);
+      const mapped = mapearRespuestaSRI(sriData, clean, rucParaConsulta);
+      saveCachedRuc(clean, rucParaConsulta, mapped);
+      return mapped;
     }
   } catch (err2) {
     errores.push(`SRI CORS: ${err2.message || 'Error'}`);

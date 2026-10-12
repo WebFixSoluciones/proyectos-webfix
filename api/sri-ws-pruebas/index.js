@@ -5,14 +5,22 @@ import https from 'https';
 // en AMBIENTE DE PRUEBAS (celcer.sri.gob.ec).
 const SRI_HOST = 'https://celcer.sri.gob.ec';
 
+// Agent persistente con Keep-Alive para reutilizar handshakes TLS hacia celcer.sri.gob.ec
+const httpsAgent = new https.Agent({
+  keepAlive: true,
+  maxSockets: 50,
+  keepAliveMsecs: 30000,
+  rejectUnauthorized: false
+});
+
 export const config = {
   api: {
     bodyParser: false,
   },
-  maxDuration: 60,
+  maxDuration: 30,
 };
 
-function postWithHttps(targetUrl, headers, body, timeoutMs = 25000) {
+function postWithHttps(targetUrl, headers, body, timeoutMs = 12000) {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(targetUrl);
     const reqHeaders = {
@@ -27,6 +35,7 @@ function postWithHttps(targetUrl, headers, body, timeoutMs = 25000) {
       path: urlObj.pathname + (urlObj.search || ''),
       method: 'POST',
       headers: reqHeaders,
+      agent: httpsAgent,
       rejectUnauthorized: false,
       timeout: timeoutMs,
     }, (res) => {
@@ -81,40 +90,27 @@ export default async function handler(req, res) {
     'SOAPAction': '',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 WebFix/2.0',
     'Accept': 'text/xml, text/html, */*',
-    'Connection': 'close'
+    'Connection': 'keep-alive'
   };
 
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const result = await postWithHttps(target, headers, body, 20000);
-      res.setHeader('Content-Type', 'text/xml; charset=utf-8');
-      res.status(result.status).send(result.text);
-      return;
-    } catch (err) {
-      lastErr = err;
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
-        const sriRes = await fetch(target, {
-          method: 'POST',
-          headers,
-          body,
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
+  // Intento 1: https.request nativo optimizado con keep-alive (12s)
+  try {
+    const result = await postWithHttps(target, headers, body, 12000);
+    res.setHeader('Content-Type', 'text/xml; charset=utf-8');
+    res.status(result.status).send(result.text);
+    return;
+  } catch (err) {
+    lastErr = err;
+  }
 
-        const text = await sriRes.text();
-        res.setHeader('Content-Type', 'text/xml; charset=utf-8');
-        res.status(sriRes.status).send(text);
-        return;
-      } catch (fetchErr) {
-        lastErr = err || fetchErr;
-      }
-
-      if (attempt < 3) {
-        await new Promise(r => setTimeout(r, 1000));
-      }
-    }
+  // Intento 2 (Fallback): reintento rápido con 10s
+  try {
+    const resultFallback = await postWithHttps(target, headers, body, 10000);
+    res.setHeader('Content-Type', 'text/xml; charset=utf-8');
+    res.status(resultFallback.status).send(resultFallback.text);
+    return;
+  } catch (fallbackErr) {
+    lastErr = fallbackErr || lastErr;
   }
 
   const cause = lastErr?.cause ? ` (${lastErr.cause.code || lastErr.cause.message || lastErr.cause})` : '';

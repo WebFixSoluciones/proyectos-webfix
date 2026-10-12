@@ -1502,43 +1502,64 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   };
 
   // Verificación reactiva en segundo plano cuando se emite y queda pendiente en Step 2
+  // Verificación reactiva en segundo plano con backoff exponencial cuando se emite y queda pendiente en Step 2
   useEffect(() => {
     if (currentStep !== 2 || formData.sriStatus !== 'pendiente_sri' || !formData.claveAcceso) return;
     let cancelled = false;
-    let pollCount = 0;
-    const maxPolls = 12;
+    let timeoutId = null;
+    const delays = [3000, 6000, 10000, 15000];
+    let attemptIndex = 0;
 
-    const pollInterval = setInterval(async () => {
-      if (cancelled || operationRef.current) return;
-      pollCount++;
-      if (pollCount > maxPolls) {
-        clearInterval(pollInterval);
-        return;
-      }
-      try {
-        const result = await consultarAutorizacionSRI(formData.claveAcceso, formData.sriAmbiente || formData.claveAcceso[23]);
-        if (result.status === 'autorizado' && !cancelled) {
-          clearInterval(pollInterval);
-          const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
-          setFormData(updated);
-          await finishAuthorizedEmission(updated);
-          const receiver = thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty;
-          let freshConfig = sriConfig;
-          try {
-            const cfgSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
-            if (cfgSnap.exists()) freshConfig = cfgSnap.data();
-          } catch {}
-          await enviarCorreoComprobante(updated, receiver, freshConfig, null, true);
-          showToast(`¡Factura ${updated.documentNumber} AUTORIZADA por el SRI! Correo despachado.`, 'success');
+    const pollNext = async () => {
+      if (cancelled || operationRef.current || attemptIndex >= delays.length) return;
+
+      const currentDelay = delays[attemptIndex];
+      attemptIndex++;
+
+      timeoutId = setTimeout(async () => {
+        if (cancelled || operationRef.current) return;
+
+        try {
+          const result = await consultarAutorizacionSRI(formData.claveAcceso, formData.sriAmbiente || formData.claveAcceso[23]);
+          if (cancelled) return;
+
+          if (result.status === 'autorizado') {
+            const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
+            setFormData(updated);
+            await finishAuthorizedEmission(updated);
+            const receiver = thirdParties.find(tp => tp.id === updated.thirdPartyId) || updated.thirdParty;
+            let freshConfig = sriConfig;
+            try {
+              const cfgSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+              if (cfgSnap.exists()) freshConfig = cfgSnap.data();
+            } catch {}
+            await enviarCorreoComprobante(updated, receiver, freshConfig, null, true);
+            showToast(`¡Factura ${updated.documentNumber} AUTORIZADA por el SRI! Correo despachado.`, 'success');
+            return; // Terminado con éxito
+          }
+
+          if (result.status === 'devuelto' || result.status === 'no_autorizado') {
+            const updated = await saveSriResult({ db, appId, document: formData, result, api: fiscalApi });
+            setFormData(updated);
+            showToast(`El SRI devolvió: ${result.message || result.status}`, 'error');
+            return; // Estado terminal, detener polling
+          }
+        } catch (err) {
+          console.warn('Verificación en segundo plano SRI:', err.message);
         }
-      } catch (err) {
-        console.warn('Verificación en segundo plano SRI:', err.message);
-      }
-    }, 2500);
+
+        // Si sigue pendiente y hay más intentos programados, continuar siguiente tick
+        if (!cancelled && attemptIndex < delays.length) {
+          pollNext();
+        }
+      }, currentDelay);
+    };
+
+    pollNext();
 
     return () => {
       cancelled = true;
-      clearInterval(pollInterval);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [currentStep, formData.sriStatus, formData.claveAcceso]);
 

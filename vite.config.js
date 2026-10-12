@@ -58,8 +58,34 @@ function localApiPlugin() {
 export default defineConfig({
   plugins: [react(), localApiPlugin()],
   build: {
-    sourcemap: true,
-    chunkSizeWarningLimit: 2500
+    sourcemap: false,
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('firebase') || id.includes('@firebase')) {
+              return 'vendor-firebase';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'vendor-radix';
+            }
+            if (id.includes('node-forge') || id.includes('jsrsasign') || id.includes('crypto-js') || id.includes('xml-crypto')) {
+              return 'vendor-crypto';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            if (id.includes('@dnd-kit')) {
+              return 'vendor-dnd';
+            }
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react';
+            }
+          }
+        }
+      }
+    }
   },
   server: {
     proxy: {
