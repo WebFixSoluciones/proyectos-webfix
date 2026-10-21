@@ -1,8 +1,8 @@
-
+---
 name: flat-modern-design
 description: |
   Sistema de diseño Flat Modern para crear componentes, artefactos y objetos UI con máxima calidad visual. Activa este skill SIEMPRE que el usuario pida crear, diseñar, rediseñar, mejorar o estilizar cualquier componente, pantalla, artefacto, objeto UI, dashboard, formulario, tarjeta, botón, tabla, modal, o cualquier elemento visual — incluso si la petición parece simple. Aplica principios de Flat Modern Design en modo light: alto contraste, espacios compactos, minimalismo funcional, tipografía nítida e inspiración en Stripe, Envato, Dropbox, Apple y sistemas administrativos de última generación. Garantiza diseño responsive mobile-first, protección de componentes existentes ante cambios, y optimización de tokens en cada implementación.
-
+---
 
 # Flat Modern Design System
 
@@ -17,29 +17,25 @@ Principios irrenunciables:
 - **Minimalismo funcional** — cada elemento tiene razón de existir, nada decorativo vacío
 - **Light mode como estándar** — blancos puros, grises fríos, acentos vibrantes
 
-
 ## Protocolo de ejecución (sin preguntas)
 
 ### FASE 0 — Protección de componentes existentes
 
 **ANTES de escribir cualquier línea de código:**
 
-
 CHECKLIST DE PROTECCIÓN:
-□ Identificar todos los componentes existentes en el contexto
-□ Mapear qué CSS variables / tokens están en uso
-□ Listar clases compartidas que NO deben modificarse
-□ Identificar el scope exacto del cambio
-□ Usar CSS scoping o nombres únicos para el nuevo componente
-□ Nunca modificar estilos globales sin declararlo explícitamente
-
+- [ ] Identificar todos los componentes existentes en el contexto
+- [ ] Mapear qué CSS variables / tokens están en uso
+- [ ] Listar clases compartidas que NO deben modificarse
+- [ ] Identificar el scope exacto del cambio
+- [ ] Usar CSS scoping o nombres únicos para el nuevo componente
+- [ ] Nunca modificar estilos globales sin declararlo explícitamente
 
 **Regla de aislamiento:**
 - Cada nuevo componente tiene su propio scope de clases (prefijo único o CSS modules)
 - Nunca usar `*`, `body`, `html` con estilos que puedan afectar componentes existentes
 - Cambios en variables CSS globales → declarar impacto explícitamente
 - Si se rediseña un componente existente → preservar su API (props/clases públicas)
-
 
 ### FASE 1 — Tokens de diseño (aplicar siempre)
 
@@ -109,6 +105,7 @@ Resumen de tokens clave:
 --transition-fast: 150ms ease;
 --transition-base: 200ms ease;
 --transition-slow: 300ms ease;
+```
 
 ### FASE 2 — Responsive mobile-first
 
@@ -120,7 +117,7 @@ Resumen de tokens clave:
 /* md  */ @media (min-width: 768px)  { }
 /* lg  */ @media (min-width: 1024px) { }
 /* xl  */ @media (min-width: 1280px) { }
-
+```
 
 **Reglas de responsive para cada componente:**
 1. Diseñar base en 375px — si funciona aquí, funciona en todo
@@ -133,15 +130,13 @@ Resumen de tokens clave:
 8. Evitar hovers como única interacción — mobile no tiene hover
 
 **Test mental de responsive antes de entregar:**
-
-□ 375px (iPhone SE) — funciona?
-□ 390px (iPhone 14) — funciona?
-□ 768px (iPad) — funciona?
-□ 1280px (Desktop) — funciona?
-□ Touch targets ≥ 44px?
-□ No overflow horizontal?
-□ Texto legible sin zoom?
-
+- [ ] 375px (iPhone SE) — funciona?
+- [ ] 390px (iPhone 14) — funciona?
+- [ ] 768px (iPad) — funciona?
+- [ ] 1280px (Desktop) — funciona?
+- [ ] Touch targets ≥ 44px?
+- [ ] No overflow horizontal?
+- [ ] Texto legible sin zoom?
 
 ### FASE 3 — Patrones de componentes
 
@@ -179,24 +174,18 @@ El espaciado COMPACTO de Stripe/Linear sigue esta lógica:
 - ❌ Font-size < 12px en cualquier texto visible
 - ❌ Espacios en blanco decorativos sin función
 
-
-
 ### FASE 5 — Anti-patrones visuales prohibidos
 
-
-❌ Gradientes llamativos o arcoíris
-❌ Sombras agresivas (box-shadow > 20px blur)
-❌ Bordes > 2px en componentes normales
-❌ Más de 3 colores primarios en un componente
-❌ Texto en color terciario (#94A3B8) para información importante
-❌ Iconos > 24px en UI compacta (usar 16px o 20px)
-❌ Animaciones > 400ms (se siente lento)
-❌ Fondos de imagen en componentes de datos
-❌ Centrar texto en formularios o tablas
-❌ Usar px absolutos sin sistema (usar tokens)
-
-
-
+- ❌ Gradientes llamativos o arcoíris
+- ❌ Sombras agresivas (box-shadow > 20px blur)
+- ❌ Bordes > 2px en componentes normales
+- ❌ Más de 3 colores primarios en un componente
+- ❌ Texto en color terciario (#94A3B8) para información importante
+- ❌ Iconos > 24px en UI compacta (usar 16px o 20px)
+- ❌ Animaciones > 400ms (se siente lento)
+- ❌ Fondos de imagen en componentes de datos
+- ❌ Centrar texto en formularios o tablas
+- ❌ Usar px absolutos sin sistema (usar tokens)
 
 ## Modo de respuesta (optimizado para tokens)
 
@@ -218,7 +207,6 @@ Nuevas clases/variables: {lista — confirma que no colisionan}
 [NOTAS_DE_INTEGRACIÓN]
 {Solo si hay algo crítico — máximo 3 bullets}
 
-
 ## Reglas de oro (no negociables)
 
 1. **Protección primero** — identificar scope antes de escribir código
@@ -229,7 +217,6 @@ Nuevas clases/variables: {lista — confirma que no colisionan}
 6. **Inspiración canon** — ante duda: ¿cómo lo haría Stripe?
 7. **Un componente, un scope** — aislamiento total, sin side effects
 8. **0 preguntas de planificación** — inferir y ejecutar con el contexto disponible
-
 
 ## Referencias
 

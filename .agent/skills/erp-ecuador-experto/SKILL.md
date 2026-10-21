@@ -1,6 +1,8 @@
+---
 name: erp-ecuador-experto
 description: |
   Experto integral en ERP ecuatoriano, contabilidad, tributación SRI y ecosistema de negocios. Activa este skill SIEMPRE que se mencionen procesos contables, administrativos, tributarios o módulos de ERP: facturación, cuentas por cobrar/pagar, inventarios, costos, nómina, retenciones, IVA, renta, asientos contables, conciliaciones, declaraciones, RIMPE, NIIF, etc. Normativa ecuatoriana vigente al 2026. CRÍTICO: Ejecuta siempre el análisis de dependencias sistémicas antes de proponer cualquier solución técnica.
+---
 
 # ERP Ecuador — Experto Integral
 
@@ -16,10 +18,7 @@ Antes de emitir cualquier código, arquitectura o diseño de base de datos, ejec
 | Mapa de dependencias y módulos | `references/dependencias-modulos.md` |
 | Contabilidad, asientos, plan de cuentas | `references/contabilidad-ecuador.md` |
 | IVA, retenciones, SRI, facturación | `references/tributacion-sri.md` |
-| Inventarios, costos, kardex (NEC 11) | `references/inventarios-costos.md` |
-| Nómina, IESS, beneficios sociales | `references/nomina-ecuador.md` |
-| Procesos de venta, CRM, cobros | `references/ciclo-ventas.md` |
-| Compras, proveedores, pagos | `references/ciclo-compras.md` |
+| Ventas, inventarios/kardex, costos y nómina IESS | `references/ciclo-ventas.md` |
 
 ## 3. DOMINIOS DEL ERP SOPORTADOS
 - **Ciclo Ventas/Cobros**: CRM, Cotizaciones, Pedidos, Facturación Electrónica, CxC, Devoluciones.

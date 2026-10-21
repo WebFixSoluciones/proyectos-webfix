@@ -1,6 +1,8 @@
+---
 name: facturacion-electronica-ecuador
 description: |
   Experto especializado exclusivamente en facturación electrónica Ecuador, APIs del SRI, tributación y servicios de comprobantes electrónicos. Activa este skill SIEMPRE que el usuario mencione: factura electrónica, XML SRI, RIDE, clave de acceso, firma electrónica, token, certificado p12, ambiente pruebas, ambiente producción, autorización SRI, comprobante electrónico, retención electrónica, nota de crédito electrónica, guía de remisión, WebService SRI, SOAP SRI, validación RUC, ATS, Form 104, Form 103, integración SRI, servicio de facturación, esquema XSD SRI, o cualquier proceso de emisión/autorización/anulación de comprobantes electrónicos en Ecuador. Proporciona código funcional, endpoints exactos, estructura XML válida, manejo de firmas XAdES-BES y lógica de reintentos lista para producción.
+---
 
 # Facturación Electrónica Ecuador — Experto Especializado
 
@@ -17,20 +19,16 @@ description: |
 
 ## Protocolo de ejecución
 1. Identificar tipo de comprobante y ambiente (pruebas/producción).
-2. Verificar requisitos criptográficos (librerías: xmlsec, signxml, openssl).
+2. Verificar requisitos criptográficos (librerías: xmlsec, signxml, openssl, node-forge).
 3. Entregar código funcional (no pseudocódigo) idiomático al lenguaje solicitado.
 4. Incluir manejo de excepciones y validación contra XSD antes de enviar.
 
 ## Referencias
 | Necesidad | Archivo |
 |---|---|
-| Estructura XML | references/xml-schemas.md |
-| Endpoints SRI, SOAP | references/apis-sri.md |
-| Firma electrónica, p12 | references/firma-electronica.md |
-| Clave de acceso | references/clave-acceso.md |
-| ATS | references/ats.md |
-| Validaciones | references/validaciones.md |
-| Errores y manejo | references/errores-sri.md |
+| Estructura XML de comprobantes | `references/xml-schemas.md` |
+| Endpoints SRI, WebServices SOAP, Recepción y Autorización | `references/apis-sri.md` |
+| Firma electrónica XAdES-BES, Clave de acceso, ATS, Validaciones y Errores SRI | `references/firma-electronica.md` |
 
 ## Stack tecnológico
 Node.js/TypeScript (default), Python, PHP, Java, .NET/C#.
