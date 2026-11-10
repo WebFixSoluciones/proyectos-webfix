@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   DollarSign, TrendingUp, Wallet, Building2, CreditCard,
   Landmark, AlertTriangle, ArrowUpCircle, ArrowDownCircle, Calendar,
-  PieChart, RefreshCw, BarChart3, Target, ArrowUpRight, CheckCircle2,
-  Clock, LayoutGrid, Check, ChevronRight
+  PieChart, RefreshCw, BarChart3, Target, ArrowUpRight, CheckCircle2, LayoutGrid, ChevronRight
 } from 'lucide-react';
 import { getResumenFinanciero, getFlujoCajaMensual } from '../../services/resumenService';
 import { getMovimientos } from '../../services/movimientoService';

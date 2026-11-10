@@ -20,8 +20,7 @@ import FinanceSettings from'../finances/FinanceSettings';
 import SriRecoveryPanel from '../finances/SriRecoveryPanel';
 
 export default function GeneralSettings({ 
- showToast, db, appId, storage,
-  trash = [], handleDownloadBackup, 
+ showToast, db, appId, storage, handleDownloadBackup,
  activeModules = {}, setActiveModules
 }) {
  const { currentUser, userProfile, role, planId } = useAuth();
@@ -195,7 +194,6 @@ export default function GeneralSettings({
   // Sync tempFirma when modal opens
   useEffect(() => {
   if (isFirmaOpen) {
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   setTempFirma({
   certificadoCargado: companyProfile.certificadoCargado || false,
   certificadoNombre: companyProfile.certificadoNombre ||'',

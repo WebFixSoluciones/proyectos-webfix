@@ -38,7 +38,9 @@ export const UiInput = forwardRef(function UiInput({ className, type = 'text', s
     const cleanClassName = className ? className.replace(/\bpl-\d+\b/g, '').replace(/\bpr-\d+\b/g, '').trim() : className;
     let cleanProps = props;
     if (props.style && (props.style.paddingLeft || props.style.paddingRight)) {
-      const { paddingLeft, paddingRight, ...restStyle } = props.style;
+      const restStyle = { ...props.style };
+      delete restStyle.paddingLeft;
+      delete restStyle.paddingRight;
       cleanProps = { ...props, style: restStyle };
     }
     return (

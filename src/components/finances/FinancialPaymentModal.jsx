@@ -3,7 +3,7 @@ import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
 import { mergeThemeProps } from '../ui/themeProps';
-import { DollarSign, CreditCard, Building2, CheckCircle2, X, AlertCircle, Calendar } from 'lucide-react';
+import { DollarSign, CheckCircle2, X } from 'lucide-react';
 import { getCuentas } from '../../services/bancosService';
 
 export default function FinancialPaymentModal({
@@ -41,9 +41,7 @@ export default function FinancialPaymentModal({
           if (isMounted) {
             setBankAccounts(accs || []);
             // Auto select first account if available
-            if (accs?.length > 0 && !cuentaId) {
-              setCuentaId(accs[0].id);
-            }
+            if (accs?.length > 0) setCuentaId(current => current || accs[0].id);
           }
         })
         .catch(err => console.error('Error cargando cuentas bancarias en modal de pago:', err));

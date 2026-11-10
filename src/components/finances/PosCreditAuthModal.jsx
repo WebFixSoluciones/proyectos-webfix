@@ -3,7 +3,7 @@ import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput } from '../ui/controls';
 import { mergeThemeProps } from '../ui/themeProps';
-import { Lock, ShieldAlert, KeyRound, CheckCircle2, X } from 'lucide-react';
+import {  ShieldAlert, KeyRound, CheckCircle2, X } from 'lucide-react';
 
 export default function PosCreditAuthModal({ isOpen, onClose, client, totalAmount, onApprove, showToast }) {
   const [pin, setPin] = useState('');

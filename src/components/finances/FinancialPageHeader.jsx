@@ -5,7 +5,6 @@ export default function FinancialPageHeader({
   title,
   description,
   badge,
-  badgeColor = 'blue',
   actions
 }) {
   return (

@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
-  Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, 
-  DollarSign, Clock, CheckCircle2, History, ExternalLink, 
-  MessageCircle, Plus, X, Calendar, User, Eye, ArrowUpRight
+  Search, Download, FileText, Wallet, TrendingUp, AlertTriangle, Clock, CheckCircle2, History, ExternalLink,
+  MessageCircle, Plus, X, Calendar
 } from 'lucide-react';
 import { getCxC, registrarCobro } from '../../services/cxcService';
 import { doc, getDoc } from '../../services/financeStore';

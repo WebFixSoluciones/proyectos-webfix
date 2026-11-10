@@ -72,7 +72,6 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
   // Sync format if initialFormat changes
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setViewFormat(initialFormat);
   }, [initialFormat]);
 

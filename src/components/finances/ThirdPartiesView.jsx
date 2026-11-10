@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { UiBox, UiText, UiHeading, UiCard } from '../ui/layout';
+import { UiBox, UiText, UiHeading } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { Badge } from '../ui/badge';
 import { 
-  Plus, Search, Trash2, Edit2, ShieldCheck, Users, Building2, 
-  CreditCard, Clock, CheckCircle2, Phone, Mail, MapPin, X
+  Plus, Search, Trash2, Edit2, ShieldCheck, Users, Building2, Clock, Phone, Mail, MapPin, X
 } from 'lucide-react';
 import { doc, deleteDoc } from '../../services/financeStore.js';
 import CustomerDetailView from './CustomerDetailView';

@@ -34,7 +34,6 @@ export default function TarjetasCreditosView({ db, usuario, showToast }) {
   }, [db, filtros]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
 

@@ -1,9 +1,9 @@
-import { mergeThemeProps } from '../ui/themeProps';
+
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { DropdownMenu } from '@radix-ui/themes';
-import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, AlertCircle, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, FileDown, Printer, FileMinus, MessageCircle, MoreHorizontal, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Printer, FileMinus, MessageCircle, MoreHorizontal, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { doc, deleteDoc, setDoc, getDoc, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
@@ -31,7 +31,6 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
   useEffect(() => {
     if (forcedDocType) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterDocType(forcedDocType);
       setSubDocTypeFilter('all');
     }
@@ -40,7 +39,6 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
   useEffect(() => {
     if (forcedType) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterType(forcedType);
     }
       
@@ -446,12 +444,21 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
     if (pendingDocuments.length > 0) {
       const target = pendingDocuments[0];
-      autoVerifiedTxIdsRef.current.add(target.id);
+      const checkedIds = autoVerifiedTxIdsRef.current;
+      checkedIds.add(target.id);
+      let started = false;
       const timer = setTimeout(() => {
+        started = true;
         verifySriTransaction(target);
       }, 1500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        if (!started) checkedIds.delete(target.id);
+      };
     }
+    // Verification is scheduled only when the document list changes; the tracked
+    // ID prevents duplicate SRI requests while a verification is in progress.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transactions]);
 
   const getStatusBadge = (status, documentType, tx = null) => {
@@ -682,12 +689,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     setSelectedRideTx({ ...tx, autoPrint: true });
   };
 
-  const handleOpenRide = (tx) => {
-    const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
-      ? tx.pdfUrl
-      : `${typeof window !== 'undefined' ? (window.location.origin + window.location.pathname) : ''}#/public/ride?txId=${tx.id}&claveAcceso=${tx.claveAcceso || ''}&tenantId=${appId || ''}`;
-    window.open(effectivePdf, '_blank');
-  };
+
 
   const handleCreateNotaCredito = (tx) => {
     if (!onOpenForm) return;

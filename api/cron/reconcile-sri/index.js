@@ -1,4 +1,3 @@
-/* global Buffer */
 import https from 'https';
 import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
 import { parseSriAuthorization } from '../../../src/services/sriAuthorization.js';

@@ -956,7 +956,9 @@ function getCachedRuc(id) {
         return parsed;
       }
     }
-  } catch {}
+  } catch {
+    // Session storage is optional; the in-memory cache remains available.
+  }
   return null;
 }
 
@@ -969,7 +971,9 @@ function saveCachedRuc(clean, ruc13, data) {
       if (clean) window.sessionStorage.setItem(`sri_ruc_${clean}`, JSON.stringify(data));
       if (ruc13 && ruc13 !== clean) window.sessionStorage.setItem(`sri_ruc_${ruc13}`, JSON.stringify(data));
     }
-  } catch {}
+  } catch {
+    // Session storage is optional; the in-memory cache remains available.
+  }
 }
 
 // Consulta REAL de RUC / CI desde APIs del SRI de Ecuador

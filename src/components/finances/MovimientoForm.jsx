@@ -101,7 +101,6 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
 
   useEffect(() => {
     const total = formData.partidas.reduce((s, p) => s + (Number(p.total) || 0), 0);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(prev => ({ ...prev, monto: total }));
   }, [formData.partidas]);
 

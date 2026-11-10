@@ -40,6 +40,8 @@ function sanitizeData(obj) {
   return obj;
 }
 
+const createPosDraftId = () => `pos_draft_${crypto.randomUUID()}`;
+
 const getProductImageUrl = (p) => {
   const url = p?.imageUrl || p?.image || '';
   if (!url || url.trim() === '' || url.includes('placehold.co') || url.includes('placehold.net')) {
@@ -240,7 +242,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [isQueryingSri, setIsQueryingSri] = useState(false);
   const lastAutoQueriedRucRef = useRef('');
-  const quickAddFormDataRef = useRef({ ruc: '', tipoIdentificacion: 'ruc' });
   const [quickAddFormData, setQuickAddFormData] = useState({
     name: '',
     ruc: '',
@@ -354,7 +355,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     const total = getTotal();
     if (posPaymentMethod === 'efectivo') {
       const cashVal = Number(receivedAmount) || 0;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPayments({
         efectivo: cashVal,
         transferencia: 0,
@@ -924,7 +924,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         clientDocId = cf?.id || 'consumidor_final';
       }
 
-      const draftDocId = resumedDraftId || `pos_draft_${Date.now()}`;
+      const draftDocId = resumedDraftId || createPosDraftId();
       const draftData = {
         id: draftDocId,
         type: 'ingreso',

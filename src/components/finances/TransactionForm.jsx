@@ -1,7 +1,7 @@
 import FiscalDocuments from './FiscalDocuments';
 import { downloadFiscalXml } from '../../services/sriAuthorization';
 import { mergeThemeProps } from '../ui/themeProps';
-import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
+import { UiBox, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
 import { cancelInternalSale } from '../../services/cancelSale';
 import { reserveSriEmission, saveSriResult } from '../../services/sriEmission';
@@ -17,7 +17,7 @@ import {
   X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
   User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
-  Package, Printer, Mail, Send, Check, Clock, ExternalLink, Copy, FileDown, MessageCircle, Edit2
+  Package, Printer, Mail, Send, Check, Clock, Copy, FileDown, MessageCircle, Edit2
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -487,7 +487,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         breakdownCr = tx.paymentsBreakdown.cruce_cuentas || tx.paymentsBreakdown.credito || 0;
 
         // Hydrate the payment controls from the selected persisted document.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPayments({
           efectivo: breakdownEf,
           transferencia: breakdownTr,
@@ -550,7 +549,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   useEffect(() => {
     if (!formData.thirdPartyId || !db || !appId) {
       // Reset the displayed debt when no customer is selected.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setClientDebt(0);
       return;
     }
@@ -628,7 +626,6 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const sumRet = rets.reduce((sum, r) => sum + (parseFloat(r.valorRetenido) || 0), 0);
       const sumBase = rets.reduce((sum, r) => sum + (parseFloat(r.baseImponible) || 0), 0);
       // Keep the displayed retention totals consistent with the edited rows.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(prev => {
         const next = { baseImponible: sumBase.toFixed(2), ivaValor: '0.00', total: sumRet.toFixed(2) };
         return prev.baseImponible === next.baseImponible && prev.ivaValor === next.ivaValor && prev.total === next.total ? prev : { ...prev, ...next };
@@ -1534,7 +1531,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             try {
               const cfgSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
               if (cfgSnap.exists()) freshConfig = cfgSnap.data();
-            } catch {}
+            } catch (configError) {
+              console.warn('No se pudo actualizar la configuración del emisor para el correo:', configError);
+            }
             await enviarCorreoComprobante(updated, receiver, freshConfig, null, true);
             showToast(`¡Factura ${updated.documentNumber} AUTORIZADA por el SRI! Correo despachado.`, 'success');
             return; // Terminado con éxito
@@ -1563,6 +1562,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       cancelled = true;
       if (timeoutId) clearTimeout(timeoutId);
     };
+  // The polling lifecycle is tied to the fiscal identity and status. Re-arming it
+  // on every form change would duplicate SRI consultations for the same document.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, formData.sriStatus, formData.claveAcceso]);
 
   useEffect(() => {
@@ -1837,13 +1839,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
   const emitterAddress = emailDeliveryData.emitter?.address || sriConfig?.correoContacto || sriConfig?.email || sriConfig?.smtpUser || '';
 
   const isSmtpConfigured = Boolean(sriConfig?.smtpHost && sriConfig?.smtpUser && sriConfig?.smtpPass);
-  const isSmtpActive = sriConfig?.smtpActivo !== false;
 
-  const docConfirmationTitle = isNotaVenta
-    ? (isAnulado ? '¡Nota de Venta Anulada!' : '¡Recibo Interno / Nota de Venta Emitido!')
-    : isAuthorized 
-      ? '¡Factura Electrónica Emitida y Autorizada!' 
-      : '¡Transacción Guardada con Éxito!';
+
+
 
   const isEditable = !isAuthorized && !isAnulado && !isSaving && !isEmitting;
   // Documento finalizado en paso 2 — no se puede regresar ni editar desde aquí
@@ -1940,10 +1938,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
   
 
-  const steps = [
-    { id: 1, name: 'Detalle y Productos' },
-    { id: 2, name: 'Impresión' }
-  ];
+
 
   const filteredClients = (thirdParties || [])
     .filter(tp => formData.type === 'ingreso' ? tp.type !== 'proveedor' : tp.type === 'proveedor')
@@ -2789,7 +2784,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                             const calcLine = currentCartTotals?.items?.[index] || item;
                             const lineBase = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
                             const lineDiscount = calcLine.monto_descuento_linea || 0;
-                            const lineDiscountPvp = calcLine.monto_descuento_pvp || lineDiscount;
+
                             const subtotalLine = calcLine.subtotal_neto_linea ?? Math.max(0, lineBase - lineDiscount);
                             const hasDiscount = Boolean(
                               calcLine.id_descuento_aplicado || 

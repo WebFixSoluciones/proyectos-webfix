@@ -29,7 +29,6 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
   }, [db]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
 

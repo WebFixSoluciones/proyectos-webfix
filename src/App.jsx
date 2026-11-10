@@ -1,11 +1,10 @@
 import { resolveThemeProps } from './components/ui/themeProps';
 import { mergeThemeProps } from './components/ui/themeProps';
 import { UiCard, UiBox, UiText, UiHeading, UiLabel } from './components/ui/layout';
-import { UiTextarea, UiButton, UiInput, UiSelect } from './components/ui/controls';
+import { UiButton, UiInput, UiSelect } from './components/ui/controls';
 import { normalizeProduct } from './services/productModel';
 import { useState, useEffect, useRef } from 'react';
 import {
-  Trash2,
   Menu,
   Sparkles,
   X,
@@ -13,14 +12,12 @@ import {
   CheckCircle2,
   Shield,
   UserPlus,
-  Pencil,
   Lock,
   Cloud,
   Settings,
   Calculator,
   CloudOff,
   AlertCircle,
-  Search,
   HelpCircle,
   Bell,
   ChevronDown,
@@ -34,7 +31,6 @@ import { doc, setDoc, onSnapshot, collection, getDocs, getDoc, query, where } fr
 import { auth, db, storage, appId } from './firebase';
 import { useAuth } from './contexts/AuthContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
-import { Badge } from './components/ui/badge';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import LandingLayout from './pages/landing/LandingLayout';
 import LandingHome from './pages/landing/LandingHome';
@@ -62,21 +58,18 @@ import FinanceChat from './components/finances/FinanceChat';
 import GastosCreditosModule from './components/finances/GastosCreditosModule';
 import InventoryModule from './components/inventory/InventoryModule';
 import Sidebar from './components/Sidebar';
-import IconRenderer from './components/common/IconRenderer';
 import { USER_COLORS } from './constants/appData';
 import { isSubscriptionBlocked } from './services/subscriptionAccess';
 
 // Helper Strings para clases Glassmorphism
 // eslint-disable-next-line no-unused-vars
 const glassPanelDark = "glass-panel-dark";
-const glassPanelLight = "glass-panel-light";
 // eslint-disable-next-line no-unused-vars
 const glassInputDark = "glass-input-dark";
 const glassInputLight = "glass-input-light";
 
 
 export default function App() {
-  // eslint-disable-next-line no-unused-vars
   const { currentUser, tenantInfo, planId, role: userRole, emailVerificationRequired } = useAuth();
   const isAuthenticated = !!currentUser;
   const navigate = useNavigate();
@@ -179,7 +172,6 @@ export default function App() {
     if (path.startsWith('/app/')) {
       const subpage = path.substring(5);
       if (subpage === 'billing') {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActivePageId('billing');
       }
     }
@@ -218,7 +210,6 @@ export default function App() {
         personas: currentPlan.modules.includes('personas') || isStarter || isProfessional || isEnterprise,
         team: currentPlan.modules.includes('team') || isProfessional || isEnterprise
       };
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveModules(newModules);
     }
   }, [planId, plansList]);
@@ -247,7 +238,6 @@ export default function App() {
 
   useEffect(() => {
     if (['ventas', 'compras', 'finances', 'billing', 'gastos_creditos', 'inventario'].includes(activePageId)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedSidebarMenu(activePageId);
     } else if (activePageId === 'personas' || activePageId === 'team') {
       setExpandedSidebarMenu('personas_menu');
@@ -266,7 +256,7 @@ export default function App() {
     }
     window.location.reload();
   };
-  
+
   // eslint-disable-next-line no-unused-vars
   const isDarkMode = false;
   // eslint-disable-next-line no-unused-vars
@@ -326,7 +316,6 @@ export default function App() {
     });
 
     const mapped = uniqueRaw.map(p => normalizeProduct(p, globalCategories, globalBrands));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGlobalProducts(mapped);
   }, [rawProducts, globalCategories, globalBrands]);
   const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false);
@@ -385,7 +374,6 @@ export default function App() {
   // Limpiar sincronización de la nube al cerrar sesión
   useEffect(() => {
     if (!isAuthenticated) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsCloudSynced(false);
     }
   }, [isAuthenticated]);
@@ -452,7 +440,6 @@ export default function App() {
   // Auto-expand submenus when active page changes
   useEffect(() => {
     if (activePageId === 'personas' || activePageId === 'team') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsPersonasExpanded(true);
     }
   }, [activePageId]);
@@ -591,184 +578,8 @@ export default function App() {
   }, [isAuthenticated, currentUser, userRole, emailVerificationRequired]);
 
   // Determinar página activa
-  let activePage;
-  if (activePageId === 'dashboard') {
-    activePage = { id: 'dashboard', title: 'Dashboard', icon: 'dashboard', type: 'dashboard' };
-  } else if (activePageId === 'finances') {
-    activePage = { id: 'finances', title: 'Control Financiero', icon: 'finances', type: 'finances' };
-  } else if (activePageId === 'compras') {
-    activePage = { id: 'compras', title: 'Compras y Facturas Recibidas', icon: 'compras', type: 'compras' };
-  } else if (activePageId === 'gastos_creditos') {
-    activePage = { id: 'gastos_creditos', title: 'Finanzas', icon: 'gastos_creditos', type: 'gastos_creditos' };
-  } else if (activePageId === 'ventas') {
-    activePage = { id: 'ventas', title: 'Ventas y Facturación', icon: 'ventas', type: 'ventas' };
-  } else if (activePageId === 'inventario') {
-    activePage = { id: 'inventario', title: 'Inventario', icon: 'inventario', type: 'inventario' };
-  } else if (activePageId === 'personas') {
-    activePage = { id: 'personas', title: 'Personas', icon: 'personas', type: 'personas' };
-  } else if (activePageId === 'general_settings') {
-    activePage = { id: 'general_settings', title: 'Ajustes', icon: 'settings', type: 'general_settings' };
-  } else if (activePageId === 'billing') {
-    activePage = { id: 'billing', title: 'Suscripción', icon: 'credit-card', type: 'billing' };
-  } else if (activePageId === 'trash') {
-    activePage = { id: 'trash', title: 'Papelera', icon: 'trash', type: 'trash' };
-  } else if (activePageId === 'contratar_servicios') {
-    activePage = { id: 'contratar_servicios', title: 'Servicios Web Fix', icon: 'rocket', type: 'contratar_servicios' };
-  } else if (activePageId === 'soporte_tecnico') {
-    activePage = { id: 'soporte_tecnico', title: 'Soporte Técnico', icon: 'life-buoy', type: 'soporte_tecnico' };
-  } else {
-    activePage = { id: 'dashboard', title: 'Dashboard General ERP', icon: 'dashboard', type: 'dashboard' };
-  }
-
-  const getModuleHeaderDetails = () => {
-    switch (activePageId) {
-      case 'dashboard':
-        return {
-          title: 'Dashboard General ERP',
-          desc: 'Control holístico de finanzas, inventario, ventas y cumplimiento tributario SRI',
-          icon: 'dashboard'
-        };
-      case 'finances': {
-        const subtabs = {
-          dashboard: { title: 'Control Financiero: Resumen', desc: 'Flujo de caja, saldos, cartera y cumplimiento fiscal en tiempo real' },
-          resumen_financiero: { title: 'Resumen Financiero', desc: 'Flujo de caja consolidado, liquidez, cartera, deuda y pronóstico' },
-          movimientos: { title: 'Movimientos Financieros', desc: 'Registro central de ingresos, egresos, cobros y pagos' },
-          cxc: { title: 'Cuentas por Cobrar (CxC)', desc: 'Seguimiento de cartera, vencimientos y abonos de clientes' },
-          cxp: { title: 'Cuentas por Pagar (CxP)', desc: 'Control de deudas con proveedores, retenciones y programación de pagos' },
-          bancos: { title: 'Bancos y Caja', desc: 'Saldos de cuentas bancarias, arqueos de caja y conciliación inteligente' },
-          tarjetas: { title: 'Tarjetas y Créditos', desc: 'Control de tarjetas de crédito corporativas, cortes y consumos diferidos' },
-          prestamos: { title: 'Préstamos Bancarios', desc: 'Tablas de amortización francesa/alemana y seguimiento de cuotas' },
-          captura: { title: 'Captura Inteligente (OCR)', desc: 'Extracción asistida con IA de comprobantes físicos, XML y PDFs' },
-          contabilidad_tab: { title: 'Contabilidad & Plan de Cuentas', desc: 'Plan de cuentas NIIF, asientos contables y libro diario' },
-          impuestos: { title: 'Impuestos & SRI', desc: 'Cruce de IVA, retenciones y generación del anexo ATS' },
-          reportes: { title: 'Reportes Especializados', desc: 'Reporte de flujo, cartera, deudas, impuestos y exportación' }
-        };
-        const current = subtabs[contabilidadInitialSubTab] || { title: 'Control Financiero', desc: 'Ingresos, gastos, cartera, tarjetas, créditos, reportes y cumplimiento tributario' };
-        return { ...current, icon: 'finances' };
-      }
-      case 'ventas': {
-        const subStr = String(ventasInitialSubTab || '');
-        if (subStr.startsWith('pos')) {
-          return {
-            title: 'Punto de Venta (POS)',
-            desc: 'Facturación rápida e intuitiva para tiendas y comercio directo',
-            icon: 'ventas'
-          };
-        }
-        if (subStr.startsWith('ventas_nueva') || subStr.startsWith('ventas_preventa')) {
-          return {
-            title: 'Registrar Venta',
-            desc: 'Registro directo de ventas administrativas y facturación electrónica',
-            icon: 'ventas'
-          };
-        }
-        const subtabs = {
-          resumen_ventas: { title: 'Historial de Ventas', desc: 'Listado y métricas de comprobantes electrónicos de venta autorizados' },
-          ventas_nueva: { title: 'Registrar Venta', desc: 'Registro directo de ventas administrativas y facturación electrónica' },
-          ventas_preventa: { title: 'Registrar Venta', desc: 'Registro directo de ventas administrativas y facturación electrónica' },
-          pos: { title: 'Punto de Venta (POS)', desc: 'Facturación rápida e intuitiva para tiendas y comercio directo' },
-          preventas: { title: 'Preventas', desc: 'Gestión y despacho de ventas y pedidos realizados de forma anticipada' },
-          quotes: { title: 'Cotizaciones', desc: 'Emisión y gestión de cotizaciones comerciales para clientes' },
-          nota_credito: { title: 'Notas de Crédito', desc: 'Anulaciones y devoluciones tributarias autorizadas por el SRI' },
-          retencion: { title: 'Retenciones de Venta', desc: 'Registro de retenciones de IVA y Renta recibidas de clientes' },
-          discounts: { title: 'Descuentos & Promociones', desc: 'Configuración de descuentos por producto y reglas de promoción' }
-        };
-        const current = subtabs[ventasInitialSubTab] || { title: 'Descuentos & Promociones', desc: 'Configuración de descuentos y promociones comerciales' };
-        return { ...current, icon: 'ventas' };
-      }
-      case 'inventario': {
-        const subtabs = {
-          productos: { title: 'Productos', desc: 'Catálogo de artículos en stock, precios, imágenes y parametrización de IVA' },
-          servicios: { title: 'Servicios', desc: 'Catálogo de servicios profesionales, consultorías e intangibles facturables' },
-          categorias: { title: 'Categorías', desc: 'Clasificación de productos y servicios para reportes y filtros rápidos' }
-        };
-        const current = subtabs[inventarioInitialSubTab] || { title: 'Inventario', desc: 'Catálogo de productos y servicios con parametrización de IVA del SRI' };
-        return { ...current, icon: 'inventario' };
-      }
-      case 'personas': {
-        const subtabs = {
-          cliente: { title: 'Clientes', desc: 'Directorio de clientes registrados con validación SRI y base de datos' },
-          proveedor: { title: 'Proveedores', desc: 'Directorio de proveedores registrados, RUC y clasificación comercial' }
-        };
-        const current = subtabs[personasSubTab] || { title: 'Personas', desc: 'Base de datos unificada de clientes y proveedores con validación de datos SRI' };
-        return { ...current, icon: 'personas' };
-      }
-      case 'compras': {
-        const subtabs = {
-          compras_resumen: { title: 'Historial de Compras', desc: 'Listado y registro de facturas recibidas de tus proveedores' },
-          compras_sri: { title: 'Facturas Recibidas SRI', desc: 'Sincroniza y concilia facturas emitidas por tus proveedores en el SRI' },
-          compras_gastos: { title: 'Gastos con IA', desc: 'Clasificación y registro automático de gastos mediante inteligencia artificial' },
-          compras_nc: { title: 'Notas de Crédito Recibidas', desc: 'Registro de devoluciones y descuentos aplicados por tus proveedores' },
-          compras_retencion: { title: 'Retenciones Emitidas', desc: 'Genera y autoriza retenciones a tus proveedores autorizadas por el SRI' }
-        };
-        const current = subtabs[comprasInitialSubTab] || { title: 'Compras', desc: 'Registro de facturas de proveedores y control de compras electrónicas' };
-        return { ...current, icon: 'compras' };
-      }
-      case 'gastos_creditos': {
-        const subtabs = {
-          resumen: { title: 'Resumen Financiero', desc: 'Visualización consolidada de flujos de caja y estados financieros' },
-          gastos: { title: 'Gastos', desc: 'Registro detallado y control de egresos operacionales de la empresa' },
-          creditos: { title: 'Cuentas de Crédito', desc: 'Monitoreo de deudas, plazos de pago y líneas de crédito abiertas' }
-        };
-        const current = subtabs[gastosInitialSubTab] || { title: 'Finanzas', desc: 'Control y registro de gastos de la empresa y cuentas de crédito por pagar/cobrar' };
-        return { ...current, icon: 'gastos_creditos' };
-      }
-      case 'general_settings':
-        return {
-          title: 'Ajustes',
-          desc: 'Ajustes de empresa, colores del sistema, módulos e integraciones con Gemini y Google',
-          icon: 'settings'
-        };
-      case 'trash':
-        return {
-          title: 'Papelera de Reciclaje',
-          desc: 'Recupera o elimina permanentemente páginas y tareas del espacio',
-          icon: 'trash'
-        };
-      case 'contratar_servicios':
-        return {
-          title: 'Servicios de Crecimiento',
-          desc: 'Adquiere y gestiona servicios de diseño, correo corporativo y marketing digital para potenciar tu marca',
-          icon: 'rocket'
-        };
-      case 'soporte_tecnico':
-        return {
-          title: 'Soporte Técnico',
-          desc: 'Envía tus solicitudes de ayuda técnica y reportes de incidencias directamente a nuestro equipo',
-          icon: 'life-buoy'
-        };
-      case 'billing': {
-        const subtabs = {
-          facturacion: { title: 'Facturación Electrónica', desc: 'Planes de emisión de comprobantes electrónicos del SRI para tu negocio' },
-          paginas: { title: 'Páginas Web', desc: 'Elige o actualiza tu plan de hosting, landing page o tienda en línea' },
-          correos: { title: 'Correos Corporativos', desc: 'Administra cuentas de correo empresarial y espacio de almacenamiento' },
-          whatsapp: { title: 'WhatsApp CRM', desc: 'Planes de integración para automatización y chat multiagente con WhatsApp' },
-          pagos: { title: 'Historial de Pagos', desc: 'Historial de facturas cobradas y estado de tu cuenta SaaS' },
-          planes: { title: 'Planes SaaS', desc: 'Catálogo completo de planes y módulos para el crecimiento de tu negocio' }
-        };
-        const current = subtabs[billingInitialSubTab] || { title: 'Suscripción y Facturación SaaS', desc: 'Gestiona tu plan contratado, revisa tus consumos y reporta tus pagos por transferencia o PayPhone' };
-        return { ...current, icon: 'credit-card' };
-      }
-      default:
-        return {
-          title: activePage.title || 'Sin título',
-          desc: 'Panel general de administración',
-          icon: activePage.icon || 'dashboard'
-        };
-    }
-  };
-  
   // --- Lógica de Usuarios ---
-  const openNewUserDrawer = () => {
-    setDrawerUser({
-      id: Date.now().toString(),
-      name: '',
-      role: 'Miembro',
-      job: '',
-      color: USER_COLORS[0],
-      isNew: true
-    });
-  };
+
 
   const saveDrawerUser = async () => {
     if (!drawerUser || !drawerUser.name.trim()) return;
@@ -780,7 +591,7 @@ export default function App() {
     }
     const initials = drawerUser.name.trim().split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() || 'U';
     const userToSave = { ...drawerUser, initials, name: drawerUser.name.trim() };
-    
+
     let newUsers;
     if (drawerUser.isNew) {
       delete userToSave.isNew;
@@ -796,15 +607,7 @@ export default function App() {
     } catch (e) { console.error('Error saveDrawerUser:', e); showToast('Error', 'error'); }
   };
 
-  const deleteUser = async (id, e) => {
-    if (e) e.stopPropagation();
-    const newUsers = users.filter(u => u.id !== id);
-    setUsers(newUsers);
-    if (drawerUser && drawerUser.id === id) setDrawerUser(null);
-    try {
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { users: newUsers }, { merge: true });
-    } catch (e) { console.error('Error deleteUser:', e); }
-  };
+
 
 
 
@@ -844,7 +647,7 @@ export default function App() {
     showToast('Copia de seguridad descargada', 'success');
   };
 
-  const currentGlassPanel = glassPanelLight;
+
 
   const currentGlassInput = glassInputLight;
 
@@ -853,7 +656,7 @@ export default function App() {
     e.preventDefault();
     setIsAuthenticating(true);
     setLoginError('');
-    
+
     try {
       await signInWithEmailAndPassword(auth, loginForm.email.trim(), loginForm.password);
     } catch (error) {
@@ -877,7 +680,7 @@ export default function App() {
       // Limpiar cachés locales y de sesión
       localStorage.clear();
       sessionStorage.clear();
-      
+
       // Limpiar cachés del navegador (Service Workers, etc.) si está disponible
       if ('caches' in window) {
         const cacheNames = await caches.keys();
@@ -886,10 +689,10 @@ export default function App() {
     } catch (error) {
       console.error("Error limpiando las cachés:", error);
     }
-    
+
     // Cerrar sesión en Firebase
     await signOut(auth);
-    
+
     // Recargar la página para limpiar toda la memoria y estados de React
     window.location.reload();
   };
@@ -932,7 +735,7 @@ export default function App() {
 
   // --- DETECTAR MÓDULOS BLOQUEADOS O SUSPENDIDOS ---
   const isPageGated = ['finances', 'compras', 'gastos_creditos', 'inventario', 'team'].includes(activePageId);
-  
+
   const isModuleLocked = (() => {
     if (!isPageGated) return false;
     if (activePageId === 'team') {
@@ -987,7 +790,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <UiBox {...{"className":"flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]"}}>
-        
+
         {/* Topbar Stripe (Brevo Design System Header) */}
         <header className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 bg-white select-none z-30">
           {/* Left: Sidebar Toggle */}
@@ -1088,7 +891,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="h-[1px] bg-slate-100 my-1" />
-                  
+
                   <button
                     type="button"
                     onClick={() => { setIsProfileMenuOpen(false); setBillingInitialSubTab('planes'); setActivePageId('billing'); }}
@@ -1345,7 +1148,7 @@ export default function App() {
                   <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","className":"block mb-2"}, {}, {"color":"gray"})}>Nombre Completo</UiLabel>
                   <UiInput type="text" value={drawerUser.name} onChange={(e) => setDrawerUser(prev => ({ ...prev, name: e.target.value }))} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, resolveThemeProps(currentGlassInput))} placeholder="Ej. Jane Doe" />
                 </UiBox>
-                
+
                 <UiBox>
                   <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","className":"block mb-2"}, {}, {"color":"gray"})}>Cargo / Puesto</UiLabel>
                   <UiInput type="text" value={drawerUser.job} onChange={(e) => setDrawerUser(prev => ({ ...prev, job: e.target.value }))} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, resolveThemeProps(currentGlassInput))} placeholder="Ej. Frontend Developer" />
@@ -1375,7 +1178,7 @@ export default function App() {
 
               </UiBox>
             </UiBox>
-            
+
             <UiCard {...mergeThemeProps({"className":"px-6 py-4 flex justify-end shrink-0"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
               <UiButton onClick={() => setDrawerUser(null)} {...mergeThemeProps({"size":"2"}, {}, {"color":"gray"})}>Cancelar</UiButton>
               <UiButton onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} {...mergeThemeProps({"size":"2","className":"flex items-center gap-2 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105"}, {}, {"variant":"solid","color":"blue"})}><Save size={16} /> Guardar Usuario</UiButton>

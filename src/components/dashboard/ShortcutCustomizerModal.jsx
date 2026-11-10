@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { 
   X, Check, Search, RotateCcw, PlusCircle, ShoppingCart, FileText, 
-  FileCheck, Clock, Tag, PackagePlus, Briefcase, Package, Boxes, 
+  FileCheck, Clock, PackagePlus, Briefcase, Package, Boxes,
   Sliders, ShoppingBag, Receipt, Users, CreditCard, HandCoins, 
   Landmark, BarChart3, FileSpreadsheet, Settings, SlidersHorizontal, 
   Sparkles

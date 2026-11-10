@@ -58,7 +58,6 @@ export default function ReportesView({ db, showToast }) {
   }, [db, tab, filtros, agingTipo]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
 

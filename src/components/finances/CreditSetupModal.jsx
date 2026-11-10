@@ -3,7 +3,7 @@ import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
 import { mergeThemeProps } from '../ui/themeProps';
-import { ShieldCheck, CreditCard, X, AlertCircle, CheckCircle2, UserCheck, Calendar } from 'lucide-react';
+import { ShieldCheck, CreditCard, X, CheckCircle2, UserCheck } from 'lucide-react';
 
 export default function CreditSetupModal({ isOpen, onClose, client, onSave, showToast }) {
   const [creditLimit, setCreditLimit] = useState(500);

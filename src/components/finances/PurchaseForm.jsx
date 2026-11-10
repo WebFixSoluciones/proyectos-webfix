@@ -11,7 +11,8 @@ import { doc, setDoc, getDoc, getDocs, collection } from '../../services/finance
 import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { normalizeProduct } from '../../services/productModel';
-import { getEcuadorDateString } from '../../services/sriService';
+import { getEcuadorDateString, consultarAutorizacionSRI } from '../../services/sriService';
+import { verifyPurchaseSriXml } from '../../services/purchaseSriVerification';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
 import { getCuentas } from '../../services/bancosService';
 import { auth } from '../../firebase';
@@ -233,11 +234,12 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     if (!Number.isFinite(Number(form.total)) || Number(form.total) <= 0 || form.items.some(item => Number(item.quantity) <= 0 || Number(item.price) < 0)) { showToast?.('Revisa los importes y cantidades de la compra.', 'error'); return; }
     if (!form.supplierName && !form.description) { showToast?.('Selecciona un proveedor o agrega una descripcion', 'warning'); return; }
     if (form.purchaseType === 'con_inventario' && form.items.length === 0 && !form.description) { showToast?.('Agrega al menos un producto o una descripcion', 'warning'); return; }
+    if (form.claveAcceso && !/^\d{49}$/.test(form.claveAcceso)) { showToast?.('La clave SRI debe tener 49 dígitos.', 'error'); return; }
     saveLock.current = true;
     setSaving(true);
     const docId = stableId.current;
     const operator = { uid: auth.currentUser?.uid || '', email: auth.currentUser?.email || '' };
-    const sriStatus = form.claveAcceso ? 'pendiente_verificacion' : 'sin_clave';
+    let sriStatus = form.claveAcceso ? 'pendiente_verificacion' : 'sin_clave';
     
     const payload = {
       id: docId, type: 'egreso', category: 'compras',
@@ -256,6 +258,30 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     };
 
     try {
+      if (form.claveAcceso && form.documentType === 'factura') {
+        try {
+          const sriResult = await consultarAutorizacionSRI(form.claveAcceso, form.claveAcceso[23]);
+          if (sriResult.status === 'autorizado') {
+            const configSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+            const companyRuc = String(configSnap.data()?.ruc || '').trim();
+            if (companyRuc) {
+              verifyPurchaseSriXml(sriResult.signedXml, {
+                claveAcceso: form.claveAcceso,
+                companyRuc,
+                supplierRuc: String(form.supplierRuc || '').trim(),
+                documentNumber: form.documentNumber,
+                total: form.total
+              });
+              sriStatus = 'autorizado';
+              payload.xmlAutorizado = sriResult.xmlAutorizado;
+            }
+          }
+        } catch (verificationError) {
+          if (verificationError.code === 'PURCHASE_SRI_MISMATCH') throw verificationError;
+          console.warn('La autorización SRI de la compra quedó pendiente:', verificationError);
+        }
+      }
+      payload.sriStatus = sriStatus;
       // 1. Save transaction
       const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId);
       const previous = await getDoc(txRef);
@@ -301,7 +327,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       }
 
       await setDoc(txRef, { financialSyncStatus: 'complete' }, { merge: true });
-      showToast?.(form.claveAcceso ? 'Compra registrada. Autorización SRI pendiente de verificar.' : 'Compra e inventario registrados correctamente.', form.claveAcceso ? 'warning' : 'success');
+      showToast?.(form.claveAcceso && sriStatus !== 'autorizado' ? 'Compra registrada. Autorización SRI pendiente de verificar.' : 'Compra e inventario registrados correctamente.', form.claveAcceso && sriStatus !== 'autorizado' ? 'warning' : 'success');
       onClose?.();
     } catch (err) { 
       console.error(err); 

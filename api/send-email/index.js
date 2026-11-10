@@ -1,4 +1,3 @@
-/* global Buffer */
 import nodemailer from 'nodemailer';
 
 /**

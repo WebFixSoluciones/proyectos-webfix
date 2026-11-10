@@ -55,7 +55,6 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
   }, [db, year, month, transactions]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
 

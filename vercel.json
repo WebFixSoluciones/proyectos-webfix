@@ -85,6 +85,10 @@
     }
   ],
   "functions": {
+    "api/public-ride/index.js": {
+      "memory": 512,
+      "maxDuration": 15
+    },
     "api/sri-ws-prod/index.js": {
       "memory": 1024,
       "maxDuration": 30
@@ -103,6 +107,10 @@
     }
   },
   "rewrites": [
+    {
+      "source": "/api/public-ride",
+      "destination": "/api/public-ride/index.js"
+    },
     {
       "source": "/api/cron/reconcile-sri",
       "destination": "/api/cron/reconcile-sri/index.js"

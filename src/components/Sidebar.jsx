@@ -13,8 +13,7 @@ export default function Sidebar({
   inventarioInitialSubTab, setInventarioInitialSubTab,
   contabilidadInitialSubTab, setContabilidadInitialSubTab,
   billingInitialSubTab, setBillingInitialSubTab,
-  personasSubTab, setPersonasSubTab,
-  trash, handleLogout, userRole
+  personasSubTab, setPersonasSubTab, userRole
 }) {
   const navigate = useNavigate();
   const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };

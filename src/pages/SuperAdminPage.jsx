@@ -107,7 +107,6 @@ export default function SuperAdminPage({ showToast }) {
 
   // Load Tenants, Transfers, and Plans
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     
     // 1. Listen to Tenants
@@ -191,7 +190,6 @@ export default function SuperAdminPage({ showToast }) {
   useEffect(() => {
     if (viewMode === 'create') {
       const randPassword = Math.random().toString(36).slice(-8) + 'A1!';
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNewTenantForm(prev => ({ ...prev, initialPassword: randPassword }));
     }
   }, [viewMode]);
@@ -380,7 +378,6 @@ export default function SuperAdminPage({ showToast }) {
 
   useEffect(() => {
     if (viewMode === 'edit' && selectedTenantDetails) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadGodModeData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

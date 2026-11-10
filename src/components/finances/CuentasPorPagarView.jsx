@@ -1,4 +1,4 @@
-import { resolveThemeProps } from '../ui/themeProps';
+
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
@@ -9,13 +9,7 @@ import FinancialPageHeader from './FinancialPageHeader';
 import FinancialPaymentModal from './FinancialPaymentModal';
 import { Badge } from '../ui/badge';
 
-const ESTADO_BADGES = {
-  pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
-  parcial: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
-  pagado: {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}},
-  vencido: {"style":{"backgroundColor":"var(--red-3)","color":"var(--red-11)"}},
-  anulado: {"style":{"backgroundColor":"var(--gray-3)","color":"var(--gray-11)"}},
-};
+
 
 export default function CuentasPorPagarView({ db, usuario, showToast }) {
   const [items, setItems] = useState([]);
@@ -30,7 +24,6 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
   }, [db, filtros]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
 

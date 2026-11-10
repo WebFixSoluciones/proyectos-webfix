@@ -74,7 +74,6 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
   useEffect(() => {
     if (!formData.id && isModalOpen) {
       const nextNum = quotes.length + 1;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(prev => ({
         ...prev,
         quoteNumber: `COT-${String(nextNum).padStart(6, '0')}`,
@@ -94,7 +93,6 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
       iva += lineIva;
     });
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(prev => ({
       ...prev,
       subtotal: sub.toFixed(2),

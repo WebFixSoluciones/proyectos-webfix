@@ -4,10 +4,10 @@ import { UiButton, UiInput, UiSelect, UiTextarea, UiTable, UiTableHeader, UiTabl
 import { Badge } from '../ui/badge';
 import { 
   ArrowLeft, Save, Sparkles, ShieldCheck, CreditCard, 
-  MapPin, Mail, Phone, Building, CheckCircle2, Clock,
-  FileText, Calendar, Check, X, User, ExternalLink, HelpCircle
+  MapPin, Building, Clock,
+  FileText, Check, X
 } from 'lucide-react';
-import { consultarRucSri, validarIdentificacion, getEcuadorDateString } from '../../services/sriService';
+import { consultarRucSri, validarIdentificacion } from '../../services/sriService';
 import { doc, setDoc, getDocs, collection, query, where } from '../../services/financeStore.js';
 import confirmAction from '../../services/confirmDialog';
 

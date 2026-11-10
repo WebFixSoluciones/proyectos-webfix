@@ -1,4 +1,3 @@
-/* global Buffer */
 import https from 'https';
 
 // Función serverless de Vercel: proxy server-side de los WebServices SOAP del SRI
@@ -84,7 +83,7 @@ export default async function handler(req, res) {
     });
   }
 
-  let lastErr = null;
+  let lastErr;
   const headers = {
     'Content-Type': 'text/xml;charset=utf-8',
     'SOAPAction': '',

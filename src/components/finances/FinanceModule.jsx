@@ -72,7 +72,6 @@ export default function FinanceModule({
   // Sync state if mode changes
   useEffect(() => {
     if (initialSubTab && (mode === 'compras' || mode === 'contabilidad')) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(initialSubTab);
     } else {
       setActiveTab(getInitialTab(mode));
@@ -118,7 +117,6 @@ export default function FinanceModule({
       if (mode === 'ventas') {
         const subStr = String(initialSubTab);
         if (subStr.startsWith('ventas_nueva') || subStr.startsWith('ventas_preventa')) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setSubTabVentas('ventas_nueva');
           setEditingTx({ type: 'ingreso' });
           setIsModalOpen(true);

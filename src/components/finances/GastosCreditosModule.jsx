@@ -16,7 +16,6 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
   useEffect(() => {
     if (initialSubTab) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(initialSubTab);
     }
   }, [initialSubTab]);

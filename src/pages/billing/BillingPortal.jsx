@@ -1,6 +1,6 @@
 import { UiBox, UiHeading, UiText, UiCard, UiLabel } from '../../components/ui/layout';
 import { UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiButton, UiSelect, UiInput } from '../../components/ui/controls';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Building,
   Check,
@@ -165,10 +165,12 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
   
   const [history, setHistory] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const lastInitialSubTabRef = useRef(null);
 
   // Sync initialSubTab from props
   useEffect(() => {
-    if (!initialSubTab) return;
+    if (!initialSubTab || lastInitialSubTabRef.current === initialSubTab) return;
+    lastInitialSubTabRef.current = initialSubTab;
     if (initialSubTab === 'historial' || initialSubTab === 'pagos') {
       if (activeCategory !== 'historial') {
         setActiveCategory('historial');
@@ -184,7 +186,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
         setSelectedPlanId(PRODUCTS_CATALOG.facturacion.plans[0].id);
       }
     }
-  }, [initialSubTab]);
+  }, [initialSubTab, activeCategory]);
 
   // Sync planId from props
   useEffect(() => {

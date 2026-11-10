@@ -41,7 +41,6 @@ export default function PrestamosView({ db, usuario, showToast }) {
   }, [db]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar();
   }, [cargar]);
 

@@ -55,12 +55,10 @@ export default function BancosCajaView({ db, usuario, showToast }) {
   }, [db, cuentaActiva, filtros.movTipo, filtros.fechaDesde, filtros.fechaHasta, filtros.movConciliado, showToast]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargarCuentas();
   }, [cargarCuentas]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (cuentaActiva) cargarMovimientos();
   }, [cuentaActiva, cargarMovimientos]);
 

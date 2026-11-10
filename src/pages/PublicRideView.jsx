@@ -69,6 +69,7 @@ export default function PublicRideView() {
   const [searchParams] = useSearchParams();
   const claveAcceso = searchParams.get('claveAcceso');
   const txId = searchParams.get('txId') || searchParams.get('id');
+  const rideToken = searchParams.get('token');
   const tenantId = searchParams.get('tenantId');
   const effectiveTenantId = tenantId || getAppId();
 
@@ -79,7 +80,6 @@ export default function PublicRideView() {
 
   useEffect(() => {
     if (!claveAcceso && !txId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('Enlace inválido. Falta el parámetro de clave de acceso o identificador del comprobante.');
       setLoading(false);
       return;
@@ -88,7 +88,17 @@ export default function PublicRideView() {
     async function loadPublicData() {
       try {
         let txData = null;
-        if (txId) {
+        try {
+          const params = new URLSearchParams({ tenantId: effectiveTenantId });
+          if (txId) params.set('txId', txId);
+          if (claveAcceso) params.set('claveAcceso', claveAcceso);
+          if (rideToken) params.set('token', rideToken);
+          const response = await fetch(`/api/public-ride?${params}`);
+          if (response.ok) txData = (await response.json()).receipt || null;
+        } catch (apiError) {
+          console.warn('Visor público no disponible; consultando el comprobante existente.', apiError);
+        }
+        if (!txData && txId) {
           const docSnap = await getDoc(
             doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_transactions', txId)
           );
@@ -145,7 +155,7 @@ export default function PublicRideView() {
     }
 
     loadPublicData();
-  }, [claveAcceso, txId, effectiveTenantId]);
+  }, [claveAcceso, txId, rideToken, effectiveTenantId]);
 
   if (loading) {
     return (
