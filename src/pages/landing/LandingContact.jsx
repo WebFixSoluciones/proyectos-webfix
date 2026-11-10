@@ -32,8 +32,8 @@ export default function LandingContact() {
     }
     setLoading(true);
     try {
-      if (db) {
-        await addDoc(collection(db, 'landing_leads'), {
+      if (!db) throw new Error('La conexión no está disponible.');
+      await addDoc(collection(db, 'landing_leads'), {
           nombre: form.name.trim(),
           email: form.email.trim(),
           telefono: form.phone.trim(),
@@ -41,14 +41,12 @@ export default function LandingContact() {
           mensaje: form.message.trim(),
           fecha: serverTimestamp(),
           estado: 'nuevo'
-        });
-      }
+      });
       setSubmitted(true);
       setForm({ name: '', email: '', phone: '', company: '', message: '' });
     } catch (err) {
       console.error('Error guardando lead:', err);
-      // Even if Firestore write fails, allow contact via WhatsApp
-      setSubmitted(true);
+      setErrorMsg('No se pudo enviar tu consulta. Intenta de nuevo o escríbenos por WhatsApp.');
     } finally {
       setLoading(false);
     }

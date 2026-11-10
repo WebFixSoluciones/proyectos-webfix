@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UiInput } from '../components/ui/controls';
+import confirmAction from '../services/confirmDialog';
 import { 
   Building, 
   CreditCard, 
@@ -26,15 +27,14 @@ import {
   Copy,
   ExternalLink,
   CheckCircle2,
-  ShieldCheck,
   Zap
 } from 'lucide-react';
 import { query, where, runTransaction } from 'firebase/firestore';
 import { reconcileSriDocument, batchReconcileSriDocuments, scanAllTenantsPendingSri, getDocumentTypeName } from '../services/sriReconciliation';
 import { notifyAuthorizedInvoice } from '../services/invoiceNotification';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db, auth, firebaseConfig } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -205,12 +205,9 @@ export default function SuperAdminPage({ showToast }) {
     setViewMode('edit');
     
     try {
-      // 1. Fetch user list from tenant artifacts info doc
-      const metaDocRef = doc(db, 'artifacts', tenant.id, 'public', 'data', 'meta', 'info');
-      const metaSnap = await getDoc(metaDocRef);
-      if (metaSnap.exists()) {
-        setTenantUsers(metaSnap.data().users || []);
-      }
+      // Firebase Auth profiles are the source of truth for team membership.
+      const usersSnap = await getDocs(query(collection(db, 'users'), where('tenantId', '==', tenant.id)));
+      setTenantUsers(usersSnap.docs.map(userDoc => ({ id: userDoc.id, ...userDoc.data() })));
       
       // 2. Fetch counts of invoices/transactions
       const txColRef = collection(db, 'artifacts', tenant.id, 'public', 'data', 'finances_transactions');
@@ -235,21 +232,31 @@ export default function SuperAdminPage({ showToast }) {
   // Actions
   const handleApproveTransfer = async (transfer) => {
     try {
-      const newExpiresAt = new Date();
-      const monthsToAdd = transfer.billingPeriod === 'yearly' ? 12 : 1;
-      newExpiresAt.setMonth(newExpiresAt.getMonth() + monthsToAdd);
+      await runTransaction(db, async transaction => {
+        const transferRef = doc(db, 'transfers', transfer.id);
+        const transferSnap = await transaction.get(transferRef);
+        if (!transferSnap.exists() || transferSnap.data().status !== 'pending') {
+          throw new Error('Este pago ya fue procesado. Actualiza el listado.');
+        }
+        const payment = transferSnap.data();
+        const tenantRef = doc(db, 'tenants', payment.tenantId);
+        const tenantSnap = await transaction.get(tenantRef);
+        if (!tenantSnap.exists()) throw new Error('No se encontró la empresa del pago.');
 
-      // 1. Update Tenant Subscription
-      await updateDoc(doc(db, 'tenants', transfer.tenantId), {
-        planStatus: 'active',
-        expiresAt: newExpiresAt.toISOString(),
-        planId: transfer.planId
-      });
-
-      // 2. Update Transfer Status
-      await updateDoc(doc(db, 'transfers', transfer.id), {
-        status: 'approved',
-        approvedAt: new Date().toISOString()
+        const currentExpiry = new Date(tenantSnap.data().expiresAt || 0);
+        const newExpiresAt = currentExpiry > new Date() ? currentExpiry : new Date();
+        newExpiresAt.setMonth(newExpiresAt.getMonth() + (payment.billingPeriod === 'yearly' ? 12 : 1));
+        transaction.update(tenantRef, {
+          planStatus: 'active',
+          expiresAt: newExpiresAt.toISOString(),
+          planId: payment.planId,
+          billingPeriod: payment.billingPeriod
+        });
+        transaction.update(transferRef, {
+          status: 'approved',
+          approvedAt: new Date().toISOString(),
+          approvedBy: currentUser.uid
+        });
       });
 
       showToast("Transferencia bancaria aprobada. Suscripción activada.", "success");
@@ -261,9 +268,17 @@ export default function SuperAdminPage({ showToast }) {
 
   const handleRejectTransfer = async (transfer) => {
     try {
-      await updateDoc(doc(db, 'transfers', transfer.id), {
-        status: 'rejected',
-        rejectedAt: new Date().toISOString()
+      await runTransaction(db, async transaction => {
+        const transferRef = doc(db, 'transfers', transfer.id);
+        const transferSnap = await transaction.get(transferRef);
+        if (!transferSnap.exists() || transferSnap.data().status !== 'pending') {
+          throw new Error('Este pago ya fue procesado. Actualiza el listado.');
+        }
+        transaction.update(transferRef, {
+          status: 'rejected',
+          rejectedAt: new Date().toISOString(),
+          rejectedBy: currentUser.uid
+        });
       });
       showToast("Transferencia bancaria rechazada.", "warning");
       setSelectedTransfer(null);
@@ -370,7 +385,7 @@ export default function SuperAdminPage({ showToast }) {
   }, [viewMode, selectedTenantDetails, godModeCollection]);
 
   const handleDeleteGodModeDoc = async (docId) => {
-    if (!await window.confirm(`PELIGRO (God Mode): Estás a punto de borrar permanentemente el documento ${docId}. Esta acción saltará todas las reglas del ERP y no se puede deshacer. ¿Continuar?`)) {
+    if (!await confirmAction(`PELIGRO (God Mode): Estás a punto de borrar permanentemente el documento ${docId}. Esta acción saltará todas las reglas del ERP y no se puede deshacer. ¿Continuar?`)) {
       return;
     }
     try {
@@ -471,7 +486,7 @@ export default function SuperAdminPage({ showToast }) {
       const uid = user.uid;
 
       // Clean up the temporary app instance immediately
-      await tempApp.delete();
+      await deleteApp(tempApp);
       tempApp = null;
 
       // 2. Set expiration date (default to +14 days for trial, +30 days for active starter/prof)
@@ -481,12 +496,14 @@ export default function SuperAdminPage({ showToast }) {
       // 3. Write Tenant doc in Firestore
       const tenantData = {
         id: cleanTenantId,
+        ownerUid: uid,
         companyName: companyName,
         planId: newTenantForm.planId,
         planStatus: newTenantForm.planStatus,
         billingPeriod: newTenantForm.billingPeriod,
         createdAt: new Date().toISOString(),
-        expiresAt: expiresAt.toISOString()
+        expiresAt: expiresAt.toISOString(),
+        ...(newTenantForm.planStatus === 'trial' ? { trialExpiresAt: Timestamp.fromDate(expiresAt) } : {})
       };
       await setDoc(doc(db, 'tenants', cleanTenantId), tenantData);
 
@@ -562,7 +579,7 @@ export default function SuperAdminPage({ showToast }) {
       // Clean up temp app if it failed midway
       if (tempApp) {
         try {
-          await tempApp.delete();
+          await deleteApp(tempApp);
         } catch (cleanupErr) {
           console.warn("Error al limpiar app temporal después de error de creación:", cleanupErr);
         }

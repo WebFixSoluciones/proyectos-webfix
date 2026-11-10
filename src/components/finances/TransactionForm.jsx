@@ -17,7 +17,7 @@ import {
   X, Calculator, FileText, CheckCircle2, AlertTriangle, Sparkles, 
   Terminal, ShieldAlert, Download, Plus, Trash2, RefreshCw, ArrowLeft, ArrowRight, 
   User, DollarSign, CreditCard, Layers, Search, Tag, Percent, ChevronDown, ShoppingCart,
-  Package, Printer, Mail, Send, Check, Clock, ExternalLink, Copy, FileDown, MessageCircle
+  Package, Printer, Mail, Send, Check, Clock, ExternalLink, Copy, FileDown, MessageCircle, Edit2
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';

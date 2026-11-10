@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, onSnapshot, collection, getDocs, getDoc } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, collection, getDocs, getDoc, query, where } from 'firebase/firestore';
 
 import { auth, db, storage, appId } from './firebase';
 import { useAuth } from './contexts/AuthContext';
@@ -44,10 +44,12 @@ import LandingAbout from './pages/landing/LandingAbout';
 import LandingContact from './pages/landing/LandingContact';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import SuperAdminPage from './pages/SuperAdminPage';
 import BillingPortal from './pages/billing/BillingPortal';
 import PublicRideView from './pages/PublicRideView';
 import { PLANS } from './config/plans';
+import { registerConfirmHandler } from './services/confirmDialog';
 
 import FinanceModule from './components/finances/FinanceModule';
 import ThirdPartiesView from './components/finances/ThirdPartiesView';
@@ -61,7 +63,8 @@ import GastosCreditosModule from './components/finances/GastosCreditosModule';
 import InventoryModule from './components/inventory/InventoryModule';
 import Sidebar from './components/Sidebar';
 import IconRenderer from './components/common/IconRenderer';
-import { USER_COLORS, MOCK_USERS } from './constants/appData';
+import { USER_COLORS } from './constants/appData';
+import { isSubscriptionBlocked } from './services/subscriptionAccess';
 
 // Helper Strings para clases Glassmorphism
 // eslint-disable-next-line no-unused-vars
@@ -74,14 +77,14 @@ const glassInputLight = "glass-input-light";
 
 export default function App() {
   // eslint-disable-next-line no-unused-vars
-  const { currentUser, tenantInfo, planId, planStatus, role: userRole } = useAuth();
+  const { currentUser, tenantInfo, planId, role: userRole, emailVerificationRequired } = useAuth();
   const isAuthenticated = !!currentUser;
   const navigate = useNavigate();
   const location = useLocation();
 
   const [plansList, setPlansList] = useState(Object.values(PLANS));
   const [trash, setTrash] = useState([]);
-  const [users, setUsers] = useState(MOCK_USERS);
+  const [users, setUsers] = useState([]);
   const [activePageId, setActivePageId] = useState(() => {
     try {
       const savedPage = localStorage.getItem('activePageId');
@@ -148,10 +151,18 @@ export default function App() {
   useEffect(() => {
     const path = location.pathname;
     if (!isAuthenticated) {
-      if (path.startsWith('/app') || path === '/superadmin') {
+      if (path.startsWith('/app') || path === '/superadmin' || path === '/verify-email') {
         navigate('/login');
       }
     } else {
+      if (emailVerificationRequired && path !== '/verify-email') {
+        navigate('/verify-email');
+        return;
+      }
+      if (!emailVerificationRequired && path === '/verify-email') {
+        navigate(userRole === 'superadmin' ? '/superadmin' : '/app');
+        return;
+      }
       if (path === '/login' || path === '/register' || path === '/') {
         if (userRole === 'superadmin') {
           navigate('/superadmin');
@@ -160,7 +171,7 @@ export default function App() {
         }
       }
     }
-  }, [isAuthenticated, location.pathname, userRole, navigate]);
+  }, [isAuthenticated, location.pathname, userRole, emailVerificationRequired, navigate]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -346,7 +357,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    window.confirm = (message) => {
+    const unregisterConfirm = registerConfirmHandler((message) => {
       return new Promise((resolve) => {
         setGlobalConfirmDialog({
           message,
@@ -360,11 +371,13 @@ export default function App() {
           }
         });
       });
-    };
+    });
 
     window.alert = (message) => {
       showToast(message, 'error');
     };
+
+    return unregisterConfirm;
   }, []);
 
   // --- LOGIN CON MINIMALISMO LÍQUIDO PURO (SIN CANVAS) ---
@@ -460,7 +473,7 @@ export default function App() {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!isAuthenticated || !auth.currentUser) return;
+    if (!isAuthenticated || !auth.currentUser || emailVerificationRequired) return;
 
     const metaDoc = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
 
@@ -468,7 +481,6 @@ export default function App() {
     const unsubMeta = onSnapshot(metaDoc, snap => {
       if (snap.exists()) {
         const data = snap.data();
-        if (data.users) setUsers(data.users);
         if (data.trash) setTrash(data.trash);
         if (data.googleClientId !== undefined) setGoogleClientId(data.googleClientId);
         if (data.activeModules !== undefined) {
@@ -482,6 +494,15 @@ export default function App() {
       console.error("Error subscribing to meta:", err);
       triggerSyncError();
     });
+
+    const usersRef = userRole === 'admin' || userRole === 'superadmin'
+      ? query(collection(db, 'users'), where('tenantId', '==', appId))
+      : doc(db, 'users', currentUser.uid);
+    const unsubUsers = onSnapshot(usersRef, snap => {
+      setUsers('docs' in snap
+        ? snap.docs.map(userDoc => ({ id: userDoc.id, ...userDoc.data() }))
+        : snap.exists() ? [{ id: snap.id, ...snap.data() }] : []);
+    }, err => console.error('Error subscribing to tenant users:', err));
 
     // 2. Escuchar Transacciones de Finanzas
     const txCol = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
@@ -556,6 +577,7 @@ export default function App() {
 
     window.__unsubFirestore = () => { 
       unsubMeta(); 
+      unsubUsers();
       unsubTx(); 
       unsubTp(); 
       unsubProd(); 
@@ -566,7 +588,7 @@ export default function App() {
     };
 
     return () => { if (window.__unsubFirestore) window.__unsubFirestore(); };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentUser, userRole, emailVerificationRequired]);
 
   // Determinar página activa
   let activePage;
@@ -929,6 +951,7 @@ export default function App() {
       </Route>
       <Route path="/login" element={<LoginPage showToast={showToast} companyProfile={companyProfile} />} />
       <Route path="/register" element={<RegisterPage showToast={showToast} />} />
+      <Route path="/verify-email" element={<VerifyEmailPage showToast={showToast} />} />
       <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
       <Route path="/public/ride" element={<PublicRideView />} />
       <Route path="/app/*" element={
@@ -1125,7 +1148,7 @@ export default function App() {
           {/* Editor Area */}
           <UiBox ref={mainContentRef} className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar pb-8 pt-4 px-4 md:px-6 bg-white">
             <UiBox className="max-w-[1600px] w-full mx-auto">
-              {planStatus === 'suspended' && activePageId !== 'billing' ? (
+              {isSubscriptionBlocked(tenantInfo) && activePageId !== 'billing' ? (
                 <UiBox {...{"className":"flex flex-col items-center justify-center p-12 text-center h-[70vh] w-full select-none animate-in fade-in duration-300"}}>
                   <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)","color":"var(--red-11)","border":"1px solid var(--gray-a6)"},"className":"p-5 mb-6"}}>
                     <Lock size={36} />

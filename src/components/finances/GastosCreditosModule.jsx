@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { doc, setDoc, collection, onSnapshot, deleteDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
+import confirmAction from '../../services/confirmDialog';
 
 export default function GastosCreditosModule({ showToast, transactions = [], thirdParties = [], db, appId, initialSubTab }) {
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'pasivos' | 'historial_gastos'
@@ -182,7 +183,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
 
   // Eliminar pasivo
   const handleDeleteLiability = async (id) => {
-    if (!await window.confirm("¿Está seguro de eliminar este pasivo financiero? No se borrarán los pagos registrados en la contabilidad.")) {
+    if (!await confirmAction("¿Está seguro de eliminar este pasivo financiero? No se borrarán los pagos registrados en la contabilidad.")) {
       return;
     }
     try {

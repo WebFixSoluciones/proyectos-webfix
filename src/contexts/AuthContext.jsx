@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, reload } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, setTenantId } from '../firebase';
 import { ensureFinanceMigration } from '../services/financeStore.js';
@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
   const [tenantInfo, setTenantInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [, setVerificationRevision] = useState(0);
 
   const [profileError, setProfileError] = useState('');
   useEffect(() => {
@@ -43,6 +44,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = () => signOut(auth);
+  const refreshEmailVerification = async () => {
+    if (!auth.currentUser) return false;
+    await reload(auth.currentUser);
+    await auth.currentUser.getIdToken(true);
+    setVerificationRevision(value => value + 1);
+    return auth.currentUser.emailVerified;
+  };
 
   const value = {
     profileError,
@@ -51,6 +59,8 @@ export function AuthProvider({ children }) {
     tenantInfo,
     loading,
     logout,
+    refreshEmailVerification,
+    emailVerificationRequired: Boolean(tenantInfo?.requireEmailVerification && currentUser && !currentUser.emailVerified),
     tenantId: userProfile?.tenantId || '',
     planId: tenantInfo?.planId || 'starter',
     planStatus: tenantInfo?.planStatus || 'trial',

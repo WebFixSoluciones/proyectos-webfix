@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, RefreshCw, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase';
 
 export default function LoginPage({ showToast, companyProfile }) {
@@ -13,6 +13,23 @@ export default function LoginPage({ showToast, companyProfile }) {
   const [loginError, setLoginError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const handlePasswordReset = async () => {
+    const email = loginForm.email.trim();
+    if (!email) {
+      setLoginError('Ingresa tu correo para recuperar la contraseña.');
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setLoginError('');
+      showToast?.('Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.', 'success');
+    } catch (error) {
+      setLoginError(error.code === 'auth/invalid-email'
+        ? 'Ingresa un correo válido para recuperar tu contraseña.'
+        : 'No se pudo enviar el enlace. Intenta de nuevo.');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -133,7 +150,7 @@ export default function LoginPage({ showToast, companyProfile }) {
               </label>
               <button
                 type="button"
-                onClick={() => showToast?.('Comunícate con tu administrador para restablecer tu contraseña', 'info')}
+                onClick={handlePasswordReset}
                 className="text-xs font-semibold text-[#006a43] hover:text-[#004227] hover:underline cursor-pointer focus:outline-none"
               >
                 ¿Olvidaste tu contraseña?

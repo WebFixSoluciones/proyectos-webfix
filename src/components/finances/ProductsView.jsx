@@ -18,6 +18,7 @@ import {
   setDoc,
   deleteDoc,
   getDoc} from "../../services/financeStore.js";
+import confirmAction from "../../services/confirmDialog";
 
 export default function ProductsView({ showToast, db, appId }) {
   const [products, setProducts] = useState([]);
@@ -128,7 +129,7 @@ export default function ProductsView({ showToast, db, appId }) {
 
   const handleDelete = async (id) => {
     if (
-      await window.confirm(
+      await confirmAction(
         "¿Seguro que deseas eliminar este producto/servicio de forma permanente?",
       )
     ) {

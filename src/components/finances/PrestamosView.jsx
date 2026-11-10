@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Landmark, Plus, Wallet, AlertTriangle, DollarSign, TrendingDown, CalendarDays, X, ChevronDown, ChevronUp, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { getPrestamos, crearPrestamo, pagarCuota, eliminarPrestamo, getResumenPrestamos, getAlertasPrestamos, generarTablaAmortizacion } from '../../services/prestamosService';
 import FinancialPageHeader from './FinancialPageHeader';
+import confirmAction from '../../services/confirmDialog';
 
 const METODOS = [
   { value: 'frances', label: 'Francés (Cuota Fija)' },
@@ -240,7 +241,7 @@ export default function PrestamosView({ db, usuario, showToast }) {
                       <UiButton
                         onClick={async (e) => {
                           e.stopPropagation();
-                          if (!window.confirm(`¿Eliminar préstamo de ${p.entidad}?`)) return;
+                          if (!await confirmAction(`¿Eliminar préstamo de ${p.entidad}?`)) return;
                           try {
                             await eliminarPrestamo(db, p.id, usuario);
                             showToast('Préstamo eliminado', 'success');

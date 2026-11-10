@@ -2,8 +2,8 @@ import { UiInput } from '../components/ui/controls';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, writeBatch } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { doc, writeBatch, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { auth, db, setTenantId } from '../firebase';
 
 export default function RegisterPage({ showToast }) {
@@ -61,9 +61,11 @@ export default function RegisterPage({ showToast }) {
         companyName: companyName,
         planId: planParam,
         planStatus: 'trial',
+        requireEmailVerification: true,
         billingPeriod: periodParam,
-        createdAt: new Date().toISOString(),
-        expiresAt: expiresAt.toISOString()
+        createdAt: serverTimestamp(),
+        expiresAt: expiresAt.toISOString(),
+        trialExpiresAt: Timestamp.fromDate(expiresAt)
       };
 
       batch.set(doc(db, 'tenants', generatedTenantId), tenantData);
@@ -117,9 +119,13 @@ export default function RegisterPage({ showToast }) {
 
       // 6. Establecer el tenantId de forma dinámica
       setTenantId(generatedTenantId);
-
-      showToast?.("¡Cuenta y Empresa creada con éxito! Iniciando sesión...", "success");
-      navigate('/app');
+      try {
+        await sendEmailVerification(user);
+        showToast?.('Empresa creada. Revisa tu correo para verificar la cuenta.', 'success');
+      } catch {
+        showToast?.('Empresa creada. Solicita el enlace de verificación en la siguiente pantalla.', 'warning');
+      }
+      navigate('/verify-email');
     } catch (error) {
       console.error('Registration error:', error);
       const errorMessages = {

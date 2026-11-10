@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { consultarRucSri, validarIdentificacion, getEcuadorDateString } from '../../services/sriService';
 import { doc, setDoc, getDocs, collection, query, where } from '../../services/financeStore.js';
+import confirmAction from '../../services/confirmDialog';
 
 export default function CustomerDetailView({ 
   client, 
@@ -247,7 +248,7 @@ export default function CustomerDetailView({
     if (formData.tipoIdentificacion !== 'consumidor_final' && formData.tipoIdentificacion !== 'pasaporte') {
       const isValid = validarIdentificacion(cleanRuc, formData.tipoIdentificacion);
       if (!isValid && cleanRuc.length >= 10) {
-        const proceed = window.confirm(`El número de identificación "${cleanRuc}" no parece cumplir con el formato estándar del SRI. ¿Deseas guardarlo de todas formas?`);
+        const proceed = await confirmAction(`El número de identificación "${cleanRuc}" no parece cumplir con el formato estándar del SRI. ¿Deseas guardarlo de todas formas?`);
         if (!proceed) return;
       }
     }

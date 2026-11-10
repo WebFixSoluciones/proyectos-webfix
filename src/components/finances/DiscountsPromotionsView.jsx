@@ -7,6 +7,7 @@ import {
   X, ToggleLeft, ToggleRight 
 } from 'lucide-react';
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from '../../services/financeStore.js';
+import confirmAction from '../../services/confirmDialog';
 
 export default function DiscountsPromotionsView({ 
   db, 
@@ -134,7 +135,7 @@ export default function DiscountsPromotionsView({
   };
 
   const handleDeleteDiscount = async (id) => {
-    if (!window.confirm('¿Está seguro de eliminar este descuento?')) return;
+    if (!await confirmAction('¿Está seguro de eliminar este descuento?')) return;
     try {
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_discounts', id));
       showToast?.('Descuento eliminado', 'success');
@@ -175,7 +176,7 @@ export default function DiscountsPromotionsView({
   };
 
   const handleDeletePromo = async (id) => {
-    if (!window.confirm('¿Está seguro de eliminar esta promoción?')) return;
+    if (!await confirmAction('¿Está seguro de eliminar esta promoción?')) return;
     try {
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_promotions', id));
       showToast?.('Promoción eliminada', 'success');

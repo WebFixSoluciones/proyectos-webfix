@@ -15,6 +15,7 @@ import { sincronizarVenta } from '../../services/integracionFinanzasService';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { auth } from '../../firebase';
 import RidePreviewModal from './RidePreviewModal';
+import confirmAction from '../../services/confirmDialog';
 import { Badge } from '../ui/badge';
 
 export default function TransactionsView({ transactions, thirdParties, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
@@ -361,7 +362,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       alert("No se puede eliminar un comprobante electrónico autorizado o emitido ante el SRI (Factura / Retención / Nota de Crédito). Para anular la validez de este documento, se recomienda generar una Nota de Crédito o realizar la anulación directamente desde su cuenta del SRI.");
       return;
     }
-    if (await window.confirm('¿Seguro que deseas eliminar esta transacción permanentemente?')) {
+    if (await confirmAction('¿Seguro que deseas eliminar esta transacción permanentemente?')) {
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', tx.id));
         showToast('Transacción eliminada', 'success');

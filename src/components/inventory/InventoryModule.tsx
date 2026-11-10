@@ -12,6 +12,7 @@ import { Badge } from '../ui/badge';
 import ProductCreationForm from './ProductCreationForm';
 import ServiceCreationForm from './ServiceCreationForm';
 import ServicesView from './ServicesView';
+import confirmAction from '../../services/confirmDialog';
 import CategoryBrandModal from './CategoryBrandModal';
 import TransferModal from './TransferModal';
 import AdjustmentModal from './AdjustmentModal';
@@ -289,11 +290,11 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
       ? `¿Desactivar "${p?.name || 'este ítem'}"?\n\nAl tener existencias o historial, se marcará como INACTIVO y dejará de mostrarse en ventas.`
       : `¿Cómo deseas proceder con "${p?.name || 'este ítem'}"?\n\n• ACEPTAR: Continuar con el proceso de retiro.\n• CANCELAR: Volver sin hacer cambios.`;
 
-    if (!window.confirm(confirmMsg)) return;
+    if (!await confirmAction(confirmMsg)) return;
 
     let permanent = false;
     if (!hasHistory) {
-      permanent = window.confirm(
+      permanent = await confirmAction(
         `¿Deseas ELIMINAR DEFINITIVAMENTE "${p?.name}" de la base de datos?\n\n` +
         `• Aceptar = Eliminar por completo de la base de datos (borrado físico).\n` +
         `• Cancelar = Solo desactivar (conservar registro inactivo).`

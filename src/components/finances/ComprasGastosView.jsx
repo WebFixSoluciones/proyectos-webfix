@@ -6,6 +6,7 @@ import { doc, setDoc, deleteDoc } from '../../services/financeStore.js';
 import { analizarTextoFacturaConGemini } from '../../services/geminiService';
 import { getEcuadorDateString } from '../../services/sriService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
+import confirmAction from '../../services/confirmDialog';
 
 export default function ComprasGastosView({ transactions = [], showToast, db, appId }) {
   const [pastedText, setPastedText] = useState('');
@@ -126,7 +127,7 @@ Gracias por su compra`;
 
   // Eliminar gasto de la contabilidad (los egresos ingresados)
   const handleDeleteGasto = async (id) => {
-    if (!await window.confirm("¿Está seguro de eliminar este gasto de la contabilidad?")) {
+    if (!await confirmAction("¿Está seguro de eliminar este gasto de la contabilidad?")) {
       return;
     }
     try {

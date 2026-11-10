@@ -1,26 +1,31 @@
 import { useState, useEffect } from 'react';
 import { 
-  Sparkles, Users, Shield, 
+  Sparkles, Users,
   Save, Download, CheckCircle2, AlertTriangle, Mail, 
-  Phone, Building, ShoppingCart, ShoppingBag, DollarSign, Package, Calendar, 
-  Plus, Trash2, LayoutDashboard, ToggleLeft, ToggleRight,
-  CreditCard, Award, UploadCloud, X, Lock, RefreshCw, FileText,
+  Phone, Building, ShoppingCart, ShoppingBag, DollarSign, Package,
+  Plus, Trash2, ToggleLeft, ToggleRight,
+  Award, UploadCloud, X, RefreshCw, FileText,
   AlertCircle, CheckCircle, Send
 } from 'lucide-react';
-import { doc, setDoc, getDoc } from'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, collection, query, where, onSnapshot } from'firebase/firestore';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, deleteUser as deleteAuthUser } from 'firebase/auth';
+import { firebaseConfig } from '../../firebase';
+import { useAuth } from '../../contexts/AuthContext';
 import { ref, uploadBytesResumable, getDownloadURL } from'firebase/storage';
 import forge from'node-forge';
 import { consultarRucSri } from'../../services/sriService';
+import confirmAction from'../../services/confirmDialog';
 import FinanceSettings from'../finances/FinanceSettings';
 import SriRecoveryPanel from '../finances/SriRecoveryPanel';
 
 export default function GeneralSettings({ 
  showToast, db, appId, storage,
-  users = [], // eslint-disable-next-line no-unused-vars
   trash = [], handleDownloadBackup, 
- googleClientId, setGoogleClientId, 
  activeModules = {}, setActiveModules
 }) {
+ const { currentUser, userProfile, role, planId } = useAuth();
+ const canManageUsers = role === 'admin' || role === 'superadmin';
  const [activeSubTab, setActiveSubTab] = useState('profile');
  
  // States for Company Profile
@@ -88,23 +93,29 @@ export default function GeneralSettings({
  });
 
  // States for User Management
- const [localUsers, setLocalUsers] = useState(users);
- const [newUser, setNewUser] = useState({ name:'', role:'Miembro', job:'', email:'' });
+ const [localUsers, setLocalUsers] = useState([]);
+ const displayUsers = canManageUsers ? localUsers : (userProfile ? [{ id: currentUser?.uid, ...userProfile }] : []);
+ const [newUser, setNewUser] = useState({ name:'', role:'staff', job:'', email:'' });
+
+ useEffect(() => {
+   if (!db || !appId) return;
+   if (!canManageUsers) return;
+   const usersQuery = query(collection(db, 'users'), where('tenantId', '==', appId));
+   return onSnapshot(usersQuery, snapshot => {
+     setLocalUsers(snapshot.docs.map(userDoc => ({ id: userDoc.id, ...userDoc.data() })));
+   }, error => {
+     console.error('No se pudo cargar el equipo:', error);
+     showToast('No se pudo cargar el equipo', 'error');
+   });
+ }, [appId, db, canManageUsers, showToast]);
 
  // Load configuration on mount
  useEffect(() => {
     if (!appId || !db) return;
     async function loadConfig() {
       try {
-        const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data.users) {
-            setLocalUsers(data.users);
-          }
-        }
-
+        const metaRef = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
+        const snap = await getDoc(metaRef);
         const finRef = doc(db,'artifacts', appId,'public','data','finances_settings','config');
         const finSnap = await getDoc(finRef);
         if (finSnap.exists()) {
@@ -180,12 +191,6 @@ export default function GeneralSettings({
     }
     loadConfig();
   }, [appId, db]);
-
-  // Sync users prop with local state
-  useEffect(() => {
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  setLocalUsers(users);
-  }, [users]);
 
   // Sync tempFirma when modal opens
   useEffect(() => {
@@ -929,61 +934,89 @@ export default function GeneralSettings({
  // User list actions
  const handleAddUser = async (e) => {
  e.preventDefault();
- if (!newUser.name) {
- showToast("El nombre del usuario es obligatorio","error");
+ if (!canManageUsers) return;
+ const name = newUser.name.trim();
+ const email = newUser.email.trim().toLowerCase();
+ if (!name || !email) {
+ showToast('Ingresa nombre y correo del colaborador', 'error');
  return;
  }
- const initials = newUser.name.split('').map(n => n[0]).join('').substring(0, 2).toUpperCase();
- const colors = [
-'from-blue-400 to-blue-600',
-'from-purple-400 to-purple-600',
-'from-emerald-400 to-emerald-600',
-'from-red-400 to-red-600',
-'from-yellow-400 to-yellow-600'
- ];
- const userColor = colors[Math.floor(Math.random() * colors.length)];
- const id =`u_${new Date().getTime()}`;
-
- const createdUser = {
- id,
- name: newUser.name,
- role: newUser.role,
- job: newUser.job ||'Miembro del Equipo',
- initials,
- color: userColor,
- email: newUser.email ||''
- };
-
- const updatedUsers = [...localUsers, createdUser];
+ if (localUsers.some(user => user.email?.toLowerCase() === email)) {
+   showToast('Este correo ya pertenece al equipo', 'error');
+   return;
+ }
+ let tempApp;
+ let invitedUser;
  try {
- const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
- await setDoc(docRef, { users: updatedUsers }, { merge: true });
- setLocalUsers(updatedUsers);
- setNewUser({ name:'', role:'Miembro', job:'', email:'' });
- showToast("Usuario creado y guardado","success");
+   const planSnap = await getDoc(doc(db, 'plans', planId));
+   const maxUsers = Number(planSnap.data()?.maxUsers);
+   if (Number.isFinite(maxUsers) && maxUsers > 0 && localUsers.filter(user => user.status === 'active').length >= maxUsers) {
+     showToast('Tu plan alcanzó el límite de usuarios', 'warning');
+     return;
+   }
+   tempApp = initializeApp(firebaseConfig, `invite-${Date.now()}-${crypto.randomUUID()}`);
+   const tempAuth = getAuth(tempApp);
+   const credential = await createUserWithEmailAndPassword(tempAuth, email, `${crypto.randomUUID()}Aa1!`);
+   invitedUser = credential.user;
+   try {
+     await setDoc(doc(db, 'users', invitedUser.uid), {
+       uid: invitedUser.uid,
+       tenantId: appId,
+       email,
+       name,
+       job: newUser.job.trim(),
+       role: newUser.role === 'admin' ? 'admin' : 'staff',
+       status: 'active',
+       createdAt: new Date().toISOString(),
+       invitedBy: currentUser.uid
+     });
+   } catch (profileError) {
+     await deleteAuthUser(invitedUser);
+     throw profileError;
+   }
+   setNewUser({ name:'', role:'staff', job:'', email:'' });
+   try {
+     await Promise.all([
+       sendEmailVerification(invitedUser),
+       sendPasswordResetEmail(tempAuth, email)
+     ]);
+     showToast('Usuario creado. Enviamos los enlaces de verificación y contraseña.', 'success');
+   } catch {
+     showToast('Usuario creado. Pídele usar «¿Olvidaste tu contraseña?» para obtener acceso.', 'warning');
+   }
  } catch (err) {
  console.error(err);
- showToast("Error al guardar usuario","error");
+ showToast(err.code === 'auth/email-already-in-use' ? 'Este correo ya tiene una cuenta' : 'No se pudo crear el usuario', 'error');
+ } finally {
+   if (tempApp) await deleteApp(tempApp);
  }
  };
 
  const handleDeleteUser = async (userId) => {
-    if (localUsers.length <= 1) {
-      showToast("Debe haber al menos un usuario administrador en el espacio","error");
+    if (!canManageUsers) return;
+    if (userId === currentUser?.uid) {
+      showToast('No puedes desactivar tu propia cuenta', 'warning');
       return;
     }
-    if (await window.confirm("¿Seguro que deseas remover este usuario?")) {
-      const updatedUsers = localUsers.filter(u => u.id !== userId);
+    if (await confirmAction('¿Desactivar el acceso de este usuario?')) {
       try {
-        const docRef = doc(db,'artifacts', appId,'public','data','meta','info');
-        await setDoc(docRef, { users: updatedUsers }, { merge: true });
-        setLocalUsers(updatedUsers);
-        showToast("Usuario removido del espacio","success");
+        await updateDoc(doc(db, 'users', userId), { status: 'inactive' });
+        showToast('Acceso desactivado', 'success');
       } catch {
-        showToast("Error al remover usuario","error");
+        showToast('No se pudo desactivar el acceso', 'error');
       }
     }
   }
+
+ const handleReactivateUser = async (userId) => {
+   if (!canManageUsers) return;
+   try {
+     await updateDoc(doc(db, 'users', userId), { status: 'active' });
+     showToast('Acceso reactivado', 'success');
+   } catch {
+     showToast('No se pudo reactivar el acceso', 'error');
+   }
+ };
 
   const inputClass = "w-full text-xs px-3.5 py-2.5 rounded-xl outline-none transition-all border bg-white border-slate-200 text-slate-900 font-medium focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 placeholder:text-slate-400";
   const readonlyInputClass = "w-full text-xs px-3.5 py-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-700 font-medium cursor-default select-text";
@@ -1991,34 +2024,39 @@ export default function GeneralSettings({
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-white/5 pb-3">
  <h3 className="text-base font-bold text-slate-950 tracking-tight">Gestión de Usuarios y Roles</h3>
- <p className="text-xs text-text-secondary mt-1">Colaboradores registrados con acceso a este ERP. Puedes crear, asignar roles o revocar permisos.</p>
+ <p className="text-xs text-text-secondary mt-1">Cuentas reales con acceso a esta empresa.</p>
  </div>
 
  {/* LISTA DE USUARIOS */}
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- {localUsers.map(user => (
+ {displayUsers.map(user => (
  <div key={user.id} className={`p-4 rounded-card border flex items-center justify-between bg-surface-bg border-border-default`}>
  <div className="flex items-center gap-3">
- <div className={`w-9 h-9 rounded-full bg-gradient-to-tr ${user.color ||'from-gray-400 to-gray-600'} flex items-center justify-center text-xs font-bold text-white shrink-0 shadow`}>
- {user.initials}
+ <div className="w-9 h-9 rounded-full bg-[var(--accent-9)] flex items-center justify-center text-xs font-bold text-white shrink-0">
+ {user.name?.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'U'}
  </div>
  <div>
  <p className="text-xs font-bold">{user.name}</p>
- <p className="text-xs text-text-secondary">{user.job} — <span className="font-semibold uppercase tracking-wider text-xs">{user.role}</span></p>
+ <p className="text-xs text-text-secondary">{user.job || 'Colaborador'} — <span className="font-semibold uppercase tracking-wider text-xs">{user.role === 'admin' ? 'Administrador' : 'Miembro'}</span> · {user.status === 'inactive' ? 'Sin acceso' : 'Activo'}</p>
  {user.email && <p className="text-xs font-mono text-text-secondary truncate max-w-[160px]">{user.email}</p>}
  </div>
  </div>
- <button 
- onClick={() => handleDeleteUser(user.id)}
+ {canManageUsers && user.id !== currentUser?.uid && (
+ <button
+ type="button"
+ onClick={() => user.status === 'inactive' ? handleReactivateUser(user.id) : handleDeleteUser(user.id)}
  className="p-2 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10 transition-colors"
+ title={user.status === 'inactive' ? 'Reactivar acceso' : 'Desactivar acceso'}
  >
- <Trash2 size={13} />
+ {user.status === 'inactive' ? <CheckCircle size={13} /> : <Trash2 size={13} />}
  </button>
+ )}
  </div>
  ))}
  </div>
 
  {/* FORMULARIO AGREGAR USUARIO */}
+ {canManageUsers && (
  <form onSubmit={handleAddUser} className={`p-5 rounded-card border space-y-4 bg-surface-muted/50 border-gray-250`}>
  <h4 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Registrar Nuevo Colaborador</h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -2037,6 +2075,7 @@ export default function GeneralSettings({
  <label className="label-field label-field-dark">Correo Electrónico</label>
  <input 
  type="email" 
+ required
  value={newUser.email} 
  onChange={e => setNewUser({...newUser, email: e.target.value})} 
  className={inputClass} 
@@ -2060,9 +2099,8 @@ export default function GeneralSettings({
  onChange={e => setNewUser({...newUser, role: e.target.value})} 
  className={inputClass}
  >
- <option value="Admin" className="text-black">Administrador</option>
- <option value="Miembro" className="text-black">Miembro</option>
- <option value="Observador" className="text-black">Observador</option>
+ <option value="admin" className="text-black">Administrador</option>
+ <option value="staff" className="text-black">Miembro</option>
  </select>
  </div>
  </div>
@@ -2073,6 +2111,7 @@ export default function GeneralSettings({
  </button>
  </div>
  </form>
+ )}
  </div>
  )}
 

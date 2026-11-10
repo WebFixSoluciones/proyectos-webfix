@@ -84,8 +84,8 @@ try {
   console.log('PASS: POS abre venta y conserva carrito al cancelar');
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=inventory');
   await page.getByRole('button', { name: /Nuevo Producto/i }).click();
-  await page.getByText('Combo / Kit', { exact: true }).click();
-  await page.getByRole('button', { name: /Agregar componente/i }).click();
+  await page.getByText('Combo / Kit Promocional', { exact: true }).click();
+  await page.getByRole('button', { name: 'Componente', exact: true }).click();
   await page.getByRole('combobox', { name: 'Componente 1', exact: true }).click();
   await page.getByRole('option', { name: 'Teclado USB', exact: true }).click();
   await page.getByRole('spinbutton', { name: 'Cantidad del componente 1', exact: true }).fill('2');
@@ -107,7 +107,7 @@ try {
   console.log('PASS: inventario permite precios diferenciados e IVA para servicios');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=admin');
-  await page.getByText('Venta Administrativa', { exact: true }).last().waitFor();
+  await page.getByText('Datos de Cliente', { exact: true }).last().waitFor();
   await page.screenshot({ path: 'docs/design-review/screenshots/radix-venta-movil.png', fullPage: true });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   assert.deepEqual(errors, []);
@@ -149,6 +149,12 @@ try {
   await page.screenshot({ path: 'docs/design-review/screenshots/radix-compras.png', fullPage: true });
   assert.deepEqual(errors, []);
   console.log('PASS: apertura de 11 submódulos financieros y compras con Themes sin errores JavaScript');
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_preventa');
+  await page.getByRole('heading', { name: 'Registrar Compra', exact: true }).waitFor();
+  await page.getByRole('button', { name: /Con Inventario - Manual/i }).click();
+  await page.getByText('Proveedor', { exact: true }).first().waitFor();
+  assert.deepEqual(errors, []);
+  console.log('PASS: Registrar Compra abre el formulario desde la navegación');
 } catch (error) {
   await page.screenshot({ path: 'docs/design-review/screenshots/test-failure.png', fullPage: true });
   console.error('Browser errors:', errors);

@@ -23,6 +23,7 @@ import PosView from './PosView';
 import TransactionForm from './TransactionForm';
 import PurchaseForm from './PurchaseForm';
 import ComprasGastosView from './ComprasGastosView';
+import ComprasSriView from './ComprasSriView';
 import GastosCreditosModule from './GastosCreditosModule';
 import DiscountsPromotionsView from './DiscountsPromotionsView';
 import MovimientosView from './MovimientosView';
@@ -59,6 +60,9 @@ export default function FinanceModule({
   };
 
   const [activeTab, setActiveTab] = useState(() => {
+    if (initialSubTab && mode === 'compras' && String(initialSubTab).startsWith('compras_preventa')) {
+      return 'compras_resumen';
+    }
     if (initialSubTab && (mode === 'compras' || mode === 'contabilidad')) {
       return initialSubTab;
     }
@@ -133,7 +137,15 @@ export default function FinanceModule({
       } else if (mode === 'personas') {
         setSubTabPersonas(initialSubTab);
       } else if (mode === 'compras') {
-        setActiveTab(initialSubTab);
+        const subStr = String(initialSubTab);
+        if (subStr.startsWith('compras_preventa')) {
+          // Quick action "Registrar Compra": open the purchase method selector
+          setActiveTab('compras_resumen');
+          setEditingTx({ type: 'egreso' });
+          setShowPurchaseMethodSelect(true);
+        } else {
+          setActiveTab(initialSubTab);
+        }
       } else if (mode === 'contabilidad') {
         setActiveTab(initialSubTab);
       }
@@ -362,6 +374,7 @@ export default function FinanceModule({
     if (mode === 'compras') {
       return [
         { id: 'compras_resumen', label: 'Historial de Compras', icon: ShoppingBag },
+        { id: 'compras_sri', label: 'XML de Compras Recibidas', icon: FileText },
         { id: 'compras_nc', label: 'NC Recibidas', icon: FileText },
         { id: 'compras_nd', label: 'ND Recibidas', icon: FileText },
         { id: 'compras_retencion', label: 'Retenciones de Compras', icon: Percent }
@@ -627,6 +640,9 @@ export default function FinanceModule({
                 )
               )}
 
+              {activeTab === 'compras_sri' && (
+                <ComprasSriView transactions={transactions} showToast={showToast} db={db} appId={appId} />
+              )}
               {activeTab === 'compras_nc' && (
                 <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="egreso" />
               )}

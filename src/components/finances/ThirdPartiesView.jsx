@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { doc, deleteDoc } from '../../services/financeStore.js';
 import CustomerDetailView from './CustomerDetailView';
+import confirmAction from '../../services/confirmDialog';
 
 export default function ThirdPartiesView({ 
   thirdParties = [], 
@@ -70,7 +71,7 @@ export default function ThirdPartiesView({
 
   const handleDelete = async (id, name) => {
     const targetLabel = isSupplierView ? 'este proveedor' : 'este cliente';
-    if (window.confirm(`¿Seguro que deseas eliminar el registro de "${name || targetLabel}"?`)) {
+    if (await confirmAction(`¿Seguro que deseas eliminar el registro de "${name || targetLabel}"?`)) {
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', id));
         showToast?.('Registro eliminado con éxito', 'success');

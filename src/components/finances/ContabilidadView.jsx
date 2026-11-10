@@ -15,6 +15,7 @@ import {
   getResumenContabilidad
 } from '../../services/contabilidadService';
 import FinancialPageHeader from './FinancialPageHeader';
+import confirmAction from '../../services/confirmDialog';
 
 const TIPOS = ['activo', 'pasivo', 'patrimonio', 'ingreso', 'gasto'];
 const TIPO_BADGES = {
@@ -98,7 +99,7 @@ export default function ContabilidadView({ db, usuario, showToast }) {
   };
 
   const handleDeleteCuenta = async (c) => {
-    if (!window.confirm(`¿Eliminar cuenta ${c.codigo} - ${c.nombre}?`)) return;
+    if (!await confirmAction(`¿Eliminar cuenta ${c.codigo} - ${c.nombre}?`)) return;
     try { await deleteCuenta(db, c.id, usuario); showToast?.('Cuenta eliminada', 'success'); await cargarTodo(); }
     catch (e) { showToast?.(e.message, 'error'); }
   };
@@ -113,7 +114,7 @@ export default function ContabilidadView({ db, usuario, showToast }) {
   };
 
   const handleDeleteCC = async (c) => {
-    if (!window.confirm(`¿Eliminar centro de costo ${c.codigo}?`)) return;
+    if (!await confirmAction(`¿Eliminar centro de costo ${c.codigo}?`)) return;
     try { await deleteCentroCosto(db, c.id, usuario); showToast?.('Centro eliminado', 'success'); await cargarTodo(); }
     catch (e) { showToast?.(e.message, 'error'); }
   };
@@ -124,13 +125,13 @@ export default function ContabilidadView({ db, usuario, showToast }) {
   };
 
   const handleAnularAsiento = async (id) => {
-    if (!window.confirm('¿Anular este asiento contable?')) return;
+    if (!await confirmAction('¿Anular este asiento contable?')) return;
     try { await anularAsiento(db, id, usuario); showToast?.('Asiento anulado', 'success'); await cargarTodo(); }
     catch (e) { showToast?.(e.message, 'error'); }
   };
 
   const handleDeleteAsiento = async (id) => {
-    if (!window.confirm('¿Eliminar este asiento?')) return;
+    if (!await confirmAction('¿Eliminar este asiento?')) return;
     try { await deleteAsiento(db, id, usuario); showToast?.('Asiento eliminado', 'success'); await cargarTodo(); }
     catch (e) { showToast?.(e.message, 'error'); }
   };

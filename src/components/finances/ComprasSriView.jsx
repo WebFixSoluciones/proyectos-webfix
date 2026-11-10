@@ -8,7 +8,7 @@ import {
   Package, FileCheck, ArrowRight
 } from 'lucide-react';
 import { doc, setDoc, getDoc, getDocs, collection, deleteDoc } from '../../services/financeStore.js';
-import { getEcuadorDateString } from '../../services/sriService';
+import { getEcuadorDateString, consultarAutorizacionSRI } from '../../services/sriService';
 import { registrarMovimientoKardex } from '../../services/inventoryService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
 import { Badge } from '../ui/badge';
@@ -48,7 +48,6 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   const [supplierSearch, setSupplierSearch] = useState('');
   const [showProductSearch, setShowProductSearch] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState('');
-  const [confirmFetch, setConfirmFetch] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
@@ -125,24 +124,6 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     return list;
   };
 
-  // Extract comprobantes from SRI
-  const handleExtractSri = async () => {
-    setLoading(true);
-    try {
-      showToast?.('Consultando buzon electronico del SRI...', 'info');
-      
-      // TODO: Integrate with real SRI API (SOAP/REST)
-      // For now, show that the buzon is ready for real comprobantes
-      const list = await refreshSriBills();
-      if (list.length === 0) {
-        showToast?.('No se encontraron comprobantes nuevos en el SRI para el periodo indicado. Sube tus archivos XML manualmente.', 'info');
-      } else {
-        showToast?.(`${list.length} comprobantes en el buzon`, 'success');
-      }
-    } catch (err) { console.error(err); showToast?.('Error al consultar SRI', 'error'); }
-    finally { setLoading(false); }
-  };
-
   // Main "Consultar SRI" handler with confirmation logic
   const handleFetchSriBills = async () => {
     if (!companyRuc) { showToast?.('Configura tu RUC en Ajustes primero', 'warning'); return; }
@@ -151,14 +132,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       // First, check what's already in Firestore
       const currentList = await refreshSriBills();
       
-      if (currentList.length === 0) {
-        // Buzon empty - ask user if they want to extract from SRI
-        setLoading(false);
-        setConfirmFetch(true);
-      } else {
-        showToast?.(`${currentList.length} comprobantes cargados del buzon SRI`, 'success');
-        setLoading(false);
-      }
+      showToast?.(`${currentList.length} XML cargados. La autorización SRI debe verificarse por separado.`, 'info');
+      setLoading(false);
     } catch (err) { console.error(err); showToast?.('Error al consultar SRI', 'error'); setLoading(false); }
   };
 
@@ -187,6 +162,13 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       const infoNC = xmlDoc.getElementsByTagName("infoNotaCredito")?.[0];
       const infoRet = xmlDoc.getElementsByTagName("infoCompRetencion")?.[0];
       const infoDoc = infoFact || infoNC || infoRet;
+      const receiverId = infoDoc?.getElementsByTagName('identificacionComprador')?.[0]?.textContent?.trim()
+        || infoDoc?.getElementsByTagName('identificacionSujetoRetenido')?.[0]?.textContent?.trim()
+        || '';
+      if (!receiverId || receiverId !== companyRuc) {
+        showToast?.('El XML no identifica a esta empresa como receptora.', 'error');
+        return;
+      }
 
       let tipoComprobante = 'factura';
       if (infoNC) tipoComprobante = 'nota_credito';
@@ -203,12 +185,35 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       const existing = sriBills.find(b => b.claveAcceso === claveAcceso);
       if (existing) { showToast?.('Este comprobante ya esta en el buzon', 'warning'); setLoading(false); return; }
 
+      let sriStatus = 'pendiente_verificacion';
+      let xmlAutorizado = '';
+      if (/^\d{49}$/.test(claveAcceso)) {
+        try {
+          const sriResult = await consultarAutorizacionSRI(claveAcceso, claveAcceso[23]);
+          if (sriResult.status === 'autorizado') {
+            const sriXml = new DOMParser().parseFromString(sriResult.signedXml, 'text/xml');
+            const sriReceiver = sriXml.getElementsByTagName('identificacionComprador')?.[0]?.textContent?.trim()
+              || sriXml.getElementsByTagName('identificacionSujetoRetenido')?.[0]?.textContent?.trim()
+              || '';
+            if (sriReceiver !== companyRuc) {
+              showToast?.('El SRI no confirma a esta empresa como receptora.', 'error');
+              return;
+            }
+            sriStatus = 'autorizado';
+            xmlAutorizado = sriResult.xmlAutorizado;
+          }
+        } catch (verificationError) {
+          console.warn('La verificación SRI quedó pendiente:', verificationError);
+        }
+      }
+
       const billId = `sri_xml_${claveAcceso || Date.now()}`;
       const bill = {
         id: billId, tipoComprobante, ruc, razonSocial, documentNumber,
         date, baseImponible, ivaValor, total, claveAcceso,
         category: 'compras', description: `Compra ${tipoComprobante} ${documentNumber}`,
-        receiverRuc: companyRuc, xmlContent: text
+        receiverRuc: companyRuc, xmlContent: text, xmlAutorizado,
+        sriStatus
       };
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_sri_compras', billId), bill);
@@ -224,7 +229,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       list.sort((a, b) => b.date.localeCompare(a.date));
       setSriBills(list);
       
-      showToast?.(`${razonSocial} - ${documentNumber} cargado al buzon`, 'success');
+      showToast?.(`${razonSocial} - ${documentNumber}: ${sriStatus === 'autorizado' ? 'autorizado por el SRI' : 'pendiente de verificación'}`, sriStatus === 'autorizado' ? 'success' : 'warning');
     } catch (err) { console.error(err); showToast?.('Error al procesar XML', 'error'); }
     finally { setLoading(false); e.target.value = ''; }
   };
@@ -283,7 +288,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
           thirdPartyRuc: bill.ruc, baseImponible: bill.baseImponible,
           ivaPorcentaje: 15, ivaValor: bill.ivaValor, total: bill.total,
           paymentMethod: 'transferencia', paymentStatus: 'pagado',
-          sriStatus: 'autorizado', description: bill.description,
+          sriStatus: bill.sriStatus === 'autorizado' ? 'autorizado' : 'pendiente_verificacion', description: bill.description,
           items: bill.items || [], bodega: 'Bodega Central'
         };
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), txPayload);
@@ -309,7 +314,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
           thirdPartyRuc: bill.ruc, baseImponible: bill.baseImponible,
           ivaPorcentaje: 15, ivaValor: bill.ivaValor, total: bill.total,
           paymentMethod: 'transferencia', paymentStatus: 'pagado',
-          sriStatus: 'autorizado', description: bill.description,
+          sriStatus: bill.sriStatus === 'autorizado' ? 'autorizado' : 'pendiente_verificacion', description: bill.description,
           items: [], bodega: 'Bodega Central'
         });
         showToast?.('Compra importada sin movimiento de inventario', 'success');
@@ -331,7 +336,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
           date: bill.date || new Date().toISOString(),
           paymentMethod: 'transferencia',
           paymentStatus: 'pagado',
-          sriStatus: 'autorizado',
+          sriStatus: bill.sriStatus === 'autorizado' ? 'autorizado' : 'pendiente_verificacion',
           category: 'compras',
           descripcion: bill.description || '',
           creadoPor: '',
@@ -443,7 +448,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
         baseImponible: manualForm.baseImponible, ivaPorcentaje: 15,
         ivaValor: manualForm.ivaValor, total: manualForm.total,
         paymentMethod: manualForm.paymentMethod, paymentStatus: manualForm.paymentStatus,
-        sriStatus: manualForm.claveAcceso ? 'autorizado' : 'pendiente',
+        sriStatus: 'pendiente_verificacion',
         description: manualForm.description, reference: manualForm.reference,
         items: manualForm.items, bodega: manualForm.bodega
       };
@@ -479,7 +484,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
           date: manualForm.date || new Date().toISOString(),
           paymentMethod: manualForm.paymentMethod || 'transferencia',
           paymentStatus: manualForm.paymentStatus || 'pagado',
-          sriStatus: manualForm.claveAcceso ? 'autorizado' : 'pendiente',
+          sriStatus: 'pendiente_verificacion',
           category: 'compras',
           descripcion: manualForm.description || '',
           creadoPor: '',
@@ -538,7 +543,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
           <UiBox {...{"className":"flex items-center gap-3 flex-wrap"}}>
             <UiButton onClick={handleFetchSriBills} disabled={loading || !companyRuc} {...{"variant":"solid","color":"blue"}}>
               <RefreshCw size={14} {...(loading ? {"className":"animate-spin"} : {})} />
-              <UiText>{loading ? 'Consultando...' : 'Consultar SRI'}</UiText>
+              <UiText>{loading ? 'Actualizando...' : 'Actualizar XML cargados'}</UiText>
             </UiButton>
             <UiLabel {...{"size":"2","weight":"medium","color":"gray","highContrast":true,"className":"flex items-center gap-1.5 px-3 py-2 cursor-pointer"}}>
               <Upload size={14} />
@@ -613,8 +618,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                         <UiText as="p" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Buzon SRI vacio</UiText>
                         <UiText as="p" {...{"size":"1","color":"gray","highContrast":true}}>No tienes comprobantes electronicos sincronizados. Para empezar:</UiText>
                         <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"text-left space-y-1.5"}}>
-                          <UiText as="p">1. Haz clic en <strong>"Consultar SRI"</strong> para extraer tus comprobantes del buzon electronico.</UiText>
-                          <UiText as="p">2. O sube manualmente tus archivos <strong>XML</strong> descargados del portal SRI.</UiText>
+                          <UiText as="p">Sube los archivos <strong>XML</strong> descargados del portal SRI.</UiText>
+                          <UiText as="p">El sistema los conserva como pendientes de verificación.</UiText>
                           <UiText as="p">3. Luego importa cada comprobante a tu <strong>Historial de Compras</strong>.</UiText>
                         </UiBox>
                         <UiLabel {...{"variant":"solid","color":"blue","className":"cursor-pointer"}}>
@@ -909,35 +914,6 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                 <UiButton onClick={() => handleConfirmImport('sin_inventario')} {...{"variant":"outline","className":"w-full text-left"}}>
                   <UiBox {...{"className":"flex items-center gap-2 mb-1"}}><FileText size={16} {...{}} /><UiText {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Sin Movimiento de Inventario</UiText></UiBox>
                   <UiText as="p" {...{"size":"1","color":"gray","highContrast":true}}>Solo registro contable, no afecta stock ni kardex.</UiText>
-                </UiButton>
-              </UiBox>
-            </UiBox>
-          </UiCard>
-        </UiBox>
-      )}
-
-      {/* ============ MODAL: Confirmar Extraccion SRI ============ */}
-      {confirmFetch && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setConfirmFetch(false)}>
-          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm"}} onClick={e => e.stopPropagation()}>
-            <UiBox {...{"className":"p-5 text-center space-y-4"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"mx-auto w-12 h-12 flex items-center justify-center"}}>
-                <RefreshCw size={24} {...{}} />
-              </UiBox>
-              <UiBox>
-                <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Buzon SRI vacio</UiHeading>
-                <UiText as="p" {...{"size":"2","color":"gray","highContrast":true,"className":"mt-1"}}>El buzon de comprobantes esta vacio. Desea extraer los comprobantes electronicos del SRI?</UiText>
-              </UiBox>
-              <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","borderRadius":"var(--radius-3)","color":"var(--gray-12)"},"className":"text-left p-3"}}>
-                <UiText as="p" {...{"weight":"bold","color":"gray","highContrast":true,"className":"mb-1"}}>Se extraeran:</UiText>
-                <UiText as="p">Facturas, Notas de Credito y Retenciones recibidas para el RUC <strong>{companyRuc}</strong>.</UiText>
-                {filterDateFrom && <UiText as="p" {...{"className":"mt-1"}}>Periodo: <strong>{filterDateFrom}</strong> al <strong>{filterDateTo || 'hoy'}</strong></UiText>}
-                <UiText as="p" {...{"className":"mt-1"}}>Los comprobantes ya existentes no se duplicaran.</UiText>
-              </UiBox>
-              <UiBox {...{"className":"flex gap-2"}}>
-                <UiButton onClick={() => setConfirmFetch(false)} {...{"variant":"surface","color":"blue","className":"flex-1"}}>Cancelar</UiButton>
-                <UiButton onClick={async () => { setConfirmFetch(false); await handleExtractSri(); }} {...{"variant":"solid","color":"blue","className":"flex-1"}}>
-                  <Download size={14} /> Extraer del SRI
                 </UiButton>
               </UiBox>
             </UiBox>

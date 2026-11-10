@@ -7,6 +7,7 @@ import { productRepository } from '../../modules/inventory/repositories/ProductR
 import { adjustmentService } from '../../modules/inventory/services/AdjustmentService';
 import { kardexRepository } from '../../modules/inventory/repositories/KardexRepository';
 import { Product } from '../../modules/inventory/domain/schemas/product.schema';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AdjustmentModalProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ const BRANCHES = [
 ];
 
 export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalProps) {
+  const { currentUser } = useAuth();
   const [adjustmentType, setAdjustmentType] = useState<'MANUAL' | 'ZERO_INVENTORY'>('MANUAL');
   const [branchId, setBranchId] = useState(BRANCHES[0].id);
   const [reason, setReason] = useState('');
@@ -61,6 +63,10 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!currentUser?.uid) {
+      setError('Inicia sesión para registrar este ajuste.');
+      return;
+    }
 
     if (!reason.trim() || reason.trim().length < 5) {
       setError("La justificación debe tener al menos 5 caracteres.");
@@ -104,7 +110,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
             operation: operation,
             unitCost: operation === 'IN' ? unitCost : undefined
           }],
-          'Administrador' // Autoriza mock
+          currentUser.uid
         );
       } else {
         // ZERO_INVENTORY
@@ -117,7 +123,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
         await adjustmentService.executeZeroInventory(
           branchId,
           reason.trim(),
-          'Administrador' // Autoriza mock
+          currentUser.uid
         );
       }
 

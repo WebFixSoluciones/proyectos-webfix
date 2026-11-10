@@ -6,6 +6,7 @@ import { Plus, Search, Trash2, Edit2, AlertCircle, ShoppingBag, Eye } from 'luci
 import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
 import RidePreviewModal from './RidePreviewModal';
+import confirmAction from '../../services/confirmDialog';
 
 export default function QuotesView({ products, thirdParties,  showToast, db, appId, onPromoteToInvoice }) {
   const [quotes, setQuotes] = useState([]);
@@ -173,7 +174,7 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
   };
 
   const handleDelete = async (id) => {
-    if (await window.confirm("¿Seguro que deseas eliminar esta cotización?")) {
+    if (await confirmAction("¿Seguro que deseas eliminar esta cotización?")) {
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_quotes', id));
         showToast("Cotización eliminada", "success");

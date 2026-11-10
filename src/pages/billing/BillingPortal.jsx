@@ -4,17 +4,14 @@ import { useState, useEffect } from 'react';
 import {
   Building,
   Check,
-  RefreshCw,
   CreditCard,
   FileText,
   Globe,
   Mail,
   MessageSquare,
   History,
-  ShieldCheck,
-  X
 } from 'lucide-react';
-import { collection, doc, setDoc, updateDoc, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, doc, setDoc, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -156,7 +153,6 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
   const [selectedPlanId, setSelectedPlanId] = useState('sri_basico');
   
   // Payment methods
-  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' | 'transfer'
   
   // Transfer Form
   const [transferData, setTransferData] = useState({
@@ -169,7 +165,6 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
   
   const [history, setHistory] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showPayPhoneSim, setShowPayPhoneSim] = useState(false);
 
   // Sync initialSubTab from props
   useEffect(() => {
@@ -241,57 +236,9 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
     return billingPeriod === 'monthly' ? plan.priceMonthly : plan.priceYearly;
   };
 
-  const handlePayPhoneCheckout = () => {
-    setShowPayPhoneSim(true);
-  };
-
-  const completePayPhoneSim = async () => {
-    setIsProcessing(true);
-    try {
-      const planConfig = getSelectedPlanConfig();
-      if (!planConfig) return;
-      const amount = billingPeriod === 'monthly' ? planConfig.priceMonthly : planConfig.priceYearly * 12;
-
-      // 1. Extend Tenant Subscription in Firestore
-      const newExpiresAt = new Date();
-      newExpiresAt.setMonth(newExpiresAt.getMonth() + (billingPeriod === 'yearly' ? 12 : 1));
-
-      await updateDoc(doc(db, 'tenants', tenantId), {
-        planId: planConfig.id,
-        planStatus: 'active',
-        billingPeriod: billingPeriod,
-        expiresAt: newExpiresAt.toISOString()
-      });
-
-      // 2. Log transaction in transfers
-      const transferId = `pay_${new Date().getTime()}`;
-      await setDoc(doc(db, 'transfers', transferId), {
-        id: transferId,
-        tenantId,
-        companyName: tenantInfo?.companyName || 'Mi Empresa',
-        planId: planConfig.id,
-        billingPeriod,
-        amount,
-        referenceNumber: `PP-${new Date().getTime().toString().substring(6)}`,
-        status: 'approved',
-        bankName: 'PayPhone (Tarjeta)',
-        transferDate: new Date().toISOString(),
-        approvedAt: new Date().toISOString()
-      });
-
-      showToast("¡Pago procesado con éxito! Suscripción activada.", "success");
-      setShowPayPhoneSim(false);
-      setActivePlan(planConfig.id);
-    } catch (err) {
-      showToast("Fallo al actualizar suscripción: " + err.message, "error");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const handleSubmitTransfer = async (e) => {
     e.preventDefault();
-    if (!transferData.referenceNumber || !transferData.amount) {
+    if (!transferData.referenceNumber.trim() || !Number.isFinite(Number(transferData.amount)) || Number(transferData.amount) <= 0) {
       showToast("Por favor completa los campos del comprobante", "warning");
       return;
     }
@@ -314,11 +261,6 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
         transferDate: transferData.transferDate,
         receiptUrl: transferData.receiptUrl,
         createdAt: new Date().toISOString()
-      });
-
-      // Update tenant status to pending_approval
-      await updateDoc(doc(db, 'tenants', tenantId), {
-        planStatus: 'pending_approval'
       });
 
       showToast("Comprobante enviado. Su plan se activará en cuanto confirmemos el depósito.", "info");
@@ -607,57 +549,10 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
                 </div>
               </UiBox>
 
-              {/* Payment Method Selector */}
-              <UiBox className="grid grid-cols-2 gap-2 p-1 bg-[var(--gray-3)] border border-[var(--gray-a4)] rounded-md mb-4">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('card')}
-                  className={`py-1.5 px-2 text-xs font-semibold rounded transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    paymentMethod === 'card'
-                      ? 'bg-[var(--color-panel-solid)] text-[var(--gray-12)] border border-[var(--gray-a4)]'
-                      : 'text-[var(--gray-11)] hover:text-[var(--gray-12)]'
-                  }`}
-                >
-                  <CreditCard size={14} />
-                  <span>Tarjeta</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('transfer')}
-                  className={`py-1.5 px-2 text-xs font-semibold rounded transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    paymentMethod === 'transfer'
-                      ? 'bg-[var(--color-panel-solid)] text-[var(--gray-12)] border border-[var(--gray-a4)]'
-                      : 'text-[var(--gray-11)] hover:text-[var(--gray-12)]'
-                  }`}
-                >
-                  <Building size={14} />
-                  <span>Transferencia</span>
-                </button>
+              <UiBox className="p-3 mb-4 rounded-md bg-[var(--amber-2)] border border-[var(--amber-5)] text-[var(--amber-11)] text-xs">
+                La opción de tarjeta está temporalmente deshabilitada. Reporta una transferencia para revisión manual.
               </UiBox>
-
-              {/* Card / PayPhone */}
-              {paymentMethod === 'card' && (
-                <UiBox className="space-y-4">
-                  <UiBox className="p-3 rounded-md bg-[var(--blue-2)] border border-[var(--blue-4)] text-[var(--blue-11)] text-xs leading-relaxed flex items-start gap-2">
-                    <ShieldCheck size={16} className="shrink-0 mt-0.5 text-[var(--blue-10)]" />
-                    <span>Los pagos con tarjeta se acreditan de manera automática. Aceptamos Visa, MasterCard y tarjetas nacionales a través de PayPhone.</span>
-                  </UiBox>
-                  <UiButton
-                    type="button"
-                    onClick={handlePayPhoneCheckout}
-                    disabled={isProcessing}
-                    size="3"
-                    variant="solid"
-                    color="amber"
-                    className="w-full flex items-center justify-center gap-2 font-bold cursor-pointer"
-                  >
-                    Pagar con PayPhone (${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())})
-                  </UiButton>
-                </UiBox>
-              )}
-
-              {/* Transfer Form */}
-              {paymentMethod === 'transfer' && (
+              <UiBox className="flex items-center gap-2 mb-3 text-xs font-semibold"><Building size={14} /> Transferencia bancaria</UiBox>
                 <form onSubmit={handleSubmitTransfer} className="space-y-3 text-xs">
                   <UiBox className="p-3 rounded-md bg-[var(--blue-2)] border border-[var(--blue-4)] text-[var(--blue-11)] leading-relaxed">
                     <strong className="block mb-1 text-[var(--blue-12)]">Cuentas Bancarias WebFix:</strong>
@@ -720,72 +615,8 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
                     {isProcessing ? "Registrando..." : "Reportar Transferencia"}
                   </UiButton>
                 </form>
-              )}
             </UiCard>
           </UiBox>
-        </UiBox>
-      )}
-
-      {/* PAYPHONE SIMULATION MODAL */}
-      {showPayPhoneSim && (
-        <UiBox className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <UiCard className="w-full max-w-sm p-6 relative bg-[var(--color-panel-solid)] text-[var(--gray-12)] rounded-lg">
-            <UiBox className="flex justify-between items-center mb-6">
-              <UiText size="2" weight="bold" color="amber">Pasarela PayPhone (Sandbox)</UiText>
-              <button 
-                type="button"
-                onClick={() => setShowPayPhoneSim(false)} 
-                className="p-1 rounded-md text-[var(--gray-10)] hover:text-[var(--gray-12)] hover:bg-[var(--gray-3)] cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </UiBox>
-            
-            <UiBox className="p-4 mb-6 text-left space-y-2 rounded-md bg-[var(--gray-2)] border border-[var(--gray-a4)] text-xs">
-              <UiBox className="flex justify-between">
-                <span className="text-[var(--gray-11)]">Empresa receptora:</span>
-                <strong>WebFix Soluciones S.A.S</strong>
-              </UiBox>
-              <UiBox className="flex justify-between">
-                <span className="text-[var(--gray-11)]">Plan solicitado:</span>
-                <strong>{getSelectedPlanConfig()?.name || ''}</strong>
-              </UiBox>
-              <div className="border-t border-[var(--gray-a5)] pt-2 flex justify-between">
-                <span className="text-[var(--gray-11)]">Total a Cobrar:</span>
-                <strong className="text-emerald-600 dark:text-emerald-400 font-mono text-sm">
-                  ${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}
-                </strong>
-              </div>
-            </UiBox>
-
-            <form onSubmit={(e) => { e.preventDefault(); completePayPhoneSim(); }} className="space-y-4 text-left text-xs">
-              <UiBox>
-                <UiLabel weight="bold" className="block mb-1 text-[var(--gray-11)]">Número de tarjeta</UiLabel>
-                <UiInput type="text" placeholder="4000 1234 5678 9010" size="2" className="w-full font-mono" required />
-              </UiBox>
-              <UiBox className="grid grid-cols-2 gap-4">
-                <UiBox>
-                  <UiLabel weight="bold" className="block mb-1 text-[var(--gray-11)]">Expiración</UiLabel>
-                  <UiInput type="text" placeholder="MM/AA" size="2" className="w-full font-mono" required />
-                </UiBox>
-                <UiBox>
-                  <UiLabel weight="bold" className="block mb-1 text-[var(--gray-11)]">CVV</UiLabel>
-                  <UiInput type="password" placeholder="•••" maxLength={3} size="2" className="w-full font-mono" required />
-                </UiBox>
-              </UiBox>
-
-              <UiButton
-                type="submit"
-                disabled={isProcessing}
-                size="3"
-                variant="solid"
-                color="amber"
-                className="w-full mt-6 flex items-center justify-center gap-2 font-bold cursor-pointer"
-              >
-                {isProcessing ? <RefreshCw size={14} className="animate-spin" /> : "Confirmar y Autorizar Pago"}
-              </UiButton>
-            </form>
-          </UiCard>
         </UiBox>
       )}
 

@@ -148,6 +148,7 @@ export default function Sidebar({
                   {[
                     { id: 'compras_resumen', label: 'Historial de Compras' },
                     { id: 'compras_preventa', label: 'Registrar Compra' },
+                    { id: 'compras_sri', label: 'XML de Compras Recibidas' },
                     { id: 'compras_nc', label: 'Notas de Crédito Recibidas' },
                     { id: 'compras_nd', label: 'Notas de Débito Recibidas' },
                     { id: 'compras_retencion', label: 'Retenciones de Compras' }

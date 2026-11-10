@@ -7,6 +7,7 @@ import { productRepository } from '../../modules/inventory/repositories/ProductR
 import { transferService } from '../../modules/inventory/services/TransferService';
 import { kardexRepository } from '../../modules/inventory/repositories/KardexRepository';
 import { Product } from '../../modules/inventory/domain/schemas/product.schema';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface TransferModalProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ const BRANCHES = [
 ];
 
 export default function TransferModal({ onClose, onSuccess }: TransferModalProps) {
+  const { currentUser } = useAuth();
   const [transferType, setTransferType] = useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
   const [sourceBranch, setSourceBranch] = useState(BRANCHES[0].id);
   const [targetBranch, setTargetBranch] = useState(BRANCHES[1].id);
@@ -98,6 +100,10 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!currentUser?.uid) {
+      setError('Inicia sesión para registrar la transferencia.');
+      return;
+    }
 
     if (items.length === 0) {
       setError("Debe agregar al menos un ítem para transferir.");
@@ -121,7 +127,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
           quantity: it.quantity,
           unitCost: it.unitCost
         })),
-        'Administrador', // Creador mock
+        currentUser.uid,
         transferCost
       );
       onSuccess();

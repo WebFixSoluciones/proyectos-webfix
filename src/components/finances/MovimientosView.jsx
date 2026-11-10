@@ -9,6 +9,7 @@ import MovimientoForm from './MovimientoForm';
 import MovimientoAbono from './MovimientoAbono';
 import MovimientoDetalle from './MovimientoDetalle';
 import FinancialPageHeader from './FinancialPageHeader';
+import confirmAction from '../../services/confirmDialog';
 
 const FILTROS_DEFAULT = {
   search: '',
@@ -81,7 +82,7 @@ export default function MovimientosView({ db, usuario, showToast }) {
   };
 
   const handleAnular = async (id) => {
-    if (!window.confirm('¿Anular este movimiento? Esta acción no se puede deshacer.')) return;
+    if (!await confirmAction('¿Anular este movimiento? Esta acción no se puede deshacer.')) return;
     try {
       await anularMovimiento(db, id, usuario);
       if (showToast) showToast('Movimiento anulado correctamente', 'success');

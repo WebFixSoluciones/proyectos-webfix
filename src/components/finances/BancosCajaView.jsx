@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, Link2, Link2Off, Trash2, X, Filter, Sparkles, CheckCircle } from 'lucide-react';
 import { getCuentas, crearCuenta, actualizarCuenta, eliminarCuenta, getMovimientosBancarios, registrarMovimientoBancario, eliminarMovimientoBancario, conciliarMovimiento, desconciliarMovimiento, getResumenBancos, conciliacionAutomatica } from '../../services/bancosService';
 import FinancialPageHeader from './FinancialPageHeader';
+import confirmAction from '../../services/confirmDialog';
 import { Badge } from '../ui/badge';
 
 const TIPO_BADGES = {
@@ -76,7 +77,7 @@ export default function BancosCajaView({ db, usuario, showToast }) {
   };
 
   const handleEliminarCuenta = async (id) => {
-    if (!window.confirm('¿Eliminar esta cuenta? Esta acción no se puede deshacer.')) return;
+    if (!await confirmAction('¿Eliminar esta cuenta? Esta acción no se puede deshacer.')) return;
     try { await eliminarCuenta(db, id, usuario); showToast('Cuenta eliminada', 'success'); setCuentaActiva(null); cargarCuentas(); }
     catch (e) { showToast('Error: ' + e.message, 'error'); }
   };
@@ -91,7 +92,7 @@ export default function BancosCajaView({ db, usuario, showToast }) {
   };
 
   const handleEliminarMov = async (id) => {
-    if (!window.confirm('¿Eliminar este movimiento?')) return;
+    if (!await confirmAction('¿Eliminar este movimiento?')) return;
     try { await eliminarMovimientoBancario(db, id, usuario); showToast('Movimiento eliminado', 'success'); cargarCuentas(); cargarMovimientos(); }
     catch (e) { showToast('Error: ' + e.message, 'error'); }
   };

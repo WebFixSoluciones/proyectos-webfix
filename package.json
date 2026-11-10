@@ -8,7 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test tests/commerce.test.mjs tests/sri.test.mjs tests/sale-validation.test.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-webfix \"node tests/firestore-rules.mjs\"",
+    "lint:critical": "eslint src --config eslint.critical.config.js --max-warnings=0",
     "test:browser": "node tests/browser-run.mjs",
     "test:sri:browser": "node tests/browser-sri-run.mjs"
   },
@@ -31,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@tailwindcss/postcss": "^4.2.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -40,6 +43,7 @@
     "eslint": "^10.2.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "firebase-tools": "^15.21.0",
     "globals": "^17.5.0",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.2.4",

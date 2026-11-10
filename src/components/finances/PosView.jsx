@@ -1,4 +1,5 @@
 import { cancelInternalSale } from '../../services/cancelSale';
+import confirmAction from '../../services/confirmDialog';
 import { resolveThemeProps } from '../ui/themeProps';
 import { mergeThemeProps } from '../ui/themeProps';
 import PosProductCard from './PosProductCard';
@@ -1216,7 +1217,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
   const handleVoidTransaction = async (tx) => {
     if (tx.documentType !== 'nota_venta') { showToast('Gestiona la anulación del comprobante electrónico mediante el proceso SRI.', 'warning'); return; }
-    if (!await window.confirm(`¿Estás seguro de que deseas ANULAR este comprobante (${tx.id})? Esto restaurará el stock de los productos.`)) {
+    if (!await confirmAction(`¿Estás seguro de que deseas ANULAR este comprobante (${tx.id})? Esto restaurará el stock de los productos.`)) {
       return;
     }
     try {
@@ -1851,7 +1852,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 <UiButton
                   type="button"
                   onClick={async () => {
-                    if (await window.confirm("¿Seguro que deseas abandonar la venta actual? Se vaciará el carrito y se reiniciará el POS.")) {
+                    if (await confirmAction("¿Seguro que deseas abandonar la venta actual? Se vaciará el carrito y se reiniciará el POS.")) {
                       if (resumedDraftId && db && appId) {
                         try {
                           await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', resumedDraftId));

@@ -7,6 +7,7 @@ import { categoryBrandRepository } from '../../modules/inventory/repositories/Ca
 import { Category, Brand } from '../../modules/inventory/domain/schemas/category-brand.schema';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, appId } from '../../firebase';
+import confirmAction from '../../services/confirmDialog';
 
 interface CategoryBrandModalProps {
   onClose: () => void;
@@ -110,7 +111,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!await confirm("¿Está seguro de eliminar esta categoría?")) return;
+    if (!await confirmAction("¿Está seguro de eliminar esta categoría?")) return;
     setLoading(true);
     try {
       await categoryBrandRepository.deleteCategory(id);
@@ -124,7 +125,7 @@ export default function CategoryBrandModal({ onClose, onChanged }: CategoryBrand
   };
 
   const handleDeleteBrand = async (id: string) => {
-    if (!await confirm("¿Está seguro de eliminar esta marca?")) return;
+    if (!await confirmAction("¿Está seguro de eliminar esta marca?")) return;
     setLoading(true);
     try {
       await categoryBrandRepository.deleteBrand(id);
