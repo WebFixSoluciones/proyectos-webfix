@@ -1,8 +1,9 @@
 import { 
   LayoutDashboard, ShoppingCart, ShoppingBag, CreditCard,
   Package, Users, Settings,
-  ChevronDown, DollarSign
+  ChevronDown, DollarSign, Shield
 } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 export default function Sidebar({
   isSidebarOpen, setIsSidebarOpen, activePageId, setActivePageId,
@@ -13,8 +14,9 @@ export default function Sidebar({
   contabilidadInitialSubTab, setContabilidadInitialSubTab,
   billingInitialSubTab, setBillingInitialSubTab,
   personasSubTab, setPersonasSubTab,
-  trash, handleLogout
+  trash, handleLogout, userRole
 }) {
+  const navigate = useNavigate();
   const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
 
   const navBase = "group relative flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl transition-all text-sm tracking-tight cursor-pointer";
@@ -325,6 +327,23 @@ export default function Sidebar({
               </div>
             )}
           </div>
+
+          {/* SuperAdmin Access */}
+          {userRole === 'superadmin' && (
+            <div className="pt-2 border-t border-slate-200 mt-2">
+              <button 
+                type="button"
+                onClick={() => { navigate('/superadmin'); closeMobile(); }} 
+                className="group relative flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl transition-all text-sm tracking-tight cursor-pointer bg-amber-50 text-amber-900 border border-amber-200/80 hover:bg-amber-100 font-semibold"
+                title="Ir al Panel de Super Administrador"
+              >
+                <div className="flex items-center gap-3">
+                  <Shield size={18} strokeWidth={2.2} className="shrink-0 text-amber-700" />
+                  {isSidebarOpen && <span>Panel SuperAdmin</span>}
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
     </>

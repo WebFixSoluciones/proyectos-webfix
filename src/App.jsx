@@ -982,6 +982,7 @@ export default function App() {
         setPersonasSubTab={setPersonasSubTab}
         trash={trash}
         handleLogout={handleLogout}
+        userRole={userRole}
       />
 
       {/* Main Content Area */}
@@ -1096,6 +1097,17 @@ export default function App() {
                     <CreditCard size={15} className="text-slate-500" />
                     <span>Mi plan</span>
                   </button>
+
+                  {userRole === 'superadmin' && (
+                    <button
+                      type="button"
+                      onClick={() => { setIsProfileMenuOpen(false); navigate('/superadmin'); }}
+                      className="w-full px-4 py-2 text-left text-xs font-semibold text-amber-700 hover:text-amber-800 hover:bg-amber-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    >
+                      <Shield size={15} className="text-amber-600 shrink-0" />
+                      <span>Panel SuperAdmin</span>
+                    </button>
+                  )}
 
                   <button
                     type="button"
