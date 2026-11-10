@@ -45,11 +45,14 @@ service cloud.firestore {
     function tenantCanWrite(tenantId) {
       return (userBelongsToTenant(tenantId) && tenantVerified(tenantId) && (
         esSuperAdmin() ||
-        (exists(/databases/$(database)/documents/tenants/$(tenantId)) &&
-          (get(/databases/$(database)/documents/tenants/$(tenantId)).data.planStatus == 'active' ||
-            (get(/databases/$(database)/documents/tenants/$(tenantId)).data.planStatus == 'trial' &&
-             'trialExpiresAt' in get(/databases/$(database)/documents/tenants/$(tenantId)).data &&
-             get(/databases/$(database)/documents/tenants/$(tenantId)).data.trialExpiresAt > request.time))))) ||
+        (exists(/databases/$(database)/documents/tenants/$(tenantId)) && (
+          (get(/databases/$(database)/documents/tenants/$(tenantId)).data.planStatus == 'active' &&
+           'subscriptionExpiresAt' in get(/databases/$(database)/documents/tenants/$(tenantId)).data &&
+           get(/databases/$(database)/documents/tenants/$(tenantId)).data.subscriptionExpiresAt > request.time) ||
+          (get(/databases/$(database)/documents/tenants/$(tenantId)).data.planStatus == 'trial' &&
+           'trialExpiresAt' in get(/databases/$(database)/documents/tenants/$(tenantId)).data &&
+           get(/databases/$(database)/documents/tenants/$(tenantId)).data.trialExpiresAt > request.time)
+        )))) ||
         (esPersonalAutorizado() &&
          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
          getAfter(/databases/$(database)/documents/tenants/$(tenantId)).data.ownerUid == request.auth.uid &&

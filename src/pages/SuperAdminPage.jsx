@@ -249,6 +249,7 @@ export default function SuperAdminPage({ showToast }) {
         transaction.update(tenantRef, {
           planStatus: 'active',
           expiresAt: newExpiresAt.toISOString(),
+          subscriptionExpiresAt: Timestamp.fromDate(newExpiresAt),
           planId: payment.planId,
           billingPeriod: payment.billingPeriod
         });
@@ -293,7 +294,8 @@ export default function SuperAdminPage({ showToast }) {
       await updateDoc(doc(db, 'tenants', selectedTenantDetails.id), {
         planId: selectedTenantDetails.planId,
         planStatus: selectedTenantDetails.planStatus,
-        expiresAt: new Date(selectedTenantDetails.expiresAt).toISOString()
+        expiresAt: new Date(selectedTenantDetails.expiresAt).toISOString(),
+        ...(selectedTenantDetails.planStatus === 'active' ? { subscriptionExpiresAt: Timestamp.fromDate(new Date(selectedTenantDetails.expiresAt)) } : {})
       });
       showToast("Suscripción de inquilino actualizada correctamente", "success");
       setViewMode('list');
@@ -503,7 +505,9 @@ export default function SuperAdminPage({ showToast }) {
         billingPeriod: newTenantForm.billingPeriod,
         createdAt: new Date().toISOString(),
         expiresAt: expiresAt.toISOString(),
-        ...(newTenantForm.planStatus === 'trial' ? { trialExpiresAt: Timestamp.fromDate(expiresAt) } : {})
+        ...(newTenantForm.planStatus === 'trial'
+          ? { trialExpiresAt: Timestamp.fromDate(expiresAt) }
+          : { subscriptionExpiresAt: Timestamp.fromDate(expiresAt) })
       };
       await setDoc(doc(db, 'tenants', cleanTenantId), tenantData);
 

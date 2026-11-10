@@ -23,15 +23,21 @@ try {
   await env.withSecurityRulesDisabled(async context => {
     const db = context.firestore();
     await setDoc(doc(db, 'users', 'owner-a'), { uid: 'owner-a', tenantId: 'tenant-a', email: 'a@example.test', role: 'admin', status: 'active' });
-    await setDoc(doc(db, 'tenants', 'tenant-a'), { id: 'tenant-a', ownerUid: 'owner-a', planId: 'starter', planStatus: 'active', expiresAt: '2027-01-01T00:00:00Z' });
+    await setDoc(doc(db, 'tenants', 'tenant-a'), { id: 'tenant-a', ownerUid: 'owner-a', planId: 'starter', planStatus: 'active', expiresAt: '2027-01-01T00:00:00Z', subscriptionExpiresAt: Timestamp.fromMillis(Date.now() + 30 * 86400000) });
     await setDoc(doc(db, 'users', 'owner-b'), { uid: 'owner-b', tenantId: 'tenant-b', email: 'b@example.test', role: 'admin', status: 'active' });
-    await setDoc(doc(db, 'tenants', 'tenant-b'), { id: 'tenant-b', ownerUid: 'owner-b', planId: 'starter', planStatus: 'active', expiresAt: '2027-01-01T00:00:00Z' });
+    await setDoc(doc(db, 'tenants', 'tenant-b'), { id: 'tenant-b', ownerUid: 'owner-b', planId: 'starter', planStatus: 'active', expiresAt: '2027-01-01T00:00:00Z', subscriptionExpiresAt: Timestamp.fromMillis(Date.now() + 30 * 86400000) });
     await setDoc(doc(db, 'users', 'root'), { uid: 'root', tenantId: 'tenant-a', email: 'root@example.test', role: 'superadmin', status: 'active' });
     await setDoc(doc(db, 'fin_movimientos', 'movement-b'), { tenantId: 'tenant-b', amount: 10 });
     await setDoc(doc(db, 'users', 'expired-owner'), { uid: 'expired-owner', tenantId: 'expired-tenant', role: 'admin', status: 'active' });
     await setDoc(doc(db, 'tenants', 'expired-tenant'), {
       id: 'expired-tenant', ownerUid: 'expired-owner', planStatus: 'trial',
       trialExpiresAt: Timestamp.fromMillis(Date.now() - 86400000)
+    });
+    await setDoc(doc(db, 'users', 'expired-paid-owner'), { uid: 'expired-paid-owner', tenantId: 'expired-paid', role: 'admin', status: 'active' });
+    await setDoc(doc(db, 'tenants', 'expired-paid'), {
+      id: 'expired-paid', ownerUid: 'expired-paid-owner', planStatus: 'active',
+      expiresAt: '2099-01-01T00:00:00Z',
+      subscriptionExpiresAt: Timestamp.fromMillis(Date.now() - 86400000)
     });
   });
 
@@ -57,6 +63,9 @@ try {
   const expired = client('expired-owner');
   await assertFails(setDoc(doc(expired, 'artifacts', 'expired-tenant', 'public', 'data', 'meta', 'info'), { ready: true }));
   await assertFails(setDoc(doc(expired, 'fin_movimientos', 'expired-movement'), { tenantId: 'expired-tenant', amount: 10 }));
+  const expiredPaid = client('expired-paid-owner');
+  await assertFails(setDoc(doc(expiredPaid, 'artifacts', 'expired-paid', 'public', 'data', 'meta', 'info'), { ready: true }));
+  await assertFails(setDoc(doc(expiredPaid, 'fin_movimientos', 'expired-paid-movement'), { tenantId: 'expired-paid', amount: 10 }));
 
   await assertSucceeds(setDoc(doc(a, 'users', 'staff-a'), {
     uid: 'staff-a', tenantId: 'tenant-a', email: 'staff@example.test', role: 'staff', status: 'active'

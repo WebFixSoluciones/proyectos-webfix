@@ -14,6 +14,7 @@ import { normalizeProduct } from '../../services/productModel';
 import { getEcuadorDateString } from '../../services/sriService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
 import { getCuentas } from '../../services/bancosService';
+import { auth } from '../../firebase';
 
 export default function PurchaseForm({ tx, onClose, thirdParties = [], products = [], showToast, db, appId, purchaseMethod }) {
   const [step, setStep] = useState(1);
@@ -106,7 +107,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
 
   // Add product to list
   const handleAddProduct = (prod) => {
-    const item = { productId: prod.id, name: prod.name, sku: prod.sku || '', quantity: 1, price: Number(prod.cost || prod.baseCost) || 0, discount: 0, subtotal: Number(prod.cost || prod.baseCost) || 0, ivaCategory: Number(prod.ivaPorcentaje || prod.taxRate || prod.ivaCategory) || 15 };
+    const item = { productId: prod.id, name: prod.name, sku: prod.sku || '', quantity: 1, price: Number(prod.cost || prod.baseCost) || 0, discount: 0, subtotal: Number(prod.cost || prod.baseCost) || 0, ivaCategory: Number(prod.ivaPorcentaje ?? prod.taxRate ?? prod.ivaCategory ?? 15) };
     const items = [...form.items, item];
     setForm(prev => ({ ...prev, items, ...recalcTotals(items) }));
     setShowProductResults(false);
@@ -210,7 +211,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         items.push({
           productId: matched?.id || '', name: matched?.name || desc, sku: matched?.sku || '',
           quantity: cant, price: precio, discount: 0, subtotal: cant * precio,
-          ivaCategory: Number(matched?.ivaPorcentaje || matched?.taxRate || matched?.ivaCategory) || 15
+          ivaCategory: Number(matched?.ivaPorcentaje ?? matched?.taxRate ?? matched?.ivaCategory ?? 15)
         });
       }
 
@@ -235,6 +236,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     saveLock.current = true;
     setSaving(true);
     const docId = stableId.current;
+    const operator = { uid: auth.currentUser?.uid || '', email: auth.currentUser?.email || '' };
+    const sriStatus = form.claveAcceso ? 'pendiente_verificacion' : 'sin_clave';
     
     const payload = {
       id: docId, type: 'egreso', category: 'compras',
@@ -246,7 +249,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       descuento: form.descuento, paymentMethod: form.paymentMethod, paymentStatus: form.paymentStatus,
       cuentaBancariaId: form.cuentaBancariaId || '',
       fechaVencimiento: form.fechaVencimiento || null,
-      sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
+      sriStatus,
       description: form.description, reference: form.reference,
       items: form.items, bodega: form.bodega, purchaseType: form.purchaseType,
       financialSyncStatus: 'pending', inventarioRegistrado: !!tx?.inventarioRegistrado
@@ -286,19 +289,19 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           cuentaBancariaId: form.cuentaBancariaId || '',
           paymentMethod: form.paymentMethod || 'transferencia',
           paymentStatus: form.paymentStatus || 'pagado',
-          sriStatus: form.claveAcceso ? 'autorizado' : 'pendiente',
+          sriStatus,
           category: 'compras',
           descripcion: form.description || '',
           notas: form.notas || '',
           xmlUrl: '',
           pdfUrl: '',
-          creadoPor: '',
+          creadoPor: operator.uid,
         };
-        await sincronizarCompra(compraData, db, { uid: '', email: '' });
+        await sincronizarCompra(compraData, db, operator);
       }
 
       await setDoc(txRef, { financialSyncStatus: 'complete' }, { merge: true });
-      showToast?.('Compra e inventario registrados correctamente.', 'success');
+      showToast?.(form.claveAcceso ? 'Compra registrada. Autorización SRI pendiente de verificar.' : 'Compra e inventario registrados correctamente.', form.claveAcceso ? 'warning' : 'success');
       onClose?.();
     } catch (err) { 
       console.error(err); 

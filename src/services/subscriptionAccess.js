@@ -2,7 +2,7 @@ export function getSubscriptionExpiry(tenantInfo) {
   if (!tenantInfo) return null;
   const value = tenantInfo.planStatus === 'trial'
     ? tenantInfo.trialExpiresAt || tenantInfo.expiresAt
-    : tenantInfo.expiresAt;
+    : tenantInfo.subscriptionExpiresAt || tenantInfo.expiresAt;
   if (!value) return null;
   const date = typeof value.toDate === 'function' ? value.toDate() : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;

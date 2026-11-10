@@ -279,8 +279,11 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
   };
 
   const getDaysRemaining = () => {
-    if (!tenantInfo?.expiresAt) return 0;
-    const diff = new Date(tenantInfo.expiresAt) - new Date();
+    const expiry = tenantInfo?.planStatus === 'trial'
+      ? tenantInfo.trialExpiresAt || tenantInfo.expiresAt
+      : tenantInfo?.subscriptionExpiresAt || tenantInfo?.expiresAt;
+    if (!expiry) return 0;
+    const diff = (typeof expiry.toDate === 'function' ? expiry.toDate() : new Date(expiry)) - new Date();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 

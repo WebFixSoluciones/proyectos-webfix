@@ -20,6 +20,16 @@ test('an active subscription remains available until its expiry', () => {
   assert.equal(isSubscriptionBlocked(tenant, new Date('2026-11-10T12:00:00.000Z')), true);
 });
 
+test('an active subscription uses its protected expiry instead of the legacy date', () => {
+  const tenant = {
+    planStatus: 'active',
+    expiresAt: '2099-01-01T00:00:00.000Z',
+    subscriptionExpiresAt: { toDate: () => new Date('2026-11-08T12:00:00.000Z') }
+  };
+  assert.equal(isSubscriptionBlocked(tenant, now), true);
+  assert.equal(getSubscriptionExpiry(tenant).toISOString(), '2026-11-08T12:00:00.000Z');
+});
+
 test('explicit suspension blocks access without an expiry date', () => {
   assert.equal(isSubscriptionBlocked({ planStatus: 'suspended' }, now), true);
 });
