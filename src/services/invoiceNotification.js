@@ -1,3 +1,5 @@
+import { sriDocumentLinks } from './sriAuthorization.js';
+
 const emailAddress = value => {
   const address = String(value || '').trim();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address) ? address : '';
@@ -42,16 +44,14 @@ export async function notifyAuthorizedInvoice({ db, appId, document, customer, c
     const sendEmitter = force || !(previous.emitter?.status === 'sent' && String(previous.emitter.address || '').toLowerCase() === emitterEmail.toLowerCase());
     if (!sendClient && !sendEmitter) return { status: 'already_sent', delivery: previous, message: 'El comprobante ya fue enviado.' };
     transaction.set(documentRef, { emailDelivery: { ...previous, claimedAt: now.toISOString() } }, { merge: true });
-    return { status: 'claimed', previous, sendClient, sendEmitter };
+    return { status: 'claimed', previous, sendClient, sendEmitter, publicRideToken: docData.publicRideToken || '' };
   });
   if (claim.status !== 'claimed') return claim;
 
   const receiver = customer || document.thirdParty || {};
   const effectivePdf = document.pdfUrl && !document.pdfUrl.includes('srienlinea.sri.gob.ec')
     ? document.pdfUrl
-    : isNotaVenta
-      ? `/#/public/ride?txId=${encodeURIComponent(document.id)}&tenantId=${encodeURIComponent(appId)}`
-      : `/#/public/ride?txId=${encodeURIComponent(document.id)}&claveAcceso=${encodeURIComponent(document.claveAcceso || '')}&tenantId=${encodeURIComponent(appId)}`;
+    : sriDocumentLinks({ ...document, publicRideToken: claim.publicRideToken || document.publicRideToken }, appId).ride;
   const rawXml = isNotaVenta ? '' : (document.xmlAutorizado || document.xml || (typeof document.xmlUrl === 'string' && document.xmlUrl.startsWith('data:') ? document.xmlUrl : ''));
   const payload = {
     smtpHost: settings.smtpHost, smtpPort: settings.smtpPort || (settings.smtpSecure ? 465 : 587),

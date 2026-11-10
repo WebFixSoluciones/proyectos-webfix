@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolvePublicReceipt } from '../api/public-ride/receipt.js';
 import handler from '../api/public-ride/index.js';
+import { sriDocumentLinks } from '../src/services/sriAuthorization.js';
 
 const key = '2109202601175437690100120010010000001645699241016';
 const invoice = {
@@ -43,6 +44,9 @@ test('the public endpoint rejects purchases, unfinished invoices, and invalid no
   const noteStore = { getById: async () => note };
   assert.equal(await resolvePublicReceipt(noteStore, { tenantId: 'tenant-a', txId: note.id }), null);
   assert.equal((await resolvePublicReceipt(noteStore, { tenantId: 'tenant-a', txId: note.id, token: 'secret' })).total, 5);
+  assert.match(sriDocumentLinks(note, 'tenant-a').ride, /[?&]token=secret/);
+  assert.equal((await resolvePublicReceipt({ getById: async () => ({ ...note, publicRideToken: '' }) }, { tenantId: 'tenant-a', txId: note.id })).total, 5);
+  assert.equal(await resolvePublicReceipt({ getById: async () => ({ ...note, sriStatus: 'pendiente' }) }, { tenantId: 'tenant-a', txId: note.id, token: 'secret' }), null);
 });
 
 test('the public HTTP route rejects invalid links and stays unavailable without server credentials', async () => {

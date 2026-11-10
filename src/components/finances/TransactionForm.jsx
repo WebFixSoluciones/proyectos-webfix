@@ -1,5 +1,5 @@
 import FiscalDocuments from './FiscalDocuments';
-import { downloadFiscalXml } from '../../services/sriAuthorization';
+import { downloadFiscalXml, sriDocumentLinks } from '../../services/sriAuthorization';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
@@ -1091,14 +1091,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           if (!configSnap.exists()) throw new Error('Configura el emisor antes de registrar una venta.');
           const existing = receipt.data();
           if (existing?.documentNumber) {
-            updatedFormData = { ...updatedFormData, documentNumber: existing.documentNumber, secuencial: existing.secuencial, sriStatus: 'autorizado' };
+            const publicRideToken = existing.publicRideToken || crypto.randomUUID();
+            updatedFormData = { ...updatedFormData, documentNumber: existing.documentNumber, secuencial: existing.secuencial, sriStatus: 'autorizado', publicRideToken };
+            if (!existing.publicRideToken) transaction.set(receiptRef, { publicRideToken }, { merge: true });
             return;
           }
           const config = configSnap.data();
           const sec = Number(config.secuencialNotaVenta || 1);
           const number = `${config.establecimiento || '001'}-${config.puntoEmision || '001'}-${String(sec).padStart(9, '0')}`;
-          updatedFormData = { ...updatedFormData, secuencial: String(sec), documentNumber: number, sriStatus: 'autorizado' };
-          transaction.set(receiptRef, { id: docId, documentNumber: number, secuencial: String(sec), sriStatus: 'pendiente' }, { merge: true });
+          const publicRideToken = crypto.randomUUID();
+          updatedFormData = { ...updatedFormData, secuencial: String(sec), documentNumber: number, sriStatus: 'autorizado', publicRideToken };
+          transaction.set(receiptRef, { id: docId, documentNumber: number, secuencial: String(sec), sriStatus: 'pendiente', publicRideToken }, { merge: true });
           transaction.update(configRef, { secuencialNotaVenta: sec + 1 });
         });
       }
@@ -1726,7 +1729,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setTimeout(() => setHasCopiedClave(false), 2000);
   };
 
-  const currentRideUrl = `${typeof window !== 'undefined' ? (window.location.origin + window.location.pathname) : ''}#/public/ride?txId=${formData.id || ''}&claveAcceso=${formData.claveAcceso || ''}&tenantId=${appId || ''}`;
+  const currentRideUrl = sriDocumentLinks(formData, appId).ride;
 
   const handleCopyRideUrl = () => {
     navigator.clipboard.writeText(currentRideUrl);

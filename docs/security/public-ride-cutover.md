@@ -14,9 +14,9 @@ Para completar el cierre:
 2. Verificar en producción, sin sesión, una factura autorizada por `txId` y clave,
    otra por clave sola, y una nota de venta histórica. Confirmar que el endpoint
    responde sin campos internos.
-3. Emitir tokens aleatorios para las nuevas notas de venta y adjuntarlos a todos
-   los enlaces públicos que crea el sistema. Mantener compatibilidad con enlaces
-   históricos de notas en el endpoint, devolviendo solo la proyección del RIDE.
+3. Verificar una nota de venta nueva: su emisión genera `publicRideToken` y los
+   enlaces de correo, ventas y POS lo incluyen. Los enlaces históricos sin token
+   siguen admitidos en el endpoint, que solo devuelve la proyección del RIDE.
 4. Cambiar `firestore.rules` para que `get` y `list` de
    `finances_transactions` exijan pertenecer al tenant. Quitar el fallback de
    Firestore en `PublicRideView`. Probar reglas y enlaces públicos antes de

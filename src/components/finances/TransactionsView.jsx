@@ -10,6 +10,7 @@ import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../servi
 import { getEcuadorDateString, getEcuadorDateTimeString, consultarAutorizacionSRI } from '../../services/sriService';
 import { saveSriResult } from '../../services/sriEmission';
 import { notifyAuthorizedInvoice } from '../../services/invoiceNotification';
+import { sriDocumentLinks } from '../../services/sriAuthorization';
 import { getDocumentTypeName } from '../../services/sriReconciliation';
 import { sincronizarVenta } from '../../services/integracionFinanzasService';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
@@ -584,9 +585,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       const isNotaVenta = emailModalTx.documentType === 'nota_venta';
       const effectivePdf = (emailModalTx.pdfUrl && !emailModalTx.pdfUrl.includes('srienlinea.sri.gob.ec'))
         ? emailModalTx.pdfUrl
-        : (emailModalTx.claveAcceso
-            ? `/#/public/ride?txId=${encodeURIComponent(emailModalTx.id || '')}&claveAcceso=${encodeURIComponent(emailModalTx.claveAcceso)}&tenantId=${encodeURIComponent(appId || '')}`
-            : (emailModalTx.id ? `/#/public/ride?txId=${encodeURIComponent(emailModalTx.id)}&tenantId=${encodeURIComponent(appId || '')}` : ''));
+        : sriDocumentLinks(emailModalTx, appId).ride;
 
       const emailPayload = {
         smtpHost: configData.smtpHost,
@@ -673,8 +672,7 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     const clientName = party?.name || tx.thirdPartyName || 'Estimado(a) Cliente';
     const docNum = tx.documentNumber || 'Comprobante';
     const totalStr = `$${Number(tx.total || 0).toFixed(2)}`;
-    const origin = typeof window !== 'undefined' ? (window.location.origin + window.location.pathname) : '';
-    const rideUrl = `${origin}#/public/ride?txId=${tx.id}&claveAcceso=${tx.claveAcceso || ''}&tenantId=${appId || ''}`;
+    const rideUrl = sriDocumentLinks(tx, appId).ride;
     
     const text = `Hola ${clientName}, le compartimos el comprobante de venta N° ${docNum} por un valor de ${totalStr}.\n\nPuede consultar y descargar su comprobante oficial RIDE aquí:\n${rideUrl}\n\n¡Gracias por su preferencia!`;
     

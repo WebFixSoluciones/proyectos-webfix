@@ -17,6 +17,7 @@ import { getCuentas } from '../../services/bancosService';
 import PosCreditAuthModal from './PosCreditAuthModal';
 import SaleValidationDialog from './SaleValidationDialog';
 import { getPosSaleIssues } from '../../services/saleValidation';
+import { sriDocumentLinks } from '../../services/sriAuthorization';
 
 function sanitizeData(obj) {
   if (obj === null || obj === undefined) return null;
@@ -3667,7 +3668,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                           {(() => {
                             const effectivePdf = (tx.pdfUrl && !tx.pdfUrl.includes('srienlinea.sri.gob.ec'))
                               ? tx.pdfUrl
-                              : (tx.claveAcceso ? `/public/ride?txId=${tx.id}&claveAcceso=${tx.claveAcceso}&tenantId=${appId || ''}` : null);
+                              : (tx.claveAcceso || (tx.documentType === 'nota_venta' && tx.publicRideToken)
+                                  ? sriDocumentLinks(tx, appId).ride : null);
 
                             return effectivePdf ? (
                               <a 
