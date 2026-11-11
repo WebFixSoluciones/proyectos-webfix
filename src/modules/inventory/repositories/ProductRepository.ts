@@ -77,6 +77,17 @@ export class ProductRepository {
         where('productId', '==', id), limit(1)
       ));
       if (!history.empty) throw new Error('El producto tiene movimientos. Desactívalo para conservar su historial.');
+      const [documents, relatedProducts] = await Promise.all([
+        getDocs(collection(db, 'artifacts', getAppId(), 'public', 'data', 'finances_transactions')),
+        this.findAll()
+      ]);
+      if (documents.docs.some(record => (record.data().items || []).some((item: { productId?: string }) => item.productId === id))) {
+        throw new Error('El producto figura en una venta o compra. Desactívalo para conservar el comprobante.');
+      }
+      if (relatedProducts.some(product => product.id !== id &&
+        (product.parentId === id || product.comboItems?.some(item => item.productId === id)))) {
+        throw new Error('El producto es componente de otro ítem. Desactívalo o retira primero esa relación.');
+      }
       await runTransaction(db, async tx => {
         const productRef = this.ref('inventory_products', id);
         const product = await tx.get(productRef);
