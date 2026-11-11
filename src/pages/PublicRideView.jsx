@@ -3,8 +3,7 @@ import { invoiceDescription, invoiceLineAmounts } from '../services/invoiceLine'
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Printer, FileText, AlertCircle, RefreshCw } from 'lucide-react';
-import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { db, getAppId } from '../firebase';
+import { getAppId } from '../firebase';
 
 function numeroALetras(num) {
   const unidades = ['SIN', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
@@ -87,68 +86,23 @@ export default function PublicRideView() {
 
     async function loadPublicData() {
       try {
-        let txData = null;
-        try {
-          const params = new URLSearchParams({ tenantId: effectiveTenantId });
-          if (txId) params.set('txId', txId);
-          if (claveAcceso) params.set('claveAcceso', claveAcceso);
-          if (rideToken) params.set('token', rideToken);
-          const response = await fetch(`/api/public-ride?${params}`);
-          if (response.ok) txData = (await response.json()).receipt || null;
-        } catch (apiError) {
-          console.warn('Visor público no disponible; consultando el comprobante existente.', apiError);
+        const params = new URLSearchParams({ tenantId: effectiveTenantId });
+        if (txId) params.set('txId', txId);
+        if (claveAcceso) params.set('claveAcceso', claveAcceso);
+        if (rideToken) params.set('token', rideToken);
+        const response = await fetch(`/api/public-ride?${params}`);
+        if (!response.ok) {
+          throw new Error(response.status === 404
+            ? 'No se encontró ningún comprobante con los parámetros especificados.'
+            : 'No se pudo consultar el comprobante. Inténtalo de nuevo.');
         }
-        if (!txData && txId) {
-          const docSnap = await getDoc(
-            doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_transactions', txId)
-          );
-          if (docSnap.exists()) {
-            txData = { ...docSnap.data(), id: docSnap.id };
-          }
-        }
-        if (!txData && claveAcceso) {
-          const q = query(
-            collection(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_transactions'),
-            where('claveAcceso', '==', claveAcceso),
-            limit(1)
-          );
-          const querySnap = await getDocs(q);
-          if (!querySnap.empty) {
-            txData = { ...querySnap.docs[0].data(), id: querySnap.docs[0].id };
-          }
-        }
-
-        if (!txData) {
-          setError('No se encontró ningún comprobante con los parámetros especificados.');
-          setLoading(false);
-          return;
-        }
-
-        setTx(txData);
-
-        // 2. Cargar configuración de la empresa (Emisor) si falta el logo o no viene en el snapshot
-        if (!txData.emisorSnapshot?.logoUrl) {
-          try {
-            const configSnap = await getDoc(
-              doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'finances_settings', 'config')
-            );
-            if (configSnap.exists()) {
-              setCompanyConfig(configSnap.data());
-            } else {
-              const infoSnap = await getDoc(
-                doc(db, 'artifacts', effectiveTenantId, 'public', 'data', 'meta', 'info')
-              );
-              if (infoSnap.exists()) {
-                setCompanyConfig(prev => ({ ...prev, ...infoSnap.data() }));
-              }
-            }
-          } catch (configErr) {
-            console.warn('Configuración de emisor no disponible públicamente; usando snapshot del documento.', configErr);
-          }
-        }
+        const { receipt, issuer } = await response.json();
+        if (!receipt) throw new Error('No se encontró ningún comprobante con los parámetros especificados.');
+        setTx(receipt);
+        setCompanyConfig(issuer || null);
       } catch (err) {
         console.error('Error al cargar comprobante público:', err);
-        setError('Ocurrió un error al cargar el comprobante electrónico.');
+        setError(err.message || 'Ocurrió un error al cargar el comprobante electrónico.');
       } finally {
         setLoading(false);
       }

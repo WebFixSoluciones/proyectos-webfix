@@ -61,10 +61,8 @@ service cloud.firestore {
 
     // 1. Sandbox de Inquilinos (Aislamiento Multi-tenant)
     match /artifacts/{appId}/public/data/finances_transactions/{docId} {
-      // Permitir get de un documento individual para el visor RIDE público con id/clave
-      allow get: if true;
-      // Listado permitido solo para personal del tenant, superadmin, o consulta pública unitaria
-      allow list: if (userBelongsToTenant(appId) && tenantVerified(appId)) || (request.query.limit <= 1);
+      // El visor RIDE público usa la API que devuelve sólo los datos del comprobante.
+      allow read: if userBelongsToTenant(appId) && tenantVerified(appId);
       // Escritura restringida estrictamente al tenant correspondiente o superadmin
       allow write: if tenantCanWrite(appId);
     }

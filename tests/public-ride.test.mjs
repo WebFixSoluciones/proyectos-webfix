@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolvePublicReceipt } from '../api/public-ride/receipt.js';
+import { projectPublicIssuer, resolvePublicReceipt } from '../api/public-ride/receipt.js';
 import handler from '../api/public-ride/index.js';
 import { sriDocumentLinks } from '../src/services/sriAuthorization.js';
 
@@ -29,6 +29,16 @@ test('the public invoice endpoint requires its fiscal key and exposes only RIDE 
   assert.equal(await resolvePublicReceipt(store, { tenantId: 'tenant-a', txId: invoice.id }), null);
   assert.equal(await resolvePublicReceipt(store, { tenantId: 'tenant-a', txId: invoice.id, claveAcceso: '0'.repeat(49) }), null);
   assert.equal((await resolvePublicReceipt(store, { tenantId: 'tenant-a', claveAcceso: key })).total, 10.5);
+});
+
+test('issuer fallback publishes fiscal identity without certificate or mail credentials', () => {
+  const issuer = projectPublicIssuer({
+    razonSocial: 'WebFix', ruc: '1754376901001', logoUrl: 'https://example.test/logo.png',
+    smtpPass: 'private', claveFirma: 'private', certificadoP12: 'private'
+  });
+  assert.deepEqual(issuer, {
+    razonSocial: 'WebFix', ruc: '1754376901001', logoUrl: 'https://example.test/logo.png'
+  });
 });
 
 test('the public endpoint rejects purchases, unfinished invoices, and invalid note tokens', async () => {

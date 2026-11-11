@@ -1,6 +1,6 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { resolvePublicReceipt } from './receipt.js';
+import { projectPublicIssuer, resolvePublicReceipt } from './receipt.js';
 
 function firestoreAdmin() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
@@ -50,7 +50,16 @@ export default async function handler(req, res) {
     };
     const receipt = await resolvePublicReceipt(store, { tenantId, txId, claveAcceso, token });
     if (!receipt) return res.status(404).json({ error: 'Comprobante no encontrado.' });
-    return res.status(200).json({ receipt });
+    const [config, info] = await Promise.all([
+      db.doc(`artifacts/${tenantId}/public/data/finances_settings/config`).get(),
+      db.doc(`artifacts/${tenantId}/public/data/meta/info`).get()
+    ]);
+    const issuer = {
+      ...projectPublicIssuer(info.exists ? info.data() : null),
+      ...projectPublicIssuer(config.exists ? config.data() : null),
+      ...receipt.emisorSnapshot
+    };
+    return res.status(200).json({ receipt, issuer });
   } catch (error) {
     if (error.message === 'PUBLIC_RIDE_NOT_CONFIGURED') return res.status(503).json({ error: 'Visor público en configuración.' });
     console.error('Error al consultar comprobante público:', error);

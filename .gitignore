@@ -30,3 +30,5 @@ tmp_verify/
 # Superpowers Brainstorm Companion
 .superpowers/
 .local-sri/
+.vercel
+.env*
