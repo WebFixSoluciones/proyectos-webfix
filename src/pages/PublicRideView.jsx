@@ -48,7 +48,7 @@ function numeroALetras(num) {
   if (entero === 0) enteroStr = 'CERO';
   else enteroStr = milesFn(entero);
 
-  return `SON: ${enteroStr} CON ${decimales}/100 DÓLARES`;
+  return `${enteroStr} CON ${decimales}/100 DÓLARES`;
 }
 
 function MockBarcode({ claveAcceso }) {
