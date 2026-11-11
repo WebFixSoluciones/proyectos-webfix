@@ -37,6 +37,8 @@ import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from 
 import { collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db, auth, firebaseConfig } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { DEFAULT_BILLING_PLANS } from '../config/billingPlans';
+import { validatePlanPayment, isBasePlanCategory, getSubscriptionExpiry } from '../services/subscriptionPlan';
 
 export default function SuperAdminPage({ showToast }) {
   const navigate = useNavigate();
@@ -135,44 +137,12 @@ export default function SuperAdminPage({ showToast }) {
         const list = [];
         snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
         
-        if (list.length === 0) {
-          // Initialize default plans if not created yet
-          const defaultPlans = [
-            {
-              id: 'starter',
-              name: 'Starter',
-              priceMonthly: 29,
-              priceYearly: 23,
-              maxUsers: 3,
-              maxProducts: 100,
-              modules: ['dashboard', 'ventas', 'personas', 'general_settings']
-            },
-            {
-              id: 'professional',
-              name: 'Profesional',
-              priceMonthly: 79,
-              priceYearly: 63,
-              maxUsers: 10,
-              maxProducts: 1000,
-              modules: ['dashboard', 'ventas', 'personas', 'inventario', 'team', 'calendar', 'general_settings']
-            },
-            {
-              id: 'enterprise',
-              name: 'Enterprise',
-              priceMonthly: 149,
-              priceYearly: 119,
-              maxUsers: 9999, // Ilimitado
-              maxProducts: 99999, // Ilimitado
-              modules: ['dashboard', 'ventas', 'personas', 'inventario', 'team', 'calendar', 'finances', 'compras', 'gastos_creditos', 'general_settings']
-            }
-          ];
-          for (const p of defaultPlans) {
-            await setDoc(doc(db, 'plans', p.id), p);
-          }
-          setPlans(defaultPlans);
-        } else {
-          setPlans(list);
+        const existingIds = new Set(list.map(plan => plan.id));
+        const missing = DEFAULT_BILLING_PLANS.filter(plan => !existingIds.has(plan.id));
+        for (const plan of missing) {
+          await setDoc(doc(db, 'plans', plan.id), plan);
         }
+        setPlans([...list, ...missing]);
       } catch (err) {
         console.error("Error cargando planes:", err);
       }
@@ -238,20 +208,39 @@ export default function SuperAdminPage({ showToast }) {
           throw new Error('Este pago ya fue procesado. Actualiza el listado.');
         }
         const payment = transferSnap.data();
+        const planRef = doc(db, 'plans', payment.planId);
+        const planSnap = await transaction.get(planRef);
+        if (!planSnap.exists()) throw new Error('El plan no existe en el catálogo del administrador.');
+        const plan = planSnap.data();
+        const category = validatePlanPayment(plan, payment);
         const tenantRef = doc(db, 'tenants', payment.tenantId);
         const tenantSnap = await transaction.get(tenantRef);
         if (!tenantSnap.exists()) throw new Error('No se encontró la empresa del pago.');
 
-        const currentExpiry = new Date(tenantSnap.data().expiresAt || 0);
-        const newExpiresAt = currentExpiry > new Date() ? currentExpiry : new Date();
-        newExpiresAt.setMonth(newExpiresAt.getMonth() + (payment.billingPeriod === 'yearly' ? 12 : 1));
-        transaction.update(tenantRef, {
-          planStatus: 'active',
-          expiresAt: newExpiresAt.toISOString(),
-          subscriptionExpiresAt: Timestamp.fromDate(newExpiresAt),
-          planId: payment.planId,
-          billingPeriod: payment.billingPeriod
-        });
+        const isBasePlan = isBasePlanCategory(category);
+        const tenant = tenantSnap.data();
+        const currentExpiryValue = isBasePlan
+          ? (tenant.subscriptionExpiresAt || tenant.expiresAt)
+          : tenant.serviceSubscriptions?.[category]?.expiresAt;
+        const newExpiresAt = getSubscriptionExpiry(currentExpiryValue, payment.billingPeriod);
+        if (isBasePlan) {
+          transaction.update(tenantRef, {
+            planStatus: 'active',
+            expiresAt: newExpiresAt.toISOString(),
+            subscriptionExpiresAt: Timestamp.fromDate(newExpiresAt),
+            planId: payment.planId,
+            billingPeriod: payment.billingPeriod
+          });
+        } else {
+          transaction.update(tenantRef, {
+            [`serviceSubscriptions.${category}`]: {
+              planId: payment.planId,
+              status: 'active',
+              billingPeriod: payment.billingPeriod,
+              expiresAt: Timestamp.fromDate(newExpiresAt)
+            }
+          });
+        }
         transaction.update(transferRef, {
           status: 'approved',
           approvedAt: new Date().toISOString(),
@@ -307,7 +296,15 @@ export default function SuperAdminPage({ showToast }) {
   const handleSavePlanEdit = async (e) => {
     e.preventDefault();
     try {
-      await setDoc(doc(db, 'plans', editingPlan.id), editingPlan, { merge: true });
+      if (![editingPlan.priceMonthly, editingPlan.priceYearly].every(price => Number.isFinite(price) && price > 0) ||
+        ![editingPlan.maxUsers, editingPlan.maxProducts].every(limit => Number.isInteger(limit) && limit >= 0)) {
+        showToast('Ingresa precios positivos y límites válidos.', 'warning');
+        return;
+      }
+      const { featuresText, ...planFields } = editingPlan;
+      const planToSave = { ...planFields, features: (featuresText || '').split('\n').map(item => item.trim()).filter(Boolean) };
+      await setDoc(doc(db, 'plans', editingPlan.id), planToSave, { merge: true });
+      setPlans(current => current.map(plan => plan.id === editingPlan.id ? planToSave : plan));
       showToast(`Configuración del plan ${editingPlan.name} guardada`, "success");
       setEditingPlan(null);
     } catch {
@@ -1531,7 +1528,7 @@ export default function SuperAdminPage({ showToast }) {
                 {plans.map((plan) => (
                   <div key={plan.id} className={`p-6 rounded-card border flex flex-col justify-between ${'bg-white border-border-default'}`}>
                     <div>
-                      <h4 className="text-sm font-bold mb-3">{plan.name}</h4>
+                      <h4 className="text-sm font-bold mb-3">{plan.name} <span className="text-xs text-text-secondary">({plan.category || 'erp'})</span></h4>
                       <div className="space-y-3.5 text-xs text-text-secondary">
                         <div className="flex justify-between">
                           <span>Precio Mensual:</span>
@@ -1552,7 +1549,7 @@ export default function SuperAdminPage({ showToast }) {
                         <div>
                           <span className="block mb-1">Módulos Habilitados:</span>
                           <div className="flex flex-wrap gap-1.5">
-                            {plan.modules.map(mod => (
+                            {(plan.modules || []).map(mod => (
                               <span key={mod} className="px-2 py-0.5 rounded bg-surface-muted  text-xs font-bold text-text-secondary uppercase">{mod}</span>
                             ))}
                           </div>
@@ -1561,7 +1558,7 @@ export default function SuperAdminPage({ showToast }) {
                     </div>
 
                     <button 
-                      onClick={() => setEditingPlan(plan)}
+                      onClick={() => setEditingPlan({ ...plan, featuresText: (plan.features || []).join('\n') })}
                       className="w-full mt-6 py-2.5 text-xs font-bold border border-border-default text-text-secondary hover:bg-surface-card hover:text-white rounded-card transition-all"
                     >
                       Personalizar Plan
@@ -1862,6 +1859,12 @@ export default function SuperAdminPage({ showToast }) {
               <button onClick={() => setEditingPlan(null)} className="text-text-secondary hover:text-white"><X size={16}/></button>
             </div>
             <form onSubmit={handleSavePlanEdit} className="space-y-4 text-left text-xs">
+              <div>
+                <label className="block font-bold mb-1">Nombre del plan</label>
+                <input type="text" maxLength={100} required value={editingPlan.name || ''}
+                  onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
+                  className="w-full p-2.5 rounded-md border outline-none bg-white border-border-strong" />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold mb-1">Precio Mensual ($ USD)</label>
@@ -1905,6 +1908,12 @@ export default function SuperAdminPage({ showToast }) {
               </div>
 
               <div>
+                <label className="block font-bold mb-1">Beneficios visibles en el catálogo (uno por línea)</label>
+                <textarea rows={4} value={editingPlan.featuresText || ''}
+                  onChange={e => setEditingPlan({ ...editingPlan, featuresText: e.target.value })}
+                  className="w-full p-2.5 rounded-md border outline-none bg-white border-border-strong" />
+              </div>
+              <div>
                 <label className="block font-bold mb-2">Módulos Habilitados</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 rounded-card border border-white/5 bg-white/2">
                   {(() => {
@@ -1918,7 +1927,8 @@ export default function SuperAdminPage({ showToast }) {
                       personas: 'Personas (Contactos)',
                       calendar: 'Calendario',
                       team: 'Equipo',
-                      contabilidad: 'Contabilidad SRI'
+                      contabilidad: 'Contabilidad SRI',
+                      general_settings: 'Ajustes generales'
                     };
                     return Object.keys(moduleLabels).map((mod) => {
                       const isChecked = editingPlan.modules?.includes(mod) || false;

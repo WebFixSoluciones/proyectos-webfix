@@ -128,17 +128,11 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
         categoryBrandRepository.getBrands()
       ]);
       
-      // Deduplicar productos por ID y por SKU
+      // El ID identifica cada registro. Los SKU duplicados heredados deben seguir visibles
+      // para que el administrador pueda corregirlos o desactivarlos.
       const uniqueMap = new Map<string, Product>();
-      const seenSkus = new Set<string>();
       for (const prod of allProducts) {
-        if (!prod || !prod.id) continue;
-        const skuKey = prod.sku ? prod.sku.trim().toUpperCase() : '';
-        if (uniqueMap.has(prod.id)) continue;
-        if (skuKey && seenSkus.has(skuKey)) continue;
-
-        uniqueMap.set(prod.id, prod);
-        if (skuKey) seenSkus.add(skuKey);
+        if (prod?.id) uniqueMap.set(prod.id, prod);
       }
       const uniqueProducts = Array.from(uniqueMap.values());
 
@@ -307,7 +301,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
       showToast?.(permanent ? 'Producto eliminado definitivamente.' : 'Producto desactivado y oculto de ventas.', 'success');
     } catch (err) {
       console.error(err);
-      showToast?.('Error al procesar la eliminación del producto.', 'error');
+      showToast?.(err instanceof Error ? err.message : 'Error al procesar la eliminación del producto.', 'error');
     }
   };
 

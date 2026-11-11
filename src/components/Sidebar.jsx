@@ -314,6 +314,7 @@ export default function Sidebar({
             {isSidebarOpen && expandedSidebarMenu === 'billing' && (
               <div className={menuBorderClass}>
                 {[
+                  { id: 'planes', label: 'Plan ERP' },
                   { id: 'facturacion', label: 'Facturación Electrónica' },
                   { id: 'paginas', label: 'Páginas Web' },
                   { id: 'correos', label: 'Correos Corporativos' },

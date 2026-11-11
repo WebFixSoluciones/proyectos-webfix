@@ -202,23 +202,25 @@ export default function App() {
     if (!planId) return;
     const currentPlan = plansList.find(p => p.id === planId) || PLANS[planId];
     if (currentPlan && currentPlan.modules) {
-      const isProfessional = currentPlan.id === 'professional';
-      const isEnterprise = currentPlan.id === 'enterprise';
-      const isStarter = currentPlan.id === 'starter';
-
+      const serviceModules = Object.values(tenantInfo?.serviceSubscriptions || {}).flatMap(subscription => {
+        const expiry = subscription.expiresAt?.toDate?.() || new Date(subscription.expiresAt || 0);
+        if (subscription.status !== 'active' || expiry <= new Date()) return [];
+        return plansList.find(plan => plan.id === subscription.planId)?.modules || [];
+      });
+      const hasModule = moduleId => currentPlan.modules.includes(moduleId) || serviceModules.includes(moduleId);
       const newModules = {
-        dashboard: currentPlan.modules.includes('dashboard'),
-        ventas: currentPlan.modules.includes('ventas'),
-        finances: currentPlan.modules.includes('finances') || currentPlan.modules.includes('contabilidad') || isEnterprise,
-        compras: currentPlan.modules.includes('compras') || currentPlan.modules.includes('contabilidad') || isEnterprise,
-        gastos_creditos: currentPlan.modules.includes('gastos_creditos') || currentPlan.modules.includes('contabilidad') || isEnterprise,
-        inventario: currentPlan.modules.includes('inventario') || isProfessional || isEnterprise,
-        personas: currentPlan.modules.includes('personas') || isStarter || isProfessional || isEnterprise,
-        team: currentPlan.modules.includes('team') || isProfessional || isEnterprise
+        dashboard: hasModule('dashboard'),
+        ventas: hasModule('ventas'),
+        finances: hasModule('finances') || hasModule('contabilidad'),
+        compras: hasModule('compras') || hasModule('contabilidad'),
+        gastos_creditos: hasModule('gastos_creditos') || hasModule('contabilidad'),
+        inventario: hasModule('inventario'),
+        personas: hasModule('personas'),
+        team: hasModule('team')
       };
       setActiveModules(newModules);
     }
-  }, [planId, plansList]);
+  }, [planId, plansList, tenantInfo?.serviceSubscriptions]);
   const [ventasInitialSubTab, setVentasInitialSubTab] = useState(() => localStorage.getItem('ventasInitialSubTab') || 'resumen_ventas');
   const [comprasInitialSubTab, setComprasInitialSubTab] = useState(() => localStorage.getItem('comprasInitialSubTab') || 'compras_resumen');
   const [contabilidadInitialSubTab, setContabilidadInitialSubTab] = useState(() => localStorage.getItem('contabilidadInitialSubTab') || 'dashboard');

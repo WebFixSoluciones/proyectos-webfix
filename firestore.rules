@@ -217,8 +217,21 @@ service cloud.firestore {
         request.resource.data.amount > 0 &&
         request.resource.data.referenceNumber is string &&
         request.resource.data.referenceNumber.size() > 0 &&
+        request.resource.data.id == transferId &&
         request.resource.data.planId is string &&
-        request.resource.data.billingPeriod in ['monthly', 'yearly'];
+        request.resource.data.billingPeriod in ['monthly', 'yearly'] &&
+        exists(/databases/$(database)/documents/plans/$(request.resource.data.planId)) &&
+        request.resource.data.category == get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data.category &&
+        request.resource.data.amount >= (
+          request.resource.data.billingPeriod == 'yearly'
+            ? get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data.priceYearly * 12 - 0.005
+            : get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data.priceMonthly - 0.005
+        ) &&
+        request.resource.data.amount <= (
+          request.resource.data.billingPeriod == 'yearly'
+            ? get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data.priceYearly * 12 + 0.005
+            : get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data.priceMonthly + 0.005
+        );
       allow read: if esSuperAdmin() || (
         esPersonalAutorizado() &&
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -238,20 +251,32 @@ service cloud.firestore {
       allow create: if esPersonalAutorizado() && (
         esSuperAdmin() ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         request.resource.data.tenantId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId)
+         request.resource.data.tenantId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId &&
+         request.resource.data.status == 'pending')
       );
-      allow read, update: if esSuperAdmin() || (
+      allow read: if esSuperAdmin() || (
         esPersonalAutorizado() &&
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         resource.data.tenantId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId
       );
-      allow delete: if esSuperAdmin();
+      allow update, delete: if esSuperAdmin();
     }
 
     // 6. Contact Leads desde la Landing Page
     match /landing_leads/{leadId} {
-      allow create: if true;
-      allow read, update, delete: if esPersonalAutorizado();
+      allow create: if request.resource.data.keys().hasOnly([
+          'nombre', 'email', 'telefono', 'empresa', 'mensaje', 'fecha', 'estado'
+        ]) && request.resource.data.keys().hasAll([
+          'nombre', 'email', 'telefono', 'empresa', 'mensaje', 'fecha', 'estado'
+        ]) &&
+        request.resource.data.nombre is string && request.resource.data.nombre.size() > 0 && request.resource.data.nombre.size() <= 120 &&
+        request.resource.data.email is string && request.resource.data.email.size() > 3 && request.resource.data.email.size() <= 254 &&
+        request.resource.data.telefono is string && request.resource.data.telefono.size() <= 40 &&
+        request.resource.data.empresa is string && request.resource.data.empresa.size() <= 160 &&
+        request.resource.data.mensaje is string && request.resource.data.mensaje.size() > 0 && request.resource.data.mensaje.size() <= 5000 &&
+        request.resource.data.fecha == request.time &&
+        request.resource.data.estado == 'nuevo';
+      allow read, update, delete: if esSuperAdmin();
     }
 
     // Denegar por defecto cualquier otra ruta no contemplada arriba.

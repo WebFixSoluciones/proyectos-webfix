@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where, runTransaction, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, runTransaction, limit } from 'firebase/firestore';
 import { db, getAppId } from '../../../firebase';
 import { ProductSchema } from '../domain/schemas/product.schema';
 import type { Product } from '../domain/schemas/product.schema';
@@ -13,8 +13,11 @@ export class ProductRepository {
     const existing = creating ? null : await this.findById(id);
     if (!creating && !existing) throw new Error('El producto ya no existe.');
     const merged = { ...existing, ...updates, id };
-    const duplicate = await this.findBySku(merged.sku || '');
-    if (duplicate && duplicate.id !== id) throw new Error('El SKU ya pertenece a otro producto.');
+    const skuChanged = creating || String(existing?.sku || '').trim().toUpperCase() !== String(merged.sku || '').trim().toUpperCase();
+    if (skuChanged) {
+      const duplicate = await this.findBySku(merged.sku || '');
+      if (duplicate && duplicate.id !== id) throw new Error('El SKU ya pertenece a otro producto.');
+    }
     if (merged.type === 'SUBPRODUCT' && (!merged.parentId || merged.parentId === id)) throw new Error('Selecciona un producto padre válido.');
     if (merged.type === 'COMBO' && !merged.comboItems?.length) throw new Error('Agrega al menos un componente al combo.');
     const relatedIds = merged.type === 'COMBO' ? (merged.comboItems || []).map(item => item.productId) : merged.type === 'SUBPRODUCT' ? [merged.parentId!] : [];
@@ -41,7 +44,7 @@ export class ProductRepository {
       const current = await tx.get(productRef);
       const sku = await tx.get(skuRef);
       if (!creating && !current.exists()) throw new Error('El producto ya no existe.');
-      if (sku.exists() && sku.data().productId !== id) throw new Error('El SKU ya está registrado.');
+      if (skuChanged && sku.exists() && sku.data().productId !== id) throw new Error('El SKU ya está registrado.');
       const live = current.data();
       const oldSkuRef = live?.sku && live.sku !== data.sku ? this.ref('inventory_skus', encodeURIComponent(live.sku)) : null;
       const oldSku = oldSkuRef ? await tx.get(oldSkuRef) : null;
@@ -50,7 +53,7 @@ export class ProductRepository {
       const baseCost = live?.stockByBranch ? live.baseCost : data.baseCost;
       tx.set(productRef, { ...data, stock, baseCost, createdAt: live?.createdAt || new Date() }, { merge: true });
       tx.set(this.ref('finances_products', id), { ...mirror, stock, cost: baseCost, updatedAt: new Date().toISOString() }, { merge: true });
-      tx.set(skuRef, { productId: id });
+      if (skuChanged || sku.data()?.productId === id) tx.set(skuRef, { productId: id });
       if (oldSkuRef && oldSku?.data()?.productId === id) tx.delete(oldSkuRef);
     });
     return { ...data, stock: existing?.stock ?? 0 };
@@ -69,21 +72,26 @@ export class ProductRepository {
   async findAll(): Promise<Product[]> { const snap = await getDocs(this.getCollectionRef()); return snap.docs.map(d => ({ ...d.data(), id: d.id }) as Product); }
   async delete(id: string, permanent: boolean = false): Promise<void> {
     if (permanent) {
-      const prod = await this.findById(id);
-      if (prod?.sku) {
-        try {
-          const skuRef = this.ref('inventory_skus', encodeURIComponent(prod.sku));
-          await deleteDoc(skuRef);
-        } catch {
-          // Ignorar si no existía registro previo del sku
+      const history = await getDocs(query(
+        collection(db, 'artifacts', getAppId(), 'public', 'data', 'inventory_kardex'),
+        where('productId', '==', id), limit(1)
+      ));
+      if (!history.empty) throw new Error('El producto tiene movimientos. Desactívalo para conservar su historial.');
+      await runTransaction(db, async tx => {
+        const productRef = this.ref('inventory_products', id);
+        const product = await tx.get(productRef);
+        if (!product.exists()) throw new Error('El producto ya no existe.');
+        const skuRef = product.data().sku ? this.ref('inventory_skus', encodeURIComponent(product.data().sku)) : null;
+        const sku = skuRef ? await tx.get(skuRef) : null;
+        const stockByBranch = product.data().stockByBranch || {};
+        const branchStock = Object.values(stockByBranch).some((balance: unknown) => Number((balance as { quantity?: number })?.quantity || 0) > 0);
+        if (Number(product.data().stock || 0) > 0 || branchStock) {
+          throw new Error('El producto tiene existencias. Desactívalo o ajusta el stock primero.');
         }
-      }
-      await deleteDoc(this.ref('inventory_products', id));
-      try {
-        await deleteDoc(this.ref('finances_products', id));
-      } catch {
-        // Ignorar si no existía espejo
-      }
+        tx.delete(productRef);
+        tx.delete(this.ref('finances_products', id));
+        if (skuRef && sku?.data()?.productId === id) tx.delete(skuRef);
+      });
       return;
     }
     // Preserve references from invoices, combos and ledger history.

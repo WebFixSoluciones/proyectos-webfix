@@ -28,6 +28,8 @@ try {
     await setDoc(doc(db, 'tenants', 'tenant-b'), { id: 'tenant-b', ownerUid: 'owner-b', planId: 'starter', planStatus: 'active', expiresAt: '2027-01-01T00:00:00Z', subscriptionExpiresAt: Timestamp.fromMillis(Date.now() + 30 * 86400000) });
     await setDoc(doc(db, 'users', 'root'), { uid: 'root', tenantId: 'tenant-a', email: 'root@example.test', role: 'superadmin', status: 'active' });
     await setDoc(doc(db, 'fin_movimientos', 'movement-b'), { tenantId: 'tenant-b', amount: 10 });
+    await setDoc(doc(db, 'plans', 'starter'), { id: 'starter', category: 'erp', priceMonthly: 29, priceYearly: 23 });
+    await setDoc(doc(db, 'plans', 'web_landing'), { id: 'web_landing', category: 'paginas', priceMonthly: 15, priceYearly: 12 });
     await setDoc(doc(db, 'users', 'expired-owner'), { uid: 'expired-owner', tenantId: 'expired-tenant', role: 'admin', status: 'active' });
     await setDoc(doc(db, 'tenants', 'expired-tenant'), {
       id: 'expired-tenant', ownerUid: 'expired-owner', planStatus: 'trial',
@@ -46,17 +48,40 @@ try {
   const root = client('root');
   await assertFails(updateDoc(doc(a, 'tenants', 'tenant-a'), { planStatus: 'active', planId: 'enterprise' }));
   await assertFails(setDoc(doc(a, 'transfers', 'fake-approved'), {
-    tenantId: 'tenant-a', status: 'approved', amount: 10, planId: 'enterprise',
+    id: 'fake-approved', tenantId: 'tenant-a', status: 'approved', amount: 29, planId: 'starter', category: 'erp',
     billingPeriod: 'monthly', referenceNumber: 'FAKE'
   }));
   await assertSucceeds(setDoc(doc(a, 'transfers', 'pending-a'), {
-    tenantId: 'tenant-a', status: 'pending', amount: 10, planId: 'starter',
+    id: 'pending-a', tenantId: 'tenant-a', status: 'pending', amount: 29, planId: 'starter', category: 'erp',
     billingPeriod: 'monthly', referenceNumber: 'BANK-123'
+  }));
+  await assertFails(setDoc(doc(a, 'transfers', 'underpaid'), {
+    id: 'underpaid', tenantId: 'tenant-a', status: 'pending', amount: 1, planId: 'starter', category: 'erp',
+    billingPeriod: 'monthly', referenceNumber: 'BANK-UNDER'
+  }));
+  await assertFails(setDoc(doc(a, 'transfers', 'wrong-category'), {
+    id: 'wrong-category', tenantId: 'tenant-a', status: 'pending', amount: 15, planId: 'web_landing', category: 'erp',
+    billingPeriod: 'monthly', referenceNumber: 'BANK-WRONG'
+  }));
+  await assertSucceeds(setDoc(doc(a, 'transfers', 'addon'), {
+    id: 'addon', tenantId: 'tenant-a', status: 'pending', amount: 15, planId: 'web_landing', category: 'paginas',
+    billingPeriod: 'monthly', referenceNumber: 'BANK-ADDON'
   }));
   await assertSucceeds(getDocs(query(collection(a, 'transfers'), where('tenantId', '==', 'tenant-a'))));
   await assertFails(updateDoc(doc(a, 'transfers', 'pending-a'), { status: 'approved' }));
   await assertFails(getDoc(doc(b, 'transfers', 'pending-a')));
   await assertSucceeds(updateDoc(doc(root, 'transfers', 'pending-a'), { status: 'approved' }));
+  const anonymous = env.unauthenticatedContext().firestore();
+  await assertSucceeds(setDoc(doc(anonymous, 'landing_leads', 'public-inquiry'), {
+    nombre: 'Prueba', email: 'test@example.test', telefono: '', empresa: '',
+    mensaje: 'Consulta de prueba', fecha: serverTimestamp(), estado: 'nuevo'
+  }));
+  await assertFails(getDoc(doc(anonymous, 'landing_leads', 'public-inquiry')));
+  await assertFails(getDoc(doc(a, 'landing_leads', 'public-inquiry')));
+  await assertSucceeds(getDoc(doc(root, 'landing_leads', 'public-inquiry')));
+  await assertFails(updateDoc(doc(a, 'landing_leads', 'public-inquiry'), { estado: 'cerrado' }));
+  await assertSucceeds(setDoc(doc(a, 'payment_vouchers', 'voucher-a'), { tenantId: 'tenant-a', status: 'pending' }));
+  await assertFails(updateDoc(doc(a, 'payment_vouchers', 'voucher-a'), { status: 'approved' }));
   await assertFails(updateDoc(doc(a, 'users', 'owner-a'), { role: 'superadmin' }));
   await assertFails(updateDoc(doc(a, 'fin_movimientos', 'movement-b'), { tenantId: 'tenant-a' }));
   await assertSucceeds(setDoc(doc(a, 'fin_movimientos', 'movement-a'), { tenantId: 'tenant-a', amount: 15 }));
