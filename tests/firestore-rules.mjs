@@ -103,7 +103,7 @@ try {
   const tenantId = 'new-tenant';
   batch.set(doc(fresh, 'tenants', tenantId), {
     id: tenantId, ownerUid: 'new-owner', companyName: 'Nueva empresa',
-    planId: 'starter', planStatus: 'pending_approval', requireEmailVerification: true,
+    planId: 'starter', billingPeriod: 'monthly', planStatus: 'pending_approval', requireEmailVerification: true,
     ownerEmail: 'new-owner@example.test', createdAt: serverTimestamp()
   });
   batch.set(doc(fresh, 'users', 'new-owner'), {
