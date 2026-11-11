@@ -2,14 +2,15 @@ import { UiInput } from '../components/ui/controls';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { doc, writeBatch, Timestamp, serverTimestamp } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, sendEmailVerification, deleteUser } from 'firebase/auth';
+import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { auth, db, setTenantId } from '../firebase';
 
 export default function RegisterPage({ showToast }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const planParam = searchParams.get('plan') || 'starter';
+  const requestedPlan = searchParams.get('plan');
+  const planParam = ['starter', 'professional', 'enterprise'].includes(requestedPlan) ? requestedPlan : 'starter';
   const periodParam = searchParams.get('period') || 'monthly';
 
   const [registerForm, setRegisterForm] = useState({
@@ -36,6 +37,8 @@ export default function RegisterPage({ showToast }) {
     if (isRegistering) return;
     setIsRegistering(true);
     setRegisterError('');
+    let createdUser = null;
+    let profileCreated = false;
 
     try {
       const email = registerForm.email.trim();
@@ -46,26 +49,23 @@ export default function RegisterPage({ showToast }) {
       // 1. Crear el usuario en Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      createdUser = user;
 
       // 2. Generar un tenantId aleatorio y único
       const generatedTenantId = `org_${user.uid.substring(0, 10)}_${new Date().getTime().toString().substring(8)}`;
 
       // 3. Crear el documento del inquilino (Tenant) en Firestore
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 14);
-
       const batch = writeBatch(db);
       const tenantData = {
         ownerUid: user.uid,
         id: generatedTenantId,
         companyName: companyName,
+        ownerEmail: user.email,
         planId: planParam,
-        planStatus: 'trial',
+        planStatus: 'pending_approval',
         requireEmailVerification: true,
         billingPeriod: periodParam,
-        createdAt: serverTimestamp(),
-        expiresAt: expiresAt.toISOString(),
-        trialExpiresAt: Timestamp.fromDate(expiresAt)
+        createdAt: serverTimestamp()
       };
 
       batch.set(doc(db, 'tenants', generatedTenantId), tenantData);
@@ -74,7 +74,7 @@ export default function RegisterPage({ showToast }) {
       const userData = {
         uid: user.uid,
         name: name,
-        email: email,
+        email: user.email,
         tenantId: generatedTenantId,
         role: 'admin',
         status: 'active',
@@ -116,26 +116,31 @@ export default function RegisterPage({ showToast }) {
       });
 
       await batch.commit();
+      profileCreated = true;
 
       // 6. Establecer el tenantId de forma dinámica
       setTenantId(generatedTenantId);
       try {
         await sendEmailVerification(user);
-        showToast?.('Empresa creada. Revisa tu correo para verificar la cuenta.', 'success');
+        showToast?.('Solicitud recibida. Verifica tu correo y espera la aprobación.', 'success');
       } catch {
-        showToast?.('Empresa creada. Solicita el enlace de verificación en la siguiente pantalla.', 'warning');
+        showToast?.('Solicitud recibida. Reenvía el enlace de verificación desde la siguiente pantalla.', 'warning');
       }
       navigate('/verify-email');
     } catch (error) {
       console.error('Registration error:', error);
+      if (createdUser && !profileCreated) {
+        try { await deleteUser(createdUser); } catch (cleanupError) { console.error('No se pudo revertir el alta incompleta:', cleanupError); }
+      }
       const errorMessages = {
         'auth/email-already-in-use': 'Este correo ya está registrado.',
         'auth/invalid-email': 'El correo electrónico no es válido.',
         'auth/operation-not-allowed': 'El registro de usuarios no está habilitado.',
         'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
         'auth/network-request-failed': 'Error de red. Verifica tu conexión a internet.',
+        'permission-denied': 'No se pudo guardar la solicitud. Intenta de nuevo.',
       };
-      setRegisterError(errorMessages[error.code] || `Error al registrarse: ${error.message}`);
+      setRegisterError(errorMessages[error.code] || 'No se pudo completar el registro. Intenta de nuevo.');
       showToast?.("Error en el registro", "error");
     } finally {
       setIsRegistering(false);
@@ -174,7 +179,7 @@ export default function RegisterPage({ showToast }) {
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-slate-900 border border-[#b3f4cb] dark:border-emerald-900/50 text-[11px] font-semibold text-[#006a43] dark:text-emerald-400">
           <ShieldCheck size={13} className="text-[#006a43] dark:text-emerald-400" />
-          <span>Prueba 14 días gratis</span>
+          <span>Solicitud con revisión</span>
         </div>
       </div>
 

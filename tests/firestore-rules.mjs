@@ -103,9 +103,8 @@ try {
   const tenantId = 'new-tenant';
   batch.set(doc(fresh, 'tenants', tenantId), {
     id: tenantId, ownerUid: 'new-owner', companyName: 'Nueva empresa',
-    planId: 'starter', planStatus: 'trial', requireEmailVerification: true,
-    createdAt: serverTimestamp(),
-    trialExpiresAt: Timestamp.fromMillis(Date.now() + 14 * 86400000)
+    planId: 'starter', planStatus: 'pending_approval', requireEmailVerification: true,
+    ownerEmail: 'new-owner@example.test', createdAt: serverTimestamp()
   });
   batch.set(doc(fresh, 'users', 'new-owner'), {
     uid: 'new-owner', tenantId, email: 'new-owner@example.test', role: 'admin', status: 'active'
@@ -113,7 +112,17 @@ try {
   batch.set(doc(fresh, 'artifacts', tenantId, 'public', 'data', 'meta', 'info'), { ready: true });
   await assertSucceeds(batch.commit());
   await assertFails(getDoc(doc(fresh, 'artifacts', tenantId, 'public', 'data', 'meta', 'info')));
-  await assertSucceeds(getDoc(doc(client('new-owner', true), 'artifacts', tenantId, 'public', 'data', 'meta', 'info')));
+  const verifiedOwner = client('new-owner', true);
+  await assertSucceeds(getDoc(doc(verifiedOwner, 'artifacts', tenantId, 'public', 'data', 'meta', 'info')));
+  await assertFails(setDoc(doc(verifiedOwner, 'artifacts', tenantId, 'public', 'data', 'inventory_products', 'early'), { name: 'Bloqueado' }));
+  await assertFails(setDoc(doc(verifiedOwner, 'users', 'early-staff'), {
+    uid: 'early-staff', tenantId, role: 'staff', status: 'active', email: 'staff@example.test'
+  }));
+  await assertSucceeds(updateDoc(doc(root, 'tenants', tenantId), {
+    planStatus: 'trial', trialExpiresAt: Timestamp.fromMillis(Date.now() + 14 * 86400000),
+    expiresAt: new Date(Date.now() + 14 * 86400000).toISOString()
+  }));
+  await assertSucceeds(setDoc(doc(verifiedOwner, 'artifacts', tenantId, 'public', 'data', 'inventory_products', 'approved'), { name: 'Aprobado' }));
   console.log('Firestore rules: tenant, payment, user, isolation and registration checks passed.');
 } finally {
   await env.cleanup();

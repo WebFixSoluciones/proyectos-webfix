@@ -55,6 +55,7 @@ export default function SuperAdminPage({ showToast }) {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [pendingOnly, setPendingOnly] = useState(false);
   
   // Selected Tenant Details State (for inline editing)
   const [selectedTenantDetails, setSelectedTenantDetails] = useState(null);
@@ -116,6 +117,8 @@ export default function SuperAdminPage({ showToast }) {
     const unsubTenants = onSnapshot(collection(db, 'tenants'), (snap) => {
       const list = [];
       snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+      const created = tenant => tenant.createdAt?.toMillis?.() || Date.parse(tenant.createdAt || '') || 0;
+      list.sort((a, b) => created(b) - created(a));
       setTenants(list);
     }, (error) => {
       console.warn("Superadmin tenants subscription blocked by security rules:", error);
@@ -199,6 +202,33 @@ export default function SuperAdminPage({ showToast }) {
   };
 
   // Actions
+  const handleApproveRegistration = async (tenant) => {
+    try {
+      await runTransaction(db, async transaction => {
+        const tenantRef = doc(db, 'tenants', tenant.id);
+        const snapshot = await transaction.get(tenantRef);
+        if (!snapshot.exists() || snapshot.data().planStatus !== 'pending_approval') {
+          throw new Error('Esta solicitud ya fue procesada. Actualiza el listado.');
+        }
+        const approvedAt = new Date();
+        const expiresAt = new Date(approvedAt);
+        expiresAt.setUTCDate(expiresAt.getUTCDate() + 14);
+        transaction.update(tenantRef, {
+          planStatus: 'trial',
+          trialExpiresAt: Timestamp.fromDate(expiresAt),
+          expiresAt: expiresAt.toISOString(),
+          approvedAt: approvedAt.toISOString(),
+          approvedBy: currentUser.uid
+        });
+      });
+      showToast('Empresa aprobada. La prueba de 14 días comienza hoy.', 'success');
+      setViewMode('list');
+      setSelectedTenantDetails(null);
+    } catch (error) {
+      showToast(error.message || 'No se pudo aprobar la solicitud.', 'error');
+    }
+  };
+
   const handleApproveTransfer = async (transfer) => {
     try {
       await runTransaction(db, async transaction => {
@@ -279,6 +309,10 @@ export default function SuperAdminPage({ showToast }) {
   const handleUpdateSubscription = async (e) => {
     e.preventDefault();
     try {
+      if (tenants.find(item => item.id === selectedTenantDetails.id)?.planStatus === 'pending_approval') {
+        showToast('Aprueba primero el registro desde el listado.', 'warning');
+        return;
+      }
       await updateDoc(doc(db, 'tenants', selectedTenantDetails.id), {
         planId: selectedTenantDetails.planId,
         planStatus: selectedTenantDetails.planStatus,
@@ -588,9 +622,13 @@ export default function SuperAdminPage({ showToast }) {
     }
   };
 
-  const filteredTenants = tenants.filter(t => 
-    t.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.id?.toLowerCase().includes(searchTerm.toLowerCase())
+  const pendingRegistrations = tenants.filter(tenant => tenant.planStatus === 'pending_approval');
+  const filteredTenants = tenants.filter(tenant =>
+    (!pendingOnly || tenant.planStatus === 'pending_approval') && (
+      tenant.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tenant.ownerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tenant.id?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   // Dashboard Stats
@@ -718,7 +756,7 @@ export default function SuperAdminPage({ showToast }) {
 
   const sidebarLinks = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'tenants', label: 'Empresas (Tenants)', icon: Building },
+    { id: 'tenants', label: 'Empresas (Tenants)', icon: Building, count: pendingRegistrations.length },
     { id: 'sri_monitor', label: 'Monitor SRI Global', icon: ShieldAlert, count: pendingSriDocs.length },
     { id: 'transfers', label: 'Aprobaciones', icon: CreditCard, count: pendingTransfers.length },
     { id: 'plans', label: 'Tarifas y Planes', icon: Sliders }
@@ -940,13 +978,17 @@ export default function SuperAdminPage({ showToast }) {
                         type="text" 
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        placeholder="Buscar empresa por Razón Social o ID..."
+                        placeholder="Buscar empresa, correo o ID..."
                         iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
                         size="2"
                         className="w-full"
                       />
                     </div>
                     
+                    <button type="button" onClick={() => setPendingOnly(value => !value)}
+                      className={`px-4 py-2.5 rounded-md border text-xs font-bold ${pendingOnly ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-white border-border-default text-text-secondary'}`}>
+                      Pendientes ({pendingRegistrations.length})
+                    </button>
                     <button 
                       onClick={() => setViewMode('create')}
                       className="px-4 py-2.5 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-md flex items-center gap-1.5 transition-colors self-end sm:self-auto"
@@ -960,6 +1002,7 @@ export default function SuperAdminPage({ showToast }) {
                       <thead>
                         <tr className={`border-b text-xs font-bold uppercase tracking-wider text-text-secondary ${'border-border-default bg-surface-bg'}`}>
                           <th className="px-6 py-4">Empresa</th>
+                          <th className="px-6 py-4">Correo de registro</th>
                           <th className="px-6 py-4">Inquilino ID</th>
                           <th className="px-6 py-4">Plan</th>
                           <th className="px-6 py-4">Estado</th>
@@ -970,12 +1013,13 @@ export default function SuperAdminPage({ showToast }) {
                       <tbody className="divide-y divide-slate-200/50  text-xs font-medium">
                         {filteredTenants.length === 0 ? (
                           <tr>
-                            <td colSpan="6" className="text-center py-10 text-text-secondary font-semibold">No se encontraron empresas.</td>
+                            <td colSpan="7" className="text-center py-10 text-text-secondary font-semibold">No se encontraron empresas.</td>
                           </tr>
                         ) : (
                           filteredTenants.map((tenant) => (
                             <tr key={tenant.id} className="hover:bg-surface-muted/10  transition-colors">
                               <td className="px-6 py-4 font-bold">{tenant.companyName}</td>
+                              <td className="px-6 py-4">{tenant.ownerEmail || '—'}</td>
                               <td className="px-6 py-4 font-mono text-text-secondary">{tenant.id}</td>
                               <td className="px-6 py-4 capitalize">{tenant.planId} ({tenant.billingPeriod || 'mensual'})</td>
                               <td className="px-6 py-4">
@@ -990,8 +1034,14 @@ export default function SuperAdminPage({ showToast }) {
                                    tenant.planStatus === 'pending_approval' ? 'Por Aprobar' : 'Suspendido'}
                                 </span>
                               </td>
-                              <td className="px-6 py-4">{new Date(tenant.expiresAt).toLocaleDateString('es-EC')}</td>
-                              <td className="px-6 py-4 text-right">
+                              <td className="px-6 py-4">{tenant.expiresAt ? new Date(tenant.expiresAt).toLocaleDateString('es-EC') : 'Sin activar'}</td>
+                              <td className="px-6 py-4 text-right whitespace-nowrap">
+                                {tenant.planStatus === 'pending_approval' && (
+                                  <button type="button" onClick={() => handleApproveRegistration(tenant)}
+                                    className="mr-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+                                    Aprobar
+                                  </button>
+                                )}
                                 <button 
                                   onClick={() => handleSelectTenant(tenant)} 
                                   className="p-1.5 rounded-md bg-surface-card/10 text-primary  hover:bg-surface-card hover:text-white transition-colors"
@@ -1055,6 +1105,7 @@ export default function SuperAdminPage({ showToast }) {
                             onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, planStatus: e.target.value })}
                             className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
                           >
+                            <option value="pending_approval">Por aprobar</option>
                             <option value="trial">Prueba (Trial)</option>
                             <option value="active">Activo</option>
                             <option value="suspended">Suspendido</option>

@@ -41,6 +41,7 @@ import LandingContact from './pages/landing/LandingContact';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import PendingApprovalPage from './pages/PendingApprovalPage';
 import SuperAdminPage from './pages/SuperAdminPage';
 import BillingPortal from './pages/billing/BillingPortal';
 import PublicRideView from './pages/PublicRideView';
@@ -146,7 +147,7 @@ export default function App() {
     const isSuperAdmin = String(userRole || '').toLowerCase().trim() === 'superadmin';
 
     if (!isAuthenticated) {
-      if (path.startsWith('/app') || path === '/superadmin' || path === '/verify-email') {
+      if (path.startsWith('/app') || path === '/superadmin' || path === '/verify-email' || path === '/pending-approval') {
         navigate('/login', { state: { from: path } });
       }
     } else {
@@ -155,6 +156,14 @@ export default function App() {
         return;
       }
       if (!emailVerificationRequired && path === '/verify-email') {
+        navigate(isSuperAdmin ? '/superadmin' : tenantInfo?.planStatus === 'pending_approval' ? '/pending-approval' : '/app');
+        return;
+      }
+      if (!isSuperAdmin && tenantInfo?.planStatus === 'pending_approval') {
+        if (path !== '/pending-approval') navigate('/pending-approval');
+        return;
+      }
+      if (path === '/pending-approval') {
         navigate(isSuperAdmin ? '/superadmin' : '/app');
         return;
       }
@@ -166,7 +175,7 @@ export default function App() {
         }
       }
     }
-  }, [isAuthenticated, location.pathname, userRole, emailVerificationRequired, navigate]);
+  }, [isAuthenticated, location.pathname, userRole, emailVerificationRequired, tenantInfo?.planStatus, navigate]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -778,6 +787,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage showToast={showToast} companyProfile={companyProfile} />} />
       <Route path="/register" element={<RegisterPage showToast={showToast} />} />
       <Route path="/verify-email" element={<VerifyEmailPage showToast={showToast} />} />
+      <Route path="/pending-approval" element={<PendingApprovalPage />} />
       <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
       <Route path="/public/ride" element={<PublicRideView />} />
       <Route path="/app/*" element={

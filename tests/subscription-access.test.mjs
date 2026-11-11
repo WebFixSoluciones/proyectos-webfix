@@ -33,3 +33,11 @@ test('an active subscription uses its protected expiry instead of the legacy dat
 test('explicit suspension blocks access without an expiry date', () => {
   assert.equal(isSubscriptionBlocked({ planStatus: 'suspended' }, now), true);
 });
+
+test('a new registration stays blocked until SuperAdmin approves its trial', () => {
+  assert.equal(isSubscriptionBlocked({ planStatus: 'pending_approval' }, now), true);
+  assert.equal(isSubscriptionBlocked({
+    planStatus: 'trial',
+    trialExpiresAt: { toDate: () => new Date('2026-11-23T12:00:00.000Z') }
+  }, now), false);
+});

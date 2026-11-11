@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut, reload } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, setTenantId } from '../firebase';
@@ -15,10 +15,11 @@ export function AuthProvider({ children }) {
   const [, setVerificationRevision] = useState(0);
 
   const [profileError, setProfileError] = useState('');
+  const migrationStarted = useRef('');
   useEffect(() => {
     let stopProfile = () => {};
     let stopTenant = () => {};
-    const clear = () => { setCurrentUser(null); setUserProfile(null); setTenantInfo(null); };
+    const clear = () => { setCurrentUser(null); setUserProfile(null); setTenantInfo(null); migrationStarted.current = ''; };
     const unsubscribe = onAuthStateChanged(auth, user => {
       stopProfile(); stopTenant(); clear(); setProfileError('');
       if (!user) { setLoading(false); return; }
@@ -59,12 +60,17 @@ export function AuthProvider({ children }) {
           clear(); setProfileError(profile ? 'Tu acceso está desactivado. Contacta al administrador.' : 'Tu cuenta todavía no tiene una empresa asignada.'); setLoading(false); return;
         }
         setTenantId(profile.tenantId);
-        // Importa una sola vez el histórico financiero del emisor identificado
-        // (RUC 1754376901001) hacia el espacio aislado de la empresa.
-        ensureFinanceMigration(db, profile.tenantId).catch(error => console.error('Migración financiera pendiente:', error));
         stopTenant = onSnapshot(doc(db, 'tenants', profile.tenantId), tenant => {
           if (!tenant.exists()) { clear(); setProfileError('La empresa asignada no está disponible.'); }
-          else { setUserProfile(profile); setTenantInfo(tenant.data()); setCurrentUser(user); setProfileError(''); }
+          else {
+            setUserProfile(profile); setTenantInfo(tenant.data()); setCurrentUser(user); setProfileError('');
+            if (['trial', 'active'].includes(tenant.data().planStatus) &&
+                (!tenant.data().requireEmailVerification || user.emailVerified) &&
+                migrationStarted.current !== profile.tenantId) {
+              migrationStarted.current = profile.tenantId;
+              ensureFinanceMigration(db, profile.tenantId).catch(error => console.error('Migración financiera pendiente:', error));
+            }
+          }
           setLoading(false);
         }, () => { clear(); setProfileError('No se pudo verificar el acceso a la empresa.'); setLoading(false); });
       }, () => { clear(); setProfileError('No se pudo verificar tu perfil de acceso.'); setLoading(false); });

@@ -39,7 +39,7 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tenantId == tenantId &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active' &&
-        tenantVerified(tenantId);
+        tenantVerified(tenantId) && tenantCanWrite(tenantId);
     }
 
     function tenantCanWrite(tenantId) {
@@ -195,12 +195,14 @@ service cloud.firestore {
         !exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         request.resource.data.ownerUid == request.auth.uid &&
         request.resource.data.id == tenantId &&
-        request.resource.data.planStatus == 'trial' &&
+        request.resource.data.planStatus == 'pending_approval' &&
+        request.resource.data.planId in ['starter', 'professional', 'enterprise'] &&
+        request.resource.data.billingPeriod in ['monthly', 'yearly'] &&
+        request.resource.data.ownerEmail == request.auth.token.email &&
         request.resource.data.requireEmailVerification == true &&
         request.resource.data.createdAt == request.time &&
-        request.resource.data.trialExpiresAt is timestamp &&
-        request.resource.data.trialExpiresAt >= request.time + duration.value(13, 'd') &&
-        request.resource.data.trialExpiresAt <= request.time + duration.value(14, 'd')
+        !('trialExpiresAt' in request.resource.data) &&
+        !('subscriptionExpiresAt' in request.resource.data)
       );
       allow update: if esSuperAdmin();
       allow delete: if esSuperAdmin();
