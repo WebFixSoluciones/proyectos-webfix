@@ -26,6 +26,35 @@ export function AuthProvider({ children }) {
       stopProfile = onSnapshot(doc(db, 'users', user.uid), snapshot => {
         stopTenant();
         const profile = snapshot.data();
+        const isSuperAdmin = String(profile?.role || '').toLowerCase().trim() === 'superadmin';
+
+        if (isSuperAdmin) {
+          if (profile?.tenantId) {
+            setTenantId(profile.tenantId);
+            ensureFinanceMigration(db, profile.tenantId).catch(error => console.error('Migración financiera pendiente:', error));
+            stopTenant = onSnapshot(doc(db, 'tenants', profile.tenantId), tenant => {
+              setUserProfile(profile);
+              setTenantInfo(tenant.exists() ? tenant.data() : { id: profile.tenantId, name: 'WebFix SuperAdmin', planStatus: 'active', planId: 'enterprise' });
+              setCurrentUser(user);
+              setProfileError('');
+              setLoading(false);
+            }, () => {
+              setUserProfile(profile);
+              setTenantInfo({ id: profile.tenantId, name: 'WebFix SuperAdmin', planStatus: 'active', planId: 'enterprise' });
+              setCurrentUser(user);
+              setProfileError('');
+              setLoading(false);
+            });
+          } else {
+            setUserProfile(profile || { role: 'superadmin', name: user.displayName || 'SuperAdmin', email: user.email });
+            setTenantInfo({ id: 'superadmin', name: 'WebFix Master Admin', planStatus: 'active', planId: 'enterprise' });
+            setCurrentUser(user);
+            setProfileError('');
+            setLoading(false);
+          }
+          return;
+        }
+
         if (!profile?.tenantId || profile.status !== 'active') {
           clear(); setProfileError(profile ? 'Tu acceso está desactivado. Contacta al administrador.' : 'Tu cuenta todavía no tiene una empresa asignada.'); setLoading(false); return;
         }

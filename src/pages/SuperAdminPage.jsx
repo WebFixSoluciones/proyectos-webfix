@@ -96,14 +96,15 @@ export default function SuperAdminPage({ showToast }) {
   const [isExporting, setIsExporting] = useState(false);
   const [isWiping, setIsWiping] = useState(false);
 
+  const isSuperAdmin = String(role || '').toLowerCase().trim() === 'superadmin';
+
   // Gating check: ensure only superadmins can access this page
   useEffect(() => {
-    if (currentUser && role !== 'superadmin') {
-      showToast("Acceso denegado. Se requieren permisos de super-administrador.", "error");
+    if (currentUser && !isSuperAdmin) {
+      showToast?.("Acceso denegado. Se requieren permisos de super-administrador.", "error");
       navigate('/app');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, role]);
+  }, [currentUser, isSuperAdmin, navigate, showToast]);
 
   // Load Tenants, Transfers, and Plans
   useEffect(() => {

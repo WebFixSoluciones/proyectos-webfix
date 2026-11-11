@@ -328,7 +328,7 @@ export default function Sidebar({
           </div>
 
           {/* SuperAdmin Access */}
-          {userRole === 'superadmin' && (
+          {String(userRole || '').toLowerCase().trim() === 'superadmin' && (
             <div className="pt-2 border-t border-slate-200 mt-2">
               <button 
                 type="button"

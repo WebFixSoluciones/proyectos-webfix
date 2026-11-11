@@ -1,13 +1,15 @@
 import { UiInput } from '../components/ui/controls';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, RefreshCw, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 export default function LoginPage({ showToast, companyProfile }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profileError } = useAuth();
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginError, setLoginError] = useState('');
@@ -39,9 +41,27 @@ export default function LoginPage({ showToast, companyProfile }) {
     setLoginError('');
 
     try {
-      await signInWithEmailAndPassword(auth, loginForm.email.trim(), loginForm.password);
+      const cred = await signInWithEmailAndPassword(auth, loginForm.email.trim(), loginForm.password);
       showToast?.("Sesión iniciada correctamente", "success");
-      navigate('/app');
+
+      // Consultar rol para redirigir directamente al panel correspondiente
+      let targetPath = '/app';
+      try {
+        const userDocSnap = await getDoc(doc(db, 'users', cred.user.uid));
+        const userRole = String(userDocSnap.data()?.role || '').toLowerCase().trim();
+        if (userRole === 'superadmin') {
+          targetPath = '/superadmin';
+        }
+      } catch (err) {
+        console.warn("No se pudo determinar rol inmediato al iniciar sesión:", err);
+      }
+
+      // Si venía de una ruta previa solicitada (ej. /superadmin), respetarla
+      const redirectFrom = location.state?.from;
+      if (redirectFrom && (redirectFrom !== '/superadmin' || targetPath === '/superadmin')) {
+        targetPath = redirectFrom;
+      }
+      navigate(targetPath, { replace: true });
     } catch (error) {
       console.error('Login error:', error.code);
       const errorMessages = {

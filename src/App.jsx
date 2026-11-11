@@ -143,9 +143,11 @@ export default function App() {
 
   useEffect(() => {
     const path = location.pathname;
+    const isSuperAdmin = String(userRole || '').toLowerCase().trim() === 'superadmin';
+
     if (!isAuthenticated) {
       if (path.startsWith('/app') || path === '/superadmin' || path === '/verify-email') {
-        navigate('/login');
+        navigate('/login', { state: { from: path } });
       }
     } else {
       if (emailVerificationRequired && path !== '/verify-email') {
@@ -153,11 +155,11 @@ export default function App() {
         return;
       }
       if (!emailVerificationRequired && path === '/verify-email') {
-        navigate(userRole === 'superadmin' ? '/superadmin' : '/app');
+        navigate(isSuperAdmin ? '/superadmin' : '/app');
         return;
       }
       if (path === '/login' || path === '/register' || path === '/') {
-        if (userRole === 'superadmin') {
+        if (isSuperAdmin) {
           navigate('/superadmin');
         } else {
           navigate('/app');
@@ -177,18 +179,22 @@ export default function App() {
     }
   }, [location.pathname, isAuthenticated]);
 
+  const prevActivePageIdRef = useRef(activePageId);
+
   useEffect(() => {
+    const prevPageId = prevActivePageIdRef.current;
+    prevActivePageIdRef.current = activePageId;
     if (!isAuthenticated) return;
     const currentPath = location.pathname;
+    // Solo sincronizar rutas de billing si el usuario se encuentra dentro del ERP (/app)
+    if (!currentPath.startsWith('/app')) return;
+
     if (activePageId === 'billing') {
       if (currentPath !== '/app/billing') navigate('/app/billing');
-    } else {
-      if (currentPath === '/app/billing') {
-        navigate('/app');
-      }
+    } else if (prevPageId === 'billing' && currentPath === '/app/billing') {
+      navigate('/app');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePageId, isAuthenticated, navigate]);
+  }, [activePageId, isAuthenticated, navigate, location.pathname]);
 
 
 
@@ -256,7 +262,7 @@ export default function App() {
     }
     window.location.reload();
   };
-
+  
   // eslint-disable-next-line no-unused-vars
   const isDarkMode = false;
   // eslint-disable-next-line no-unused-vars
@@ -389,16 +395,26 @@ export default function App() {
   }, []);
 
   // --- INTEGRACIÓN CON EL HISTORIAL DEL NAVEGADOR (botón Atrás/Adelante) ---
-  // Al iniciar sesión, sembramos una entrada base y escuchamos el botón atrás.
+  // Al iniciar sesión, sembramos una entrada base y escuchamos el botón atrás SOLO en el ERP (/app).
   // Esto evita que "Atrás" saque al usuario del sistema: navega entre páginas
   // visitadas y, al llegar al piso, aterriza en el Dashboard.
+  const isInAppRoute = location.pathname.startsWith('/app');
+  const activePageIdRef = useRef(activePageId);
   useEffect(() => {
-    if (!isAuthenticated) return;
+    activePageIdRef.current = activePageId;
+  }, [activePageId]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !isInAppRoute) {
+      navInitialized.current = false;
+      return;
+    }
 
     // Sembrar la entrada actual del historial con la página activa
-    window.history.replaceState({ activePageId }, '');
+    window.history.replaceState({ activePageId: activePageIdRef.current }, '');
 
     const onPopState = (e) => {
+      if (!window.location.pathname.startsWith('/app')) return;
       isPopNavigation.current = true;
       if (e.state && e.state.activePageId) {
         setActivePageId(e.state.activePageId);
@@ -412,26 +428,24 @@ export default function App() {
 
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-    // Solo al cambiar el estado de autenticación (no en cada navegación)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isInAppRoute]);
 
-  // Empujar una nueva entrada al historial cada vez que cambia la página activa,
+  // Empujar una nueva entrada al historial cada vez que cambia la página activa dentro del ERP,
   // salvo que el cambio provenga del propio botón atrás/adelante.
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !isInAppRoute) return;
     if (isPopNavigation.current) {
       isPopNavigation.current = false;
       return;
     }
-    // Saltar el primer disparo tras autenticarse: la entrada base ya fue sembrada
-    // con replaceState en el efecto anterior, evitando una entrada duplicada.
+    // Saltar el primer disparo tras autenticarse o entrar a /app: la entrada base ya fue
+    // sembrada con replaceState en el efecto anterior, evitando una entrada duplicada.
     if (!navInitialized.current) {
       navInitialized.current = true;
       return;
     }
     window.history.pushState({ activePageId }, '');
-  }, [activePageId, isAuthenticated]);
+  }, [activePageId, isAuthenticated, isInAppRoute]);
 
   const [companyProfile, setCompanyProfile] = useState(null);
   // eslint-disable-next-line no-unused-vars
@@ -461,6 +475,13 @@ export default function App() {
 
   useEffect(() => {
     if (!isAuthenticated || !auth.currentUser || emailVerificationRequired) return;
+    const isSuperAdmin = String(userRole || '').toLowerCase().trim() === 'superadmin';
+
+    // Si estamos en /superadmin o somos superadmin fuera del ERP (/app), no suscribir al sandbox de empresa
+    if (location.pathname.startsWith('/superadmin') || (isSuperAdmin && !location.pathname.startsWith('/app'))) {
+      setIsLoadingFinances(false);
+      return;
+    }
 
     const metaDoc = doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info');
 
@@ -479,10 +500,10 @@ export default function App() {
       }
     }, err => {
       console.error("Error subscribing to meta:", err);
-      triggerSyncError();
+      if (!isSuperAdmin) triggerSyncError();
     });
 
-    const usersRef = userRole === 'admin' || userRole === 'superadmin'
+    const usersRef = userRole === 'admin' || isSuperAdmin
       ? query(collection(db, 'users'), where('tenantId', '==', appId))
       : doc(db, 'users', currentUser.uid);
     const unsubUsers = onSnapshot(usersRef, snap => {
@@ -501,7 +522,7 @@ export default function App() {
     }, (err) => {
       console.error("Error subscribing to global transactions:", err);
       setIsLoadingFinances(false);
-      triggerSyncError();
+      if (!isSuperAdmin) triggerSyncError();
     });
 
     // 3. Escuchar Terceros
@@ -511,7 +532,7 @@ export default function App() {
       setGlobalThirdParties(tpData);
     }, (err) => {
       console.error("Error subscribing to global third parties:", err);
-      triggerSyncError();
+      if (!isSuperAdmin) triggerSyncError();
     });
 
     // 4. Escuchar Productos (Centralizado desde inventory_products)
@@ -521,7 +542,7 @@ export default function App() {
       setRawProducts(prodData);
     }, (err) => {
       console.error("Error subscribing to global products:", err);
-      triggerSyncError();
+      if (!isSuperAdmin) triggerSyncError();
     });
 
     // 5. Escuchar Categorías de Inventario
@@ -575,7 +596,7 @@ export default function App() {
     };
 
     return () => { if (window.__unsubFirestore) window.__unsubFirestore(); };
-  }, [isAuthenticated, currentUser, userRole, emailVerificationRequired]);
+  }, [isAuthenticated, currentUser, userRole, emailVerificationRequired, location.pathname]);
 
   // Determinar página activa
   // --- Lógica de Usuarios ---
@@ -591,7 +612,7 @@ export default function App() {
     }
     const initials = drawerUser.name.trim().split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() || 'U';
     const userToSave = { ...drawerUser, initials, name: drawerUser.name.trim() };
-
+    
     let newUsers;
     if (drawerUser.isNew) {
       delete userToSave.isNew;
@@ -656,7 +677,7 @@ export default function App() {
     e.preventDefault();
     setIsAuthenticating(true);
     setLoginError('');
-
+    
     try {
       await signInWithEmailAndPassword(auth, loginForm.email.trim(), loginForm.password);
     } catch (error) {
@@ -680,7 +701,7 @@ export default function App() {
       // Limpiar cachés locales y de sesión
       localStorage.clear();
       sessionStorage.clear();
-
+      
       // Limpiar cachés del navegador (Service Workers, etc.) si está disponible
       if ('caches' in window) {
         const cacheNames = await caches.keys();
@@ -689,10 +710,10 @@ export default function App() {
     } catch (error) {
       console.error("Error limpiando las cachés:", error);
     }
-
+    
     // Cerrar sesión en Firebase
     await signOut(auth);
-
+    
     // Recargar la página para limpiar toda la memoria y estados de React
     window.location.reload();
   };
@@ -735,7 +756,7 @@ export default function App() {
 
   // --- DETECTAR MÓDULOS BLOQUEADOS O SUSPENDIDOS ---
   const isPageGated = ['finances', 'compras', 'gastos_creditos', 'inventario', 'team'].includes(activePageId);
-
+  
   const isModuleLocked = (() => {
     if (!isPageGated) return false;
     if (activePageId === 'team') {
@@ -790,7 +811,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <UiBox {...{"className":"flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]"}}>
-
+        
         {/* Topbar Stripe (Brevo Design System Header) */}
         <header className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 bg-white select-none z-30">
           {/* Left: Sidebar Toggle */}
@@ -891,7 +912,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="h-[1px] bg-slate-100 my-1" />
-
+                  
                   <button
                     type="button"
                     onClick={() => { setIsProfileMenuOpen(false); setBillingInitialSubTab('planes'); setActivePageId('billing'); }}
@@ -1148,7 +1169,7 @@ export default function App() {
                   <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","className":"block mb-2"}, {}, {"color":"gray"})}>Nombre Completo</UiLabel>
                   <UiInput type="text" value={drawerUser.name} onChange={(e) => setDrawerUser(prev => ({ ...prev, name: e.target.value }))} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, resolveThemeProps(currentGlassInput))} placeholder="Ej. Jane Doe" />
                 </UiBox>
-
+                
                 <UiBox>
                   <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","className":"block mb-2"}, {}, {"color":"gray"})}>Cargo / Puesto</UiLabel>
                   <UiInput type="text" value={drawerUser.job} onChange={(e) => setDrawerUser(prev => ({ ...prev, job: e.target.value }))} {...mergeThemeProps({"size":"2","className":"w-full"}, {}, resolveThemeProps(currentGlassInput))} placeholder="Ej. Frontend Developer" />
@@ -1178,7 +1199,7 @@ export default function App() {
 
               </UiBox>
             </UiBox>
-
+            
             <UiCard {...mergeThemeProps({"className":"px-6 py-4 flex justify-end shrink-0"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)"}})}>
               <UiButton onClick={() => setDrawerUser(null)} {...mergeThemeProps({"size":"2"}, {}, {"color":"gray"})}>Cancelar</UiButton>
               <UiButton onClick={saveDrawerUser} disabled={!drawerUser.name.trim()} {...mergeThemeProps({"size":"2","className":"flex items-center gap-2 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-105"}, {}, {"variant":"solid","color":"blue"})}><Save size={16} /> Guardar Usuario</UiButton>
