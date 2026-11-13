@@ -1,4 +1,5 @@
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiButton, UiInput, UiSelect } from '../ui/controls';
 import { useState } from 'react';
 import { X, DollarSign } from 'lucide-react';
@@ -41,8 +42,8 @@ export default function MovimientoAbono({ movimiento, onClose, onSave, db, usuar
     }
   };
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[110] flex items-center justify-center"}}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}}>
       <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm mx-4"}}>
         <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-4"}}>
           <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Registrar Abono</UiHeading>

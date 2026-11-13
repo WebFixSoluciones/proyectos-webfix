@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiInput } from '../ui/controls';
 import { useState, useEffect, useRef } from 'react';
@@ -301,7 +302,7 @@ export default function FinanceModule({
   const displayedTabs = getTabsForMode();
 
   return (
-    <UiBox {...mergeThemeProps({"className":"flex flex-col h-full w-full animate-in fade-in duration-500 overflow-hidden"})}>
+    <UiBox {...mergeThemeProps({"className":"erp-workspace flex flex-col h-full w-full overflow-hidden"})}>
       
       {/* BARRA DE NAVEGACIÓN ESTÁNDAR DE SUBMÓDULOS DESTE ACCORDION SIDEBAR */}
 
@@ -591,8 +592,8 @@ export default function FinanceModule({
       )}
 
       {/* Modal: Seleccion de Metodo de Compra */}
-      {showPurchaseMethodSelect && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setShowPurchaseMethodSelect(false)}>
+      {showPurchaseMethodSelect && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setShowPurchaseMethodSelect(false)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-lg"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
               <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Registrar Compra</UiHeading>

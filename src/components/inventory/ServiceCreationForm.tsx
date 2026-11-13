@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
@@ -568,8 +569,8 @@ export default function ServiceCreationForm({
     return formJSX;
   }
 
-  return (
-    <UiBox style={{ backgroundColor: "var(--black-a7)" }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+  return createThemedPortal(
+    <UiBox className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-6">
       {formJSX}
     </UiBox>
   );

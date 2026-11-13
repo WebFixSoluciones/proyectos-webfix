@@ -1,5 +1,6 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiHeading, UiCard, UiText, UiLabel } from '../ui/layout';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect } from 'react';
 import { 
@@ -740,8 +741,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       )}
 
       {/* ============ MODAL: RIDE Viewer ============ */}
-      {selectedRide && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setSelectedRide(null)}>
+      {selectedRide && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setSelectedRide(null)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-lg"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
               <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>RIDE - {selectedRide.documentNumber}</UiHeading>
@@ -770,8 +771,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       )}
 
       {/* ============ MODAL: Import Method Selector ============ */}
-      {importModal && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setImportModal(null)}>
+      {importModal && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setImportModal(null)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
               <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Importar a Historial de Compras</UiHeading>
@@ -798,8 +799,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       )}
 
       {/* ============ MODAL: Confirmar Limpieza de Buzon ============ */}
-      {confirmClear && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setConfirmClear(false)}>
+      {confirmClear && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setConfirmClear(false)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"className":"p-5 text-center space-y-4"}}>
               <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"mx-auto w-12 h-12 flex items-center justify-center"}}>
@@ -821,8 +822,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       )}
 
       {/* ============ MODAL: Confirmar Eliminacion Individual ============ */}
-      {confirmDeleteId && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setConfirmDeleteId(null)}>
+      {confirmDeleteId && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setConfirmDeleteId(null)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"className":"p-5 text-center space-y-4"}}>
               <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"mx-auto w-12 h-12 flex items-center justify-center"}}>

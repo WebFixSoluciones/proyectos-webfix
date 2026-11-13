@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiHeading, UiText, UiLabel, UiCard } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
 import { useState, useEffect, useRef, Fragment } from 'react';
@@ -373,8 +374,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     productSearch ? (p.name?.toLowerCase().includes(productSearch.toLowerCase()) || p.sku?.toLowerCase().includes(productSearch.toLowerCase())) : true
   ).slice(0, 8);
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-2 sm:p-4"}} onClick={onClose}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-2 sm:p-4"}} onClick={onClose}>
       <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden"}} onClick={e => e.stopPropagation()}>
         
         {/* Header + Stepper */}

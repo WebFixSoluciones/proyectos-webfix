@@ -50,3 +50,34 @@
   background-color: transparent !important;
 }
 
+/* Brevo-inspired ERP surfaces. Interactive controls remain Radix Themes components. */
+.erp-workspace :is(.shadow-xs, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl),
+.erp-dialog-overlay :is(.shadow-xs, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  box-shadow: none !important;
+}
+
+.erp-workspace .rt-Button.rt-variant-solid:not([data-accent-color="red"]):not(:disabled),
+.erp-dialog-overlay .rt-Button.rt-variant-solid:not([data-accent-color="red"]):not(:disabled) {
+  background-color: #1b1b1b;
+  color: white;
+}
+
+.erp-workspace .rt-Button.rt-variant-solid:not([data-accent-color="red"]):not(:disabled):hover,
+.erp-dialog-overlay .rt-Button.rt-variant-solid:not([data-accent-color="red"]):not(:disabled):hover {
+  background-color: #333;
+}
+
+.erp-dialog-overlay {
+  background-color: rgba(15, 23, 42, .44) !important;
+}
+
+.erp-dialog-overlay > :first-child {
+  max-height: min(92vh, 920px);
+  border: 1px solid var(--gray-a6);
+  border-radius: 16px !important;
+  background-color: var(--color-panel-solid);
+  box-shadow: none !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+

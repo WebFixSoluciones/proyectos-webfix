@@ -1,5 +1,6 @@
 import { resolveThemeProps } from '../ui/themeProps';
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiInput } from '../ui/controls';
 import { useState, useEffect, useCallback } from 'react';
@@ -298,8 +299,8 @@ function FormPrestamo({ db, usuario, showToast, onClose }) {
     } catch (e) { showToast('Error: ' + e.message, 'error'); } finally { setSaving(false); }
   };
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={onClose}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={onClose}>
       <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-2xl max-h-[90vh] overflow-y-auto"}} onClick={e => e.stopPropagation()}>
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex items-center justify-between px-5 py-3 sticky top-0 z-10"}}>
           <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Nuevo Préstamo Bancario</UiHeading>

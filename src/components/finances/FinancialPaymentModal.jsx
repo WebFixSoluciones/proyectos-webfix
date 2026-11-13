@@ -87,7 +87,7 @@ export default function FinancialPaymentModal({
   return createPortal(
     <UiBox
       {...mergeThemeProps(
-        { "style": { "backgroundColor": "var(--black-a7)" }, "className": "fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200" }
+        { "className": "erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4" }
       )}
       onClick={onClose}
     >

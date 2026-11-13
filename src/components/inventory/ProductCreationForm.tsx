@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
@@ -833,7 +834,7 @@ export default function ProductCreationForm({
                 </div>
 
                 {/* Inputs principales */}
-                <div className="flex-1 w-full space-y-3">
+                <div className="min-w-0 w-full flex-1 space-y-3 sm:w-auto">
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                     {/* SKU / Código */}
                     <div className="sm:col-span-5">
@@ -874,7 +875,7 @@ export default function ProductCreationForm({
                     </div>
 
                     {/* Categoría */}
-                    <div className="sm:col-span-6">
+                    <div className="min-w-0 sm:col-span-6">
                       <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
                         Categoría
                       </UiLabel>
@@ -885,7 +886,7 @@ export default function ProductCreationForm({
                           onChange={handleInputChange}
                           size="2"
                           color="gray"
-                          className="w-full"
+                          className="min-w-0 flex-1"
                         >
                           <option value="">Sin Categoría</option>
                           {categories.map(cat => (
@@ -907,7 +908,7 @@ export default function ProductCreationForm({
                     </div>
 
                     {/* Marca */}
-                    <div className="sm:col-span-6">
+                    <div className="min-w-0 sm:col-span-6">
                       <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
                         Marca
                       </UiLabel>
@@ -918,7 +919,7 @@ export default function ProductCreationForm({
                           onChange={handleInputChange}
                           size="2"
                           color="gray"
-                          className="w-full"
+                          className="min-w-0 flex-1"
                         >
                           <option value="">Sin Marca</option>
                           {brands.map(brand => (
@@ -1727,8 +1728,8 @@ export default function ProductCreationForm({
       </form>
 
       {/* POPUP MODAL: AGREGAR CATEGORÍA */}
-      {showCategoryPopup && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200"}}>
+      {showCategoryPopup && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[400] flex items-center justify-center p-3 sm:p-4"}}>
           <form onSubmit={handleAddCategory} {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-sm p-6"})}>
             <UiHeading as="h3" {...{"size":"2","weight":"bold","className":"flex items-center gap-2 mb-4"}}>
               <FolderPlus {...{"style":{"color":"var(--blue-12)"}}} size={18} />
@@ -1780,8 +1781,8 @@ export default function ProductCreationForm({
       )}
 
       {/* POPUP MODAL: AGREGAR MARCA */}
-      {showBrandPopup && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200"}}>
+      {showBrandPopup && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[400] flex items-center justify-center p-3 sm:p-4"}}>
           <form onSubmit={handleAddBrand} {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-sm p-6"})}>
             <UiHeading as="h3" {...{"size":"2","weight":"bold","className":"flex items-center gap-2 mb-4"}}>
               <Plus {...{"style":{"color":"var(--blue-12)"}}} size={18} />
@@ -1833,8 +1834,8 @@ export default function ProductCreationForm({
       )}
 
       {/* POPUP MODAL: CALCULADOR DE PRECIOS SIN IMPUESTO */}
-      {showPriceWithoutTaxPopup && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200"}}>
+      {showPriceWithoutTaxPopup && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[400] flex items-center justify-center p-3 sm:p-4"}}>
           <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-sm p-6"})}>
             <UiHeading as="h3" {...{"size":"2","weight":"bold","className":"flex items-center gap-2 mb-3"}}>
               <DollarSign {...{"style":{"color":"var(--blue-12)"}}} size={18} />
@@ -1902,8 +1903,8 @@ export default function ProductCreationForm({
       )}
       
       {/* POPUP MODAL: AGREGAR PROVEEDOR IN-SITU */}
-      {showNewSupplierPopup && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200"}}>
+      {showNewSupplierPopup && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[400] flex items-center justify-center p-3 sm:p-4"}}>
           <form onSubmit={handleAddNewSupplier} {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-sm p-6 space-y-4"})}>
             <UiHeading as="h3" {...{"size":"2","weight":"bold","className":"flex items-center gap-2"}}>
               <Plus {...{"style":{"color":"var(--blue-12)"}}} size={18} />
@@ -1983,8 +1984,8 @@ export default function ProductCreationForm({
     return formJSX;
   }
 
-  return (
-    <UiBox {...mergeThemeProps({"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"})}>
+  return createThemedPortal(
+    <UiBox {...mergeThemeProps({"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-6"})}>
       {formJSX}
     </UiBox>
   );

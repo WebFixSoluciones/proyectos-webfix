@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiLabel, UiText } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
 import { useState, useEffect, useRef } from 'react';
@@ -133,8 +134,8 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
     }
   };
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-start justify-center pt-10 pb-10 overflow-y-auto"}}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-start justify-center p-3 sm:p-6 overflow-y-auto"}}>
       <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-2xl mx-4"}}>
         <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-4"}}>
           <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true}}>

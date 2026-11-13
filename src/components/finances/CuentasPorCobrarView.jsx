@@ -654,7 +654,7 @@ export default function CuentasPorCobrarView({
       {/* 6. MODAL DETALLE Y MOVIMIENTOS DE LA CUENTA */}
       {selectedItemForDetail && createPortal(
         <div 
-          className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200"
+          className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"
           onClick={() => setSelectedItemForDetail(null)}
         >
           <div 

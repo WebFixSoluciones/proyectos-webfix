@@ -84,12 +84,22 @@ try {
   console.log('PASS: POS abre venta y conserva carrito al cancelar');
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=inventory');
   await page.getByRole('button', { name: /Nuevo Producto/i }).click();
+  assert.equal(await page.locator('.erp-dialog-overlay').last().evaluate(el => {
+    const panel = el.firstElementChild;
+    const rect = panel.getBoundingClientRect();
+    const center = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return document.body.contains(el) && panel.contains(center);
+  }), true, 'El selector de inventario debe quedar sobre la pantalla');
   await page.getByText('Combo / Kit Promocional', { exact: true }).click();
   await page.getByRole('button', { name: 'Componente', exact: true }).click();
   await page.getByRole('combobox', { name: 'Componente 1', exact: true }).click();
   await page.getByRole('option', { name: 'Teclado USB', exact: true }).click();
   await page.getByRole('spinbutton', { name: 'Cantidad del componente 1', exact: true }).fill('2');
   assert.match(await page.getByRole('combobox', { name: 'Componente 1', exact: true }).innerText(), /Teclado USB/);
+  assert.equal(await page.locator('button[title="Agregar Marca"]').evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    return rect.left >= 0 && rect.right <= window.innerWidth && el.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+  }), true, 'La acción de marca debe estar visible dentro del formulario');
   await page.screenshot({ path: 'docs/design-review/screenshots/inventario-combo.png', fullPage: true });
   console.log('PASS: inventario permite definir componentes y cantidades de un combo');
   await page.getByRole('button', { name: /Cancelar/i }).last().click();
@@ -147,6 +157,13 @@ try {
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_resumen');
   await page.getByRole('button', { name: /Registrar Compra/i }).first().waitFor();
   await page.screenshot({ path: 'docs/design-review/screenshots/radix-compras.png', fullPage: true });
+  await page.getByRole('button', { name: /Registrar Compra/i }).first().click();
+  assert.equal(await page.locator('.erp-dialog-overlay').last().evaluate(el => {
+    const panel = el.firstElementChild;
+    const rect = panel.getBoundingClientRect();
+    const center = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return document.body.contains(el) && panel.contains(center);
+  }), true, 'El selector de compra debe quedar sobre la pantalla');
   assert.deepEqual(errors, []);
   console.log('PASS: apertura de 11 submódulos financieros y compras con Themes sin errores JavaScript');
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_preventa');

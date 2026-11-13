@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiSelect, UiInput, UiTextarea } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
@@ -143,8 +144,8 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
 
   const isZeroInventoryConfUnlocked = doubleConfirmationText === 'CONFIRMAR ZERO INVENTARIO';
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"}}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-6"}}>
       <UiBox 
         {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"})}
       >

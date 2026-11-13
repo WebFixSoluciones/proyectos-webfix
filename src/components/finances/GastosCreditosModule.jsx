@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiText, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiInput, UiSelect } from '../ui/controls';
 import { useState, useEffect } from 'react';
@@ -485,8 +486,8 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
       </UiBox>
 
       {/* MODAL: REGISTRAR PAGO DE CUOTA */}
-      {selectedLiability && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in"}}>
+      {selectedLiability && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md p-6"}}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-4 pb-2"}}>
               <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Registrar Pago de Cuota / Abono</UiHeading>
@@ -569,8 +570,8 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
       )}
 
       {/* MODAL: AGREGAR PASIVO */}
-      {isAddModalOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in"}}>
+      {isAddModalOpen && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md p-6"}}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-4 pb-2"}}>
               <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Registrar Nuevo Pasivo</UiHeading>

@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiText, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiInput, UiSelect } from '../ui/controls';
 import { useState, useEffect } from 'react';
@@ -476,8 +477,8 @@ export default function DiscountsPromotionsView({
       )}
 
       {/* DISCOUNTS FORM MODAL */}
-      {isDiscountModalOpen && (
-        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+      {isDiscountModalOpen && createThemedPortal(
+        <UiBox className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4">
           <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-5)' }} className="w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <UiBox style={{ borderBottom: '1px solid var(--gray-a6)', backgroundColor: 'var(--gray-2)' }} className="p-4 flex items-center justify-between">
               <UiHeading as="h3" size="2" weight="bold" color="gray" highContrast>
@@ -702,8 +703,8 @@ export default function DiscountsPromotionsView({
       )}
 
       {/* PROMO FORM MODAL */}
-      {isPromoModalOpen && (
-        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+      {isPromoModalOpen && createThemedPortal(
+        <UiBox className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4">
           <UiBox style={{ backgroundColor: 'var(--color-panel-solid)', borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a6)', boxShadow: 'var(--shadow-5)' }} className="w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <UiBox style={{ borderBottom: '1px solid var(--gray-a6)', backgroundColor: 'var(--gray-2)' }} className="p-4 flex items-center justify-between">
               <UiHeading as="h3" size="2" weight="bold" color="gray" highContrast>

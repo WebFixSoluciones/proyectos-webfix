@@ -1,5 +1,6 @@
 
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { DropdownMenu } from '@radix-ui/themes';
@@ -1339,8 +1340,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         />
       )}
 
-      {emailModalTx && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-50 flex items-center justify-center p-4"}}>
+      {emailModalTx && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-md p-6 space-y-4 scale-100"}}>
             {/* Header */}
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-3 pb-2"}}>
@@ -1415,8 +1416,8 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       )}
 
       {/* MODAL DE MOTIVO DE RECHAZO / DEVOLUCIÓN SRI */}
-      {rejectionModalTx && (
-        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {rejectionModalTx && createThemedPortal(
+        <UiBox className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4">
           <UiCard style={{ backgroundColor: 'var(--color-panel-solid)', color: 'var(--gray-12)' }} className="w-full max-w-lg p-6 space-y-4 scale-100 shadow-2xl rounded-2xl">
             {/* Header */}
             <div className="flex items-start gap-3 pb-3 border-b border-slate-200">

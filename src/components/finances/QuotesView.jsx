@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiText, UiBox, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect } from 'react';
@@ -383,8 +384,8 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
       </UiBox>
 
       {/* MODAL CREAR / EDITAR COTIZACIÓN */}
-      {isModalOpen && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in"}}>
+      {isModalOpen && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}}>
           <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-3xl p-6 overflow-y-auto max-h-[90vh] custom-scrollbar"})}>
             <UiHeading as="h2" {...{"size":"3","weight":"bold","className":"mb-4"}}>{formData.id ? 'Editar' : 'Crear'} Cotización</UiHeading>
             

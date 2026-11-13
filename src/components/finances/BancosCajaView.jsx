@@ -1,4 +1,5 @@
 import { resolveThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiSelect, UiInput, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
@@ -444,8 +445,8 @@ function FormCuentaModal({ cuenta, onSave, onClose }) {
     onSave(form);
   };
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={onClose}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={onClose}>
       <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md"}} onClick={e => e.stopPropagation()}>
         <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
           <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>{cuenta ? 'Editar Cuenta' : 'Nueva Cuenta'}</UiHeading>
@@ -508,8 +509,8 @@ function FormMovimientoModal({ cuenta, onSave, onClose }) {
     onSave(form);
   };
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={onClose}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={onClose}>
       <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md"}} onClick={e => e.stopPropagation()}>
         <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
           <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Nuevo Movimiento — {cuenta.nombre}</UiHeading>
