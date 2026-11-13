@@ -153,8 +153,47 @@ try {
   await page.getByRole('heading', { name: 'Registrar Compra', exact: true }).waitFor();
   await page.getByRole('button', { name: /Con Inventario - Manual/i }).click();
   await page.getByText('Proveedor', { exact: true }).first().waitFor();
+  const purchaseXml = `<factura><infoTributaria><ruc>0999999999001</ruc><razonSocial>Proveedor QA</razonSocial><estab>001</estab><ptoEmi>002</ptoEmi><secuencial>000000123</secuencial><claveAcceso>${'1'.repeat(49)}</claveAcceso></infoTributaria><infoFactura><fechaEmision>13/11/2026</fechaEmision><identificacionComprador>1790012345001</identificacionComprador><totalSinImpuestos>10.00</totalSinImpuestos><importeTotal>11.50</importeTotal></infoFactura><detalles><detalle><codigoPrincipal>DESCONOCIDO</codigoPrincipal><descripcion>Producto recibido</descripcion><cantidad>1</cantidad><precioUnitario>10.00</precioUnitario><descuento>0.00</descuento><precioTotalSinImpuesto>10.00</precioTotalSinImpuesto><impuestos><impuesto><baseImponible>10.00</baseImponible><valor>1.50</valor></impuesto></impuestos></detalle></detalles></factura>`;
+  await page.locator('label').filter({ hasText: 'Importar XML del SRI' }).locator('input[type=file]').setInputFiles({ name: 'compra.xml', mimeType: 'text/xml', buffer: Buffer.from(purchaseXml) });
+  await page.locator('input[value="001-002-000000123"]').waitFor();
+  assert.equal(await page.locator('input[value="2026-11-13"]').count(), 1);
+  await page.getByRole('button', { name: /Siguiente/i }).click();
+  const productMapping = page.getByRole('combobox', { name: 'Producto de inventario para Producto recibido' });
+  await productMapping.click();
+  await page.getByRole('option', { name: /Teclado USB/i }).click();
+  assert.match(await productMapping.innerText(), /Teclado USB/);
   assert.deepEqual(errors, []);
-  console.log('PASS: Registrar Compra abre el formulario desde la navegación');
+  console.log('PASS: Registrar Compra importa XML y permite vincular cada línea a inventario');
+
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_preventa');
+  await page.getByRole('button', { name: /Con Inventario - Manual/i }).click();
+  await page.getByRole('button', { name: 'Crear nuevo proveedor' }).click();
+  await page.getByPlaceholder('RUC *').fill('1754376901001');
+  await page.getByPlaceholder('Nombre *').fill('Proveedor QA');
+  await page.getByRole('button', { name: 'Crear Proveedor' }).click();
+  await page.getByRole('button', { name: 'Recibo / Nota Venta' }).click();
+  await page.getByText('Nro Documento').locator('..').locator('input').fill('001-001-000000999');
+  await page.getByRole('button', { name: /Siguiente/i }).click();
+  await page.getByPlaceholder('Buscar producto por nombre o SKU...').fill('Teclado');
+  await page.getByRole('button', { name: /Teclado USB.*TEC-001/i }).click();
+  await page.getByRole('button', { name: /Siguiente/i }).click();
+  await page.getByRole('button', { name: 'Guardar Compra' }).click();
+  await page.waitForFunction(() => [...globalThis.__fixtureData.keys()].some(key => key.includes('/fin_cxp/')));
+  assert.equal(await page.evaluate(() => globalThis.__fixtureData.get('artifacts/test/public/data/inventory_products/product-1').stock), 9);
+  assert.equal(await page.evaluate(() => [...globalThis.__fixtureData.values()].find(value => value?.documentNumber === '001-001-000000999')?.financialSyncStatus), 'complete');
+  assert.deepEqual(errors, []);
+  console.log('PASS: compra manual registra inventario, Kardex y cuenta por pagar');
+
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_nc');
+  await page.getByRole('button', { name: /Registrar N\. Crédito/i }).click();
+  const receivedNumber = page.getByText('Número recibido').locator('..').locator('input');
+  await receivedNumber.fill('001-001-000000777');
+  assert.equal(await receivedNumber.inputValue(), '001-001-000000777');
+  const receivedDate = page.getByText('Fecha Emisión').first().locator('..').locator('input');
+  await receivedDate.fill('2026-11-12');
+  assert.equal(await receivedDate.inputValue(), '2026-11-12');
+  assert.deepEqual(errors, []);
+  console.log('PASS: nota de crédito recibida permite capturar número y fecha reales');
 } catch (error) {
   await page.screenshot({ path: 'docs/design-review/screenshots/test-failure.png', fullPage: true });
   console.error('Browser errors:', errors);

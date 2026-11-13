@@ -5,7 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { adjustmentService } from '../../modules/inventory/services/AdjustmentService';
-import { kardexRepository } from '../../modules/inventory/repositories/KardexRepository';
+import { branchBalanceFor } from '../../services/inventoryBalance';
+import { productKind, tracksStock } from '../../services/productModel';
 import { Product } from '../../modules/inventory/domain/schemas/product.schema';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -42,8 +43,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
     async function loadProducts() {
       try {
         const all = await productRepository.findAll();
-        // Solo ajustar productos físicos (excluir servicios)
-        setProducts(all.filter(p => p.type !== 'SERVICE'));
+        setProducts(all.filter(p => tracksStock(p) && productKind(p) !== 'COMBO'));
       } catch (err) {
         console.error(err);
       }
@@ -91,8 +91,8 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
 
         // Si es salida (OUT), verificar si hay stock suficiente en la sucursal
         if (operation === 'OUT') {
-          const balance = await kardexRepository.getLastBalance(selectedProductId, branchId);
-          const stock = balance ? balance.balanceQuantity : 0;
+          const product = products.find(p => p.id === selectedProductId);
+          const stock = branchBalanceFor(product, branchId).quantity;
           if (stock < quantity) {
             setError(`Stock insuficiente para realizar el egreso. Disponible: ${stock}`);
             setLoading(false);

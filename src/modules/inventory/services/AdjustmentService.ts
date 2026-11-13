@@ -1,9 +1,9 @@
 import { registerInventoryOperations } from '../../../services/inventoryLedger';
+import { collectZeroInventoryItems } from '../../../services/inventoryZero';
 import { AdjustmentTypeEnum } from '../domain/schemas/kardex-transfer.schema';
 import { z } from 'zod';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db, appId } from '../../../firebase';
-import { kardexRepository } from '../repositories/KardexRepository';
 
 export class AdjustmentService {
   /**
@@ -17,8 +17,8 @@ export class AdjustmentService {
     confirmedBy: string
   ): Promise<string> {
     
-    if (items.length === 0 && type !== 'ZERO_INVENTORY') {
-      throw new Error("Debe incluir al menos un producto para ajustar.");
+    if (items.length === 0) {
+      throw new Error(type === 'ZERO_INVENTORY' ? 'No hay existencias en esta sucursal.' : 'Debe incluir al menos un producto para ajustar.');
     }
 
     const adjustmentId = crypto.randomUUID();
@@ -39,44 +39,11 @@ export class AdjustmentService {
     reason: string,
     confirmedBy: string
   ): Promise<string> {
-    // Obtener todo el inventario actual de la sucursal
-    // Necesitamos todos los productos que tienen stock > 0
-    const q = query(
-      collection(db, 'artifacts', appId, 'public', 'data', 'inventory_kardex'),
-      where('branchId', '==', branchId)
-    );
-    
-    const snap = await getDocs(q);
-    
-    // Filtramos para quedarnos con los balances finales por producto
-    const productBalances = new Map<string, number>();
-    
-    snap.docs.forEach(doc => {
-      const data = doc.data();
-      const existing = productBalances.get(data.productId);
-      
-      // Como Firestore no agrupa fácilmente por el último, lo hacemos en memoria.
-      // Sería más eficiente usar una tabla de "Stock_Actual" separada, 
-      // pero usaremos KardexRepository.getLastBalance para cada producto único detectado.
-      if (!existing && data.productId) {
-         productBalances.set(data.productId, 1); // solo para tener la lista de IDs
-      }
-    });
-
-    const itemsToAdjust: { productId: string; quantity: number; operation: 'IN' | 'OUT' }[] = [];
-
-    for (const productId of productBalances.keys()) {
-      const lastBalance = await kardexRepository.getLastBalance(productId, branchId);
-      
-      if (lastBalance && lastBalance.balanceQuantity > 0) {
-        itemsToAdjust.push({
-          productId,
-          quantity: lastBalance.balanceQuantity,
-          operation: 'OUT'
-        });
-      }
-    }
-
+    // The product balance is authoritative; older products can have stock without Kardex rows.
+    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_products'));
+    const itemsToAdjust: { productId: string; quantity: number; operation: 'IN' | 'OUT' }[] =
+      collectZeroInventoryItems(snap.docs.map(row => ({ id: row.id, ...row.data() })), branchId);
+    if (itemsToAdjust.length > 100) throw new Error('Hay más de 100 productos con stock. Ajusta el inventario por grupos.');
     return this.executeAdjustment(branchId, 'ZERO_INVENTORY', reason, itemsToAdjust, confirmedBy);
   }
 

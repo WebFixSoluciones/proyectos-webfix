@@ -1015,6 +1015,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     }
 
     const { isFinalizingNotaVenta = false, isDraft = false } = options;
+    if (formData.type === 'egreso' && ['nota_credito', 'nota_debito', 'retencion'].includes(formData.documentType) &&
+      !/^\d{3}-\d{3}-\d{9}$/.test(String(formData.documentNumber || '').trim())) {
+      showToast('Ingresa el número del comprobante recibido.', 'warning');
+      return;
+    }
     const isDraftSale = Boolean(isDraft || (!isFinalizingNotaVenta && formData.type === 'ingreso' && formData.sriStatus !== 'autorizado'));
 
     // Validate first before showing confirmation dialog
@@ -1077,7 +1082,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       const now = new Date();
       const serverDate = getEcuadorDateString(now);
       const serverTime = getEcuadorTimeString(now);
-      updatedFormData.date = serverDate;
+      if (updatedFormData.type === 'ingreso') updatedFormData.date = serverDate;
       updatedFormData.time = serverTime;
 
       // Concurrency-safe sequential assignment for internal receipts (Nota de Venta) upon finalization
@@ -2240,7 +2245,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 ) : (
                   <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-amber-900 flex items-center justify-center gap-2 text-xs font-medium">
                     <AlertTriangle size={14} className="shrink-0 text-amber-600" />
-                    <span>Selecciona un cliente para habilitar la facturación.</span>
+                    <span>{formData.type === 'ingreso' ? 'Selecciona un cliente para habilitar la facturación.' : 'Selecciona un proveedor para registrar el comprobante.'}</span>
                   </div>
                 )}
 
@@ -2303,12 +2308,22 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   <div>
                     <label className="text-xs font-semibold text-slate-700 block mb-1.5">Fecha Emisión</label>
                     <UiInput
-                      disabled={true} 
-                      type="text" 
-                      value={formData.date ? formData.date.split('-').reverse().join('/') : ''} 
-                      className="w-full text-center cursor-not-allowed rounded-xl text-xs h-9 bg-slate-50 border-slate-200" 
+                      disabled={formData.type === 'ingreso' || !isEditable}
+                      type={formData.type === 'ingreso' ? 'text' : 'date'}
+                      value={formData.type === 'ingreso' ? (formData.date ? formData.date.split('-').reverse().join('/') : '') : (formData.date || '')}
+                      onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                      className="w-full text-center rounded-xl text-xs h-9 bg-slate-50 border-slate-200"
                     />
                   </div>
+
+                  {formData.type === 'egreso' && (
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Número recibido</label>
+                      <UiInput disabled={!isEditable} type="text" value={formData.documentNumber || ''}
+                        onChange={e => setFormData(prev => ({ ...prev, documentNumber: e.target.value }))}
+                        placeholder="001-001-000000123" className="w-full rounded-xl text-xs h-9 border-slate-200" />
+                    </div>
+                  )}
 
                   <div>
                     <label className="text-xs font-semibold text-slate-700 block mb-1.5">Establecimiento</label>
@@ -3256,7 +3271,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               }}
                               className="w-full rounded-lg text-xs"
                             >
-                              <option value="">-- Cuenta Bancaria Destino --</option>
+                              <option value="">{formData.type === 'ingreso' ? '-- Cuenta Bancaria Destino --' : '-- Cuenta Bancaria de Salida --'}</option>
                               {bankAccounts.map(b => (
                                 <option key={b.id} value={b.id}>
                                   {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}

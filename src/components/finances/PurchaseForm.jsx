@@ -7,34 +7,41 @@ import {
   ShoppingBag, ChevronRight, ChevronLeft,
   CheckCircle2, UserPlus
 } from 'lucide-react';
-import { doc, setDoc, getDoc, getDocs, collection } from '../../services/financeStore.js';
+import { doc, setDoc, getDoc, getDocs, collection, query, where, runTransaction } from '../../services/financeStore.js';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
-import { normalizeProduct } from '../../services/productModel';
-import { getEcuadorDateString, consultarAutorizacionSRI } from '../../services/sriService';
+import { normalizeProduct, tracksStock } from '../../services/productModel';
+import { getEcuadorDateString, consultarAutorizacionSRI, validarIdentificacion } from '../../services/sriService';
 import { verifyPurchaseSriXml } from '../../services/purchaseSriVerification';
+import { parsePurchaseInvoiceXml } from '../../services/purchaseXml';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
 import { getCuentas } from '../../services/bancosService';
 import { auth } from '../../firebase';
 
 export default function PurchaseForm({ tx, onClose, thirdParties = [], products = [], showToast, db, appId, purchaseMethod }) {
   const [step, setStep] = useState(1);
-  const maxStep = purchaseMethod === 'sin_inventario' ? 2 : 3;
   const [saving, setSaving] = useState(false);
   const [branches, setBranches] = useState([{ id: 'sucursal-central-uuid', name: 'Bodega Central' }, { id: 'sucursal-sur-uuid', name: 'Bodega Sur' }, { id: 'sucursal-norte-uuid', name: 'Bodega Norte' }]);
   const [bankAccounts, setBankAccounts] = useState([]);
 
   // Form data
-  const [form, setForm] = useState({
-    type: 'egreso', purchaseType: purchaseMethod || 'con_inventario',
+  const [form, setForm] = useState(() => ({
+    type: 'egreso',
     documentType: 'factura', documentNumber: '', claveAcceso: '',
     date: getEcuadorDateString(), bodega: 'Bodega Central',
-    supplierId: '', supplierName: '', supplierRuc: '',
-    items: [], baseImponible: 0, ivaValor: 0, descuento: 0, total: 0,
-    paymentMethod: 'transferencia', paymentStatus: 'pagado',
+    baseImponible: 0, ivaValor: 0, descuento: 0, total: 0,
+    paymentMethod: 'transferencia',
     cuentaBancariaId: '', fechaVencimiento: '',
-    category: 'compras', description: '', reference: ''
-  });
+    category: 'compras', description: '', reference: '',
+    ...tx,
+    purchaseType: tx?.purchaseType || tx?.purchaseMethod || purchaseMethod || 'con_inventario',
+    supplierId: tx?.supplierId || tx?.thirdPartyId || '',
+    supplierName: tx?.supplierName || tx?.thirdPartyName || '',
+    supplierRuc: tx?.supplierRuc || tx?.thirdPartyRuc || '',
+    items: tx?.items || [],
+    paymentStatus: tx?.paymentStatus || 'pendiente'
+  }));
+  const maxStep = form.purchaseType === 'sin_inventario' ? 2 : 3;
 
   // Supplier search
   const [supplierSearch, setSupplierSearch] = useState('');
@@ -83,7 +90,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       return s + subtotal;
     }, 0);
     const ivaValor = iva5 + iva12 + iva15;
-    return { baseImponible: base, ivaValor, iva5, iva12, iva15, total: base + ivaValor };
+    return { baseImponible: base, ivaValor, iva5, iva12, iva15, otrosImpuestos: 0, total: base + ivaValor };
   };
 
   // Calculate cost impact for a product
@@ -164,7 +171,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     if (!newSupplier.name || !cleanRuc) { showToast?.('Nombre y RUC son requeridos', 'warning'); return; }
     const supId = `sup_${Date.now()}`;
     const cleanTipo = cleanRuc.length === 10 ? 'cedula' : 'ruc';
-    const sup = { id: supId, name: newSupplier.name.trim(), ruc: cleanRuc, tipoIdentificacion: cleanTipo, email: (newSupplier.email || '').trim(), phone: (newSupplier.phone || '').trim(), type: 'proveedor', isValidated: true, validado: true };
+    if (!validarIdentificacion(cleanRuc, cleanTipo)) { showToast?.('Ingresa una identificación válida del proveedor.', 'warning'); return; }
+    const sup = { id: supId, name: newSupplier.name.trim(), ruc: cleanRuc, tipoIdentificacion: cleanTipo, email: (newSupplier.email || '').trim(), phone: (newSupplier.phone || '').trim(), type: 'proveedor', isValidated: false, validado: false };
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', supId), sup);
       setForm(prev => ({ ...prev, supplierId: supId, supplierName: sup.name, supplierRuc: sup.ruc }));
@@ -178,66 +186,31 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const text = await file.text();
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(text, "text/xml");
-      const infoTrib = xmlDoc.getElementsByTagName("infoTributaria")?.[0];
-      if (!infoTrib) { showToast?.('XML invalido', 'error'); return; }
-
-      const ruc = infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '';
-      const razonSocial = infoTrib.getElementsByTagName("razonSocial")?.[0]?.textContent || '';
-      const estab = infoTrib.getElementsByTagName("estab")?.[0]?.textContent || '';
-      const ptoEmi = infoTrib.getElementsByTagName("ptoEmi")?.[0]?.textContent || '';
-      const secuencial = infoTrib.getElementsByTagName("secuencial")?.[0]?.textContent || '';
-      const claveAcceso = infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '';
-
-      const infoFact = xmlDoc.getElementsByTagName("infoFactura")?.[0];
-      const fechaEmision = infoFact?.getElementsByTagName("fechaEmision")?.[0]?.textContent || getEcuadorDateString();
-      // eslint-disable-next-line no-unused-vars
-      const importeTotal = infoFact?.getElementsByTagName("importeTotal")?.[0]?.textContent || '0';
-
-      // Lookup supplier
-      const existing = thirdParties.find(t => t.ruc === ruc);
-      const supplierId = existing?.id || '';
-
-      // Parse items
-      const detalles = xmlDoc.getElementsByTagName("detalle");
-      const items = [];
-      for (let i = 0; i < detalles.length; i++) {
-        const d = detalles[i];
-        const desc = d.getElementsByTagName("descripcion")?.[0]?.textContent || '';
-        const cant = Number(d.getElementsByTagName("cantidad")?.[0]?.textContent || 1);
-        const precio = Number(d.getElementsByTagName("precioUnitario")?.[0]?.textContent || 0);
-        const matched = products.find(p => p.sku && desc.includes(p.sku)) || products.find(p => desc.toLowerCase().includes(p.name?.toLowerCase()));
-        items.push({
-          productId: matched?.id || '', name: matched?.name || desc, sku: matched?.sku || '',
-          quantity: cant, price: precio, discount: 0, subtotal: cant * precio,
-          ivaCategory: Number(matched?.ivaPorcentaje ?? matched?.taxRate ?? matched?.ivaCategory ?? 15)
-        });
-      }
-
-      setForm(prev => ({
-        ...prev, documentType: 'factura', documentNumber: `${estab}-${ptoEmi}-${secuencial}`,
-        claveAcceso, date: fechaEmision, supplierId, supplierName: razonSocial, supplierRuc: ruc,
-        items, ...recalcTotals(items)
-      }));
-      showToast?.('XML importado correctamente', 'success');
-    } catch { showToast?.('Error al procesar XML', 'error'); }
+      const parsed = parsePurchaseInvoiceXml(await file.text(), products);
+      const existing = thirdParties.find(t => t.ruc === parsed.supplierRuc && t.type !== 'cliente');
+      setForm(prev => ({ ...prev, ...parsed, supplierId: existing?.id || '' }));
+      showToast?.('XML cargado. Revisa los productos y el pago.', 'info');
+    } catch (error) { showToast?.(error.message || 'Error al procesar XML.', 'error'); }
     e.target.value = '';
   };
 
   // Save
   const stableId = useRef(tx?.id || crypto.randomUUID());
+  const persistedId = useRef(tx?.id || null);
   const saveLock = useRef(false);
   const handleSave = async () => {
     if (saveLock.current) return;
     if (!Number.isFinite(Number(form.total)) || Number(form.total) <= 0 || form.items.some(item => Number(item.quantity) <= 0 || Number(item.price) < 0)) { showToast?.('Revisa los importes y cantidades de la compra.', 'error'); return; }
-    if (!form.supplierName && !form.description) { showToast?.('Selecciona un proveedor o agrega una descripcion', 'warning'); return; }
-    if (form.purchaseType === 'con_inventario' && form.items.length === 0 && !form.description) { showToast?.('Agrega al menos un producto o una descripcion', 'warning'); return; }
+    if (!form.supplierName || !form.supplierRuc) { showToast?.('Completa el proveedor y su RUC.', 'warning'); return; }
+    if ((form.documentType === 'factura' && String(form.supplierRuc).length !== 13) || !validarIdentificacion(form.supplierRuc, form.documentType === 'factura' ? 'ruc' : '')) { showToast?.('Revisa la identificación del proveedor.', 'warning'); return; }
+    if (form.purchaseType === 'con_inventario' && (!form.items.length || form.items.some(item => !item.productId))) { showToast?.('Asigna un producto de inventario a cada línea.', 'warning'); return; }
+    if (!String(form.documentNumber || '').trim()) { showToast?.('Ingresa el número del comprobante.', 'warning'); return; }
     if (form.claveAcceso && !/^\d{49}$/.test(form.claveAcceso)) { showToast?.('La clave SRI debe tener 49 dígitos.', 'error'); return; }
     saveLock.current = true;
     setSaving(true);
-    const docId = stableId.current;
+    const docId = persistedId.current || (form.documentNumber
+      ? `compra_${encodeURIComponent(form.claveAcceso || `${form.supplierRuc}:${form.documentNumber}`)}`
+      : stableId.current);
     const operator = { uid: auth.currentUser?.uid || '', email: auth.currentUser?.email || '' };
     let sriStatus = form.claveAcceso ? 'pendiente_verificacion' : 'sin_clave';
     
@@ -246,7 +219,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       documentType: form.documentType, documentNumber: form.documentNumber || `COMPRA-${Date.now()}`,
       claveAcceso: form.claveAcceso, date: form.date,
       thirdPartyId: form.supplierId, thirdPartyName: form.supplierName, thirdPartyRuc: form.supplierRuc,
-        baseImponible: form.baseImponible, ivaPorcentaje: 15, ivaValor: form.ivaValor, total: form.total,
+        baseImponible: form.baseImponible, ivaPorcentaje: 15, ivaValor: form.ivaValor,
+        otrosImpuestos: form.otrosImpuestos || 0, total: form.total,
         iva5: form.iva5 || 0, iva12: form.iva12 || 0, iva15: form.iva15 || 0,
       descuento: form.descuento, paymentMethod: form.paymentMethod, paymentStatus: form.paymentStatus,
       cuentaBancariaId: form.cuentaBancariaId || '',
@@ -254,10 +228,39 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       sriStatus,
       description: form.description, reference: form.reference,
       items: form.items, bodega: form.bodega, purchaseType: form.purchaseType,
+      xmlContent: form.xmlContent || '',
       financialSyncStatus: 'pending', inventarioRegistrado: !!tx?.inventarioRegistrado
     };
 
     try {
+      if (form.purchaseType === 'con_inventario') {
+        for (const productId of new Set(form.items.map(item => item.productId))) {
+          const productSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', productId));
+          if (!productSnap.exists() || !tracksStock(productSnap.data())) throw new Error('Una línea no corresponde a un producto físico activo.');
+        }
+      }
+      if (form.xmlContent) {
+        const configSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'));
+        const companyRuc = String(configSnap.data()?.ruc || '').trim();
+        const parsed = parsePurchaseInvoiceXml(form.xmlContent, products);
+        const linesMatch = parsed.items.length === form.items.length && parsed.items.every((line, index) => {
+          const current = form.items[index];
+          return Math.abs(line.quantity - Number(current.quantity)) < 0.000001 &&
+            Math.abs(line.price - Number(current.price)) < 0.000001 &&
+            Math.abs(line.discount - Number(current.discount || 0)) < 0.01;
+        });
+        if (!companyRuc || parsed.receiverRuc !== companyRuc || parsed.supplierRuc !== String(form.supplierRuc).trim() || parsed.documentNumber !== form.documentNumber || parsed.claveAcceso !== form.claveAcceso || Math.abs(parsed.total - Number(form.total)) > 0.01 || !linesMatch) {
+          throw new Error('El XML no coincide con la empresa o los datos de la compra.');
+        }
+      }
+      if (form.claveAcceso || form.documentNumber) {
+        const txCollection = collection(db, 'artifacts', appId, 'public', 'data', 'finances_transactions');
+        const matches = await getDocs(query(txCollection, where(form.claveAcceso ? 'claveAcceso' : 'documentNumber', '==', form.claveAcceso || form.documentNumber)));
+        if (matches.docs.some(row => row.id !== docId && row.data().type === 'egreso' &&
+          (form.claveAcceso || String(row.data().thirdPartyRuc || '') === String(form.supplierRuc)))) {
+          throw new Error('Esta factura del proveedor ya está registrada.');
+        }
+      }
       if (form.claveAcceso && form.documentType === 'factura') {
         try {
           const sriResult = await consultarAutorizacionSRI(form.claveAcceso, form.claveAcceso[23]);
@@ -284,13 +287,33 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       payload.sriStatus = sriStatus;
       // 1. Save transaction
       const txRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId);
-      const previous = await getDoc(txRef);
-      if (previous.data()?.inventarioRegistrado) {
-        const signature = items => JSON.stringify((items || []).map(item => [item.productId, Number(item.quantity), Number(item.price)]));
-        if (signature(previous.data().items) !== signature(payload.items)) throw new Error('La compra ya afectó inventario. Registra un ajuste para corregir cantidades o costos.');
-        payload.inventarioRegistrado = true;
-      }
-      await setDoc(txRef, payload, { merge: true });
+      await runTransaction(db, async transaction => {
+        const previous = await transaction.get(txRef);
+        const saved = previous.data();
+        const signature = value => JSON.stringify([
+          value.thirdPartyRuc, value.documentNumber, Number(value.total),
+          (value.items || []).map(item => [item.productId, Number(item.quantity), Number(item.price)])
+        ]);
+        if (saved && !tx?.id && (saved.financialSyncStatus === 'complete' || signature(saved) !== signature(payload))) {
+          throw new Error('Esta compra ya está registrada. Abre el documento desde el historial.');
+        }
+        if (saved?.inventarioRegistrado) {
+          payload.inventarioRegistrado = true;
+          if (payload.purchaseType !== 'con_inventario') throw new Error('La compra ya afectó inventario. Registra un ajuste para cambiar su modalidad.');
+          const inventorySignature = items => JSON.stringify((items || []).map(item => [item.productId, Number(item.quantity), Number(item.price)]));
+          if (inventorySignature(saved.items) !== inventorySignature(payload.items)) throw new Error('La compra ya afectó inventario. Registra un ajuste para corregirla.');
+        }
+        if (saved?.financialSyncStatus === 'complete' && saved.purchaseType && saved.purchaseType !== payload.purchaseType) {
+          throw new Error('La modalidad de una compra sincronizada no se puede cambiar.');
+        }
+        if (saved?.sriStatus === 'autorizado' && payload.sriStatus !== 'autorizado') {
+          payload.sriStatus = 'autorizado';
+          payload.xmlAutorizado = saved.xmlAutorizado || '';
+        }
+        transaction.set(txRef, payload, { merge: true });
+      });
+      persistedId.current = docId;
+      sriStatus = payload.sriStatus;
 
       if (form.purchaseType === 'con_inventario' && form.items.length > 0) await registerTransactionInventory(db, appId, payload);
 
@@ -343,10 +366,10 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   const btnBase = "flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all";
 
   const filteredSuppliers = thirdParties.filter(t =>
-    supplierSearch ? (t.name?.toLowerCase().includes(supplierSearch.toLowerCase()) || t.ruc?.includes(supplierSearch)) : true
+    t.type !== 'cliente' && (supplierSearch ? (t.name?.toLowerCase().includes(supplierSearch.toLowerCase()) || t.ruc?.includes(supplierSearch)) : true)
   ).slice(0, 6);
 
-  const filteredProducts = products.filter(p =>
+  const filteredProducts = products.filter(p => tracksStock(p) &&
     productSearch ? (p.name?.toLowerCase().includes(productSearch.toLowerCase()) || p.sku?.toLowerCase().includes(productSearch.toLowerCase())) : true
   ).slice(0, 8);
 
@@ -376,7 +399,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                     {step > s ? <CheckCircle2 size={12} /> : s}
                   </UiBox>
                   <UiText {...{"size":"1","weight":"medium","className":"hidden sm:inline"}}>
-                    {s === 1 ? 'Datos' : s === 2 ? 'Productos' : 'Confirmar'}
+                    {s === 1 ? 'Datos' : s === 2 && form.purchaseType === 'con_inventario' ? 'Productos' : 'Confirmar'}
                   </UiText>
                 </UiBox>
                 {s < maxStep && <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"flex-1 h-0.5"}, {}, (step > s ? {"style":{"backgroundColor":"var(--gray-2)"}} : {"style":{"backgroundColor":"var(--color-panel-solid)"}}))} />}
@@ -578,6 +601,13 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                           <UiTableCell {...{"className":"px-3 py-1.5"}}>
                             <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{item.name}</UiBox>
                             {item.sku && <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{item.sku}</UiBox>}
+                            {form.purchaseType === 'con_inventario' && (
+                              <UiSelect value={item.productId || ''} onChange={e => handleItemChange(idx, 'productId', e.target.value)}
+                                aria-label={`Producto de inventario para ${item.name}`} {...{"size":"2","color":"gray","className":"w-full mt-1"}}>
+                                <option value="">Asignar producto de inventario</option>
+                                {products.filter(tracksStock).map(p => <option key={p.id} value={p.id}>{p.name} · {p.sku || p.id}</option>)}
+                              </UiSelect>
+                            )}
                             {costImpacts[item.productId] && !costImpacts[item.productId].isNew && (
                               <UiBox {...mergeThemeProps({"className":"mt-0.5"}, {}, (costImpacts[item.productId].delta > 0 ? {"style":{"color":"var(--gray-11)"}} : {"style":{"color":"var(--gray-11)"}}))}>
                                 Costo actual: ${costImpacts[item.productId].currentCost.toFixed(2)} → Promedio: ${costImpacts[item.productId].newAvg.toFixed(2)} ({costImpacts[item.productId].delta > 0 ? '+' : ''}{costImpacts[item.productId].delta.toFixed(1)}%)
@@ -617,6 +647,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                   {form.iva5 > 0 && <UiBox>IVA 5%: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.iva5.toFixed(2)}</UiText></UiBox>}
                   {form.iva12 > 0 && <UiBox>IVA 12%: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.iva12.toFixed(2)}</UiText></UiBox>}
                   {form.iva15 > 0 && <UiBox>IVA 15%: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.iva15.toFixed(2)}</UiText></UiBox>}
+                  {!form.iva5 && !form.iva12 && !form.iva15 && form.ivaValor > 0 && <UiBox>IVA: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.ivaValor.toFixed(2)}</UiText></UiBox>}
                   <UiBox>Total: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${form.total.toFixed(2)}</UiText></UiBox>
                 </UiBox>
               )}
@@ -656,6 +687,8 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                       {form.iva5 > 0 && <UiBox {...{"className":"flex justify-between"}}><UiText>IVA 5%:</UiText><UiText {...{"weight":"bold","color":"gray"}}>${form.iva5.toFixed(2)}</UiText></UiBox>}
                       {form.iva12 > 0 && <UiBox {...{"className":"flex justify-between"}}><UiText>IVA 12%:</UiText><UiText {...{"weight":"bold","color":"gray"}}>${form.iva12.toFixed(2)}</UiText></UiBox>}
                       {form.iva15 > 0 && <UiBox {...{"className":"flex justify-between"}}><UiText>IVA 15%:</UiText><UiText {...{"weight":"bold"}}>${form.iva15.toFixed(2)}</UiText></UiBox>}
+                      {!form.iva5 && !form.iva12 && !form.iva15 && form.ivaValor > 0 && <UiBox {...{"className":"flex justify-between"}}><UiText>IVA:</UiText><UiText {...{"weight":"bold"}}>${form.ivaValor.toFixed(2)}</UiText></UiBox>}
+                      {Number(form.otrosImpuestos) > 0 && <UiBox {...{"className":"flex justify-between"}}><UiText>Otros impuestos:</UiText><UiText {...{"weight":"bold"}}>${Number(form.otrosImpuestos).toFixed(2)}</UiText></UiBox>}
                       <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"flex justify-between pt-1"}}><UiText {...{"weight":"bold"}}>TOTAL:</UiText><UiText {...{"weight":"bold"}}>${form.total.toFixed(2)}</UiText></UiBox>
                     </UiBox>
                   </>

@@ -7,10 +7,8 @@ import {
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
   X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator, Shield
 } from 'lucide-react';
-import { doc, setDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString } from '../../services/sriService';
-import { registrarMovimientoKardex } from '../../services/inventoryService';
-import { sincronizarCompra } from '../../services/integracionFinanzasService';
+import { parsePurchaseInvoiceXml } from '../../services/purchaseXml';
 import { db, storage, appId } from '../../firebase';
 import ValidacionesView from './ValidacionesView';
 import FinanceDashboard from './FinanceDashboard';
@@ -159,7 +157,8 @@ export default function FinanceModule({
   // Abrir modal de factura prellenada (desde POS o Cotizaciones)
   const handleOpenFormModal = (prefilledData = null) => {
     // In compras mode, show method selector for NEW purchases (no existing id)
-    if (mode === 'compras' && (!prefilledData || !prefilledData.id)) {
+    if (mode === 'compras' && !prefilledData?.id &&
+      (!prefilledData?.documentType || ['factura', 'nota_venta', 'liquidacion'].includes(prefilledData.documentType))) {
       setShowPurchaseMethodSelect(true);
       setEditingTx(prefilledData);
       return;
@@ -175,107 +174,24 @@ export default function FinanceModule({
     setIsModalOpen(true);
   };
 
-  // Auto XML: parse and save directly without stepper
+  const reviewPurchase = (purchase, method) => {
+    setPurchaseMethod(method);
+    setEditingTx({ ...purchase, type: 'egreso', purchaseMethod: method, purchaseType: method });
+    setShowPurchaseMethodSelect(false);
+    setActiveTab('compras_resumen');
+    setIsModalOpen(true);
+  };
+
+  // XML purchases always pass through the same reviewed, atomic save flow.
   const handleAutoXmlPurchase = async (e, method) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = '';
     setShowPurchaseMethodSelect(false);
-    showToast?.('Procesando XML...', 'info');
-    
     try {
-      const text = await file.text();
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(text, "text/xml");
-      const infoTrib = xmlDoc.getElementsByTagName("infoTributaria")?.[0];
-      if (!infoTrib) { showToast?.('XML invalido', 'error'); return; }
-
-      const ruc = infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '';
-      const razonSocial = infoTrib.getElementsByTagName("razonSocial")?.[0]?.textContent || '';
-      const estab = infoTrib.getElementsByTagName("estab")?.[0]?.textContent || '';
-      const ptoEmi = infoTrib.getElementsByTagName("ptoEmi")?.[0]?.textContent || '';
-      const secuencial = infoTrib.getElementsByTagName("secuencial")?.[0]?.textContent || '';
-      const claveAcceso = infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '';
-      const documentNumber = `${estab}-${ptoEmi}-${secuencial}`;
-
-      const infoFact = xmlDoc.getElementsByTagName("infoFactura")?.[0];
-      const fechaEmision = infoFact?.getElementsByTagName("fechaEmision")?.[0]?.textContent || getEcuadorDateString();
-      const importeTotal = Number(infoFact?.getElementsByTagName("importeTotal")?.[0]?.textContent || 0);
-      const baseImponible = Number(infoFact?.getElementsByTagName("totalSinImpuestos")?.[0]?.textContent || importeTotal / 1.15);
-      const ivaValor = importeTotal - baseImponible;
-
-      const existing = thirdParties.find(t => t.ruc === ruc);
-      const supplierId = existing?.id || '';
-
-      const detalles = xmlDoc.getElementsByTagName("detalle");
-      const items = [];
-      for (let i = 0; i < detalles.length; i++) {
-        const d = detalles[i];
-        const desc = d.getElementsByTagName("descripcion")?.[0]?.textContent || '';
-        const cant = Number(d.getElementsByTagName("cantidad")?.[0]?.textContent || 1);
-        const precio = Number(d.getElementsByTagName("precioUnitario")?.[0]?.textContent || 0);
-        const matched = products.find(p => p.sku && desc.includes(p.sku)) || products.find(p => desc.toLowerCase().includes(p.name?.toLowerCase()));
-        items.push({ productId: matched?.id || '', name: matched?.name || desc, sku: matched?.sku || '', quantity: cant, price: precio, discount: 0, subtotal: cant * precio });
-      }
-
-      const docId = `compra_xml_${Date.now()}`;
-      const payload = {
-        id: docId, type: 'egreso', category: 'compras', documentType: 'factura',
-        documentNumber, claveAcceso, date: fechaEmision,
-        thirdPartyId: supplierId, thirdPartyName: razonSocial, thirdPartyRuc: ruc,
-        baseImponible, ivaPorcentaje: 15, ivaValor, total: importeTotal,
-        paymentMethod: 'transferencia', paymentStatus: 'pagado',
-        sriStatus: 'autorizado', description: `Compra automatica XML - ${razonSocial}`,
-        items, bodega: 'Bodega Central', purchaseType: method, inventarioRegistrado: false
-      };
-
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), payload);
-
-      if (method === 'con_inventario' && items.length > 0) {
-        for (const item of items) {
-          if (item.productId) {
-            try {
-              await registrarMovimientoKardex(db, appId, {
-                productId: item.productId, type: 'entrada',
-                quantity: Number(item.quantity), cost: Number(item.price),
-                price: Number(item.price),
-                concept: `Compra XML #${documentNumber}`, referenceId: docId,
-                bodega: 'Bodega Central'
-              });
-            } catch { /* skip failed kardex item */ }
-          }
-        }
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), { inventarioRegistrado: true }, { merge: true });
-      }
-
-      showToast?.(`Compra automatica registrada: ${razonSocial} - $${importeTotal.toFixed(2)}`, 'success');
-
-      try {
-        await sincronizarCompra({
-          id: docId,
-          type: 'egreso',
-          documentType: 'factura',
-          documentNumber,
-          claveAcceso: claveAcceso || '',
-          total: Number(importeTotal) || 0,
-          baseImponible: Number(baseImponible) || 0,
-          ivaValor: Number(ivaValor) || 0,
-          proveedorNombre: razonSocial || '',
-          proveedorRuc: ruc || '',
-          thirdPartyId: supplierId || '',
-          date: fechaEmision || new Date().toISOString(),
-          paymentMethod: 'transferencia',
-          paymentStatus: 'pagado',
-          sriStatus: 'autorizado',
-          category: 'compras',
-          descripcion: `Compra automatica XML - ${razonSocial}`,
-          creadoPor: '',
-        }, db, { uid: '', email: '' });
-      } catch (syncErr) {
-        console.error('Error sincronizando compra XML automatica con modulo financiero:', syncErr);
-      }
-
-    } catch (err) { console.error(err); showToast?.('Error al procesar XML automatico', 'error'); }
+      reviewPurchase(parsePurchaseInvoiceXml(await file.text(), products), method);
+      showToast?.('Revisa la compra antes de guardarla.', 'info');
+    } catch (err) { console.error(err); showToast?.(err.message || 'Error al procesar XML.', 'error'); }
   };
 
   // Convertir cotización a Factura
@@ -639,7 +555,7 @@ export default function FinanceModule({
               )}
 
               {activeTab === 'compras_sri' && (
-                <ComprasSriView transactions={transactions} showToast={showToast} db={db} appId={appId} />
+                <ComprasSriView transactions={transactions} showToast={showToast} db={db} appId={appId} onReviewPurchase={reviewPurchase} />
               )}
               {activeTab === 'compras_nc' && (
                 <TransactionsView transactions={transactions} thirdParties={thirdParties} showToast={showToast} db={db} storage={storage} appId={appId} onOpenForm={handleOpenFormModal} forcedDocType="nota_credito" forcedType="egreso" />
@@ -707,7 +623,7 @@ export default function FinanceModule({
                   </UiBox>
                   <UiBox {...{"className":"flex-1"}}>
                     <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Con Inventario - Importar XML</UiHeading>
-                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Sube el archivo XML de la factura electronica. El sistema procesa proveedor, productos y costos automaticamente.</UiText>
+                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Carga el XML, revisa los productos vinculados y confirma la compra.</UiText>
                   </UiBox>
                   <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
                 </UiBox>
@@ -736,7 +652,7 @@ export default function FinanceModule({
                   </UiBox>
                   <UiBox {...{"className":"flex-1"}}>
                     <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Sin Inventario - Importar XML</UiHeading>
-                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Sube el XML de la factura. Se registra solo como gasto contable, sin afectar inventario.</UiText>
+                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Carga el XML y revisa el gasto antes de registrarlo.</UiText>
                   </UiBox>
                   <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
                 </UiBox>
