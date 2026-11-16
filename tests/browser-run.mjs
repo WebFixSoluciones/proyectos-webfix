@@ -36,6 +36,27 @@ try {
   assert.equal(await page.locator('#admin-payment-section').evaluate(el => el === document.activeElement), true);
   console.log('PASS: venta administrativa pide pago con alerta breve y enfoca medio de pago');
 
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=admin-transfer-no-bank');
+  await page.getByRole('button', { name: 'Emitir Factura Electrónica (SRI)' }).click();
+  const bankIssue = page.getByRole('dialog', { name: 'ALERTA' });
+  await bankIssue.getByText('SELECCIONA CUENTA').waitFor();
+  await bankIssue.getByRole('button', { name: 'Seleccionar Cuenta' }).click();
+  assert.equal(await page.locator('#admin-bank-account').evaluate(el => el === document.activeElement), true);
+  console.log('PASS: venta administrativa exige cuenta de transferencia antes de emitir');
+
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=finance-payment');
+  await page.locator('#finance-payment-bank').waitFor();
+  assert.match(await page.locator('#finance-payment-bank').innerText(), /Selecciona una cuenta bancaria/, 'La cuenta no debe elegirse automáticamente');
+  await page.locator('#finance-payment-bank').click();
+  await page.getByRole('option', { name: /Banco de prueba/ }).click();
+  await page.locator('#finance-payment-method').click();
+  await page.getByRole('option', { name: 'Efectivo / Caja' }).click();
+  assert.equal(await page.locator('#finance-payment-bank').count(), 0);
+  await page.getByRole('button', { name: 'Confirmar Cobro' }).click();
+  await page.waitForFunction(() => !!globalThis.__payment);
+  assert.equal(await page.evaluate(() => globalThis.__payment.cuentaId), null);
+  console.log('PASS: cobro en efectivo no carga una cuenta bancaria previa');
+
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=pos');
   await page.getByText('Teclado USB', { exact: true }).first().waitFor();
   await page.keyboard.press('F12');

@@ -59,3 +59,13 @@ test('administrative sale permits saving drafts without payment settlement or st
   assert.deepEqual(draftIssues, []);
 });
 
+test('sales require a bank account before finalizing a transfer but allow a draft', () => {
+  const input = { clientId: 'client', client: customer, identificationValid: true, items: [product], total: 20, documentType: 'factura', paymentStatus: { isValid: true }, payments: { transferencia: 20 } };
+  const issues = getAdministrativeSaleIssues(input);
+  assert.deepEqual(issues.map(item => item.shortMessage), ['SELECCIONA CUENTA']);
+  assert.equal(issues[0].target, 'bank');
+  assert.equal(issues[0].actionLabel, 'Seleccionar Cuenta');
+  assert.deepEqual(getAdministrativeSaleIssues({ ...input, payments: { transferencia: 20, transferenciaBankId: 'bank-1' } }), []);
+  assert.deepEqual(getAdministrativeSaleIssues({ ...input, isDraft: true }), []);
+});
+

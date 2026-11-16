@@ -6,7 +6,7 @@ import { settlePayments, cashSessionTotals } from '../src/services/paymentModel.
 import { calculateTransactionTotals } from '../src/services/discountCalcService.js';
 import { generarFacturaXML, validarIdentificacion, limpiarIdentificacion, obtenerTipoIdentificacionSRI } from '../src/services/sriService.js';
 import { registerInventoryOperations, CENTRAL_BRANCH } from '../src/services/inventoryLedger.js';
-import { sincronizarVenta } from '../src/services/integracionFinanzasService.js';
+import { sincronizarVenta, sincronizarCompra } from '../src/services/integracionFinanzasService.js';
 import handler, { resolveSmtpConfig, invoiceEmailRecipients, deliverInvoiceMessages } from '../api/send-email/index.js';
 import nodemailer from 'nodemailer';
 
@@ -287,6 +287,21 @@ test('split payment sale creates CxC with partial credit and records bank deposi
   assert.equal(bankMov.monto, 20);
   assert.equal(bankMov.tipo, 'credito');
   assert.equal(bankMov.cuentaId, bankId);
+});
+
+test('cash and card payments never inflate bank balance when a bank account remains selected', async () => {
+  const store = memoryStore();
+  store.data.set('fin_bancos/bank-1', { nombre: 'Banco', estado: 'activo' });
+  const sale = { id: 'mixed-sale', total: 50, paidAmount: 50, paymentStatus: 'pagado', cuentaBancariaId: 'bank-1', paymentsBreakdown: { efectivo: 30, transferencia: 10, tarjeta: 10 } };
+  await sincronizarVenta(sale, {}, null, store.api);
+  assert.equal(store.data.get('fin_movimientos_bancarios/mov_doc_mixed-sale').monto, 10);
+  await sincronizarVenta({ ...sale, id: 'cash-sale', paymentsBreakdown: { efectivo: 50, transferencia: 0, tarjeta: 0 } }, {}, null, store.api);
+  assert.equal(store.data.has('fin_movimientos_bancarios/mov_doc_cash-sale'), false);
+  await assert.rejects(sincronizarVenta({ ...sale, id: 'no-bank', cuentaBancariaId: '', paymentsBreakdown: { efectivo: 40, transferencia: 10, tarjeta: 0 } }, {}, null, store.api), /cuenta bancaria/);
+  assert.equal(store.data.has('fin_cxc/no-bank'), false);
+  await sincronizarCompra({ ...sale, id: 'purchase', paymentsBreakdown: { efectivo: 30, transferencia: 10, tarjeta: 10 } }, {}, null, store.api);
+  assert.equal(store.data.get('fin_movimientos_bancarios/mov_doc_purchase').monto, 10);
+  assert.equal(store.data.get('fin_movimientos_bancarios/mov_doc_purchase').tipo, 'debito');
 });
 
 test('resolveSmtpConfig resolves default ports, corrects TLS on port 587 and cleans Gmail app passwords', () => {

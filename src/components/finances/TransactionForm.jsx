@@ -970,7 +970,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setCurrentStep(1);
     const tab = target === 'client' || target === 'document' ? 'cliente' : target === 'items' ? 'carrito' : 'pago';
     setMobileTab(tab);
-    const inputId = target === 'client' ? 'admin-client-search' : target === 'items' ? 'admin-product-search' : 'admin-payment-section';
+    const inputId = target === 'client' ? 'admin-client-search' : target === 'items' ? 'admin-product-search' : target === 'bank' ? 'admin-bank-account' : 'admin-payment-section';
     setTimeout(() => document.getElementById(inputId)?.focus(), 0);
   };
 
@@ -3259,6 +3259,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               placeholder="0.00"
                             />
                             <UiSelect
+                              id="admin-bank-account"
                               disabled={!isEditable}
                               value={payments.transferenciaBankId || ''}
                               onChange={e => {

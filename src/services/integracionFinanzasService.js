@@ -159,14 +159,21 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     const saldoPendiente = Math.max(0, roundMoney(total - paid));
     const estado = previous?.estado === 'anulado' ? 'anulado' : saldoPendiente === 0 ? 'pagado' : paid > 0 ? 'parcial' : 'pendiente';
     const factura = { tipo: data.documentType || 'factura', numero: data.documentNumber || '', claveAcceso: data.claveAcceso || null, fecha: movData.fecha, fechaVencimiento: data.creditDueDate ? parsearFecha(data.creditDueDate) : movData.fechaVencimiento, montoTotal: total, baseImponible: Number(data.baseImponible || 0), iva: Number(data.ivaValor || 0), retencionFuente: Number(data.retencionFuente || 0), retencionIva: Number(data.retencionIva || 0) };
+    const bankId = data.cuentaBancariaId || data.transferenciaBankId || data.bankAccountId;
+    const bankAmount = data.paymentsBreakdown
+      ? Number(data.paymentsBreakdown.transferencia || 0)
+      : data.paymentMethod === 'transferencia' ? initialPaid : 0;
+    if (!Number.isFinite(bankAmount) || bankAmount < 0 || bankAmount > initialPaid + 0.01) throw new Error('El importe transferido no coincide con el pago.');
+    if (bankAmount > 0 && !bankId) throw new Error('Selecciona la cuenta bancaria de la transferencia.');
+    const bankRef = bankAmount > 0 ? doc(db, 'fin_bancos', bankId) : null;
+    if (bankRef) {
+      const bank = await tx.get(bankRef);
+      if (!bank.exists() || bank.data()?.estado !== 'activo') throw new Error('La cuenta bancaria está inactiva o no existe.');
+    }
     tx.set(linkedRef, { tenantId: getAppId(), movimientoId: movementId, tercero: movData.tercero, factura, abonos, saldoPendiente, estado, notas: data.notas || '', creadoEn: previous?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
     tx.set(movementRef, { ...movData, monto: total, pagos: abonos, saldoPendiente, estado, creadoPor: user.uid || '', creadoEn: movement.data()?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
-
-    const bankId = data.cuentaBancariaId || data.transferenciaBankId || data.bankAccountId;
-    if (bankId && initialPaid > 0) {
-      const bankRef = doc(db, 'fin_bancos', bankId);
+    if (bankId && bankAmount > 0) {
       const bankMovRef = doc(db, 'fin_movimientos_bancarios', `mov_doc_${data.id}`);
-      const bankAmount = Number(data.paymentsBreakdown?.transferencia || (data.paymentMethod === 'transferencia' ? initialPaid : initialPaid));
       tx.set(bankMovRef, {
         cuentaId: bankId,
         tipo: venta ? 'credito' : 'debito',
