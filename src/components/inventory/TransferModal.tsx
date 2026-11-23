@@ -1,11 +1,13 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiSelect, UiInput, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
 import { X, Save, ArrowRightLeft, Plus, Trash2, HelpCircle } from 'lucide-react';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { transferService } from '../../modules/inventory/services/TransferService';
-import { kardexRepository } from '../../modules/inventory/repositories/KardexRepository';
+import { branchBalanceFor } from '../../services/inventoryBalance';
+import { productKind, tracksStock } from '../../services/productModel';
 import { Product } from '../../modules/inventory/domain/schemas/product.schema';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -41,8 +43,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
     async function loadProducts() {
       try {
         const all = await productRepository.findAll();
-        // Solo transferir Standard y Combos (excluir servicios)
-        setProducts(all.filter(p => p.type !== 'SERVICE'));
+        setProducts(all.filter(p => tracksStock(p) && productKind(p) !== 'COMBO'));
       } catch (err) {
         console.error(err);
       }
@@ -65,9 +66,9 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
 
     try {
       // Verificar stock en sucursal origen
-      const balance = await kardexRepository.getLastBalance(selectedProductId, sourceBranch);
-      const stock = balance ? balance.balanceQuantity : 0;
-      const cost = balance ? balance.balanceAverageCost : prod.baseCost;
+      const balance = branchBalanceFor(prod, sourceBranch);
+      const stock = balance.quantity;
+      const cost = balance.averageCost;
 
       if (stock < quantityToTransfer) {
         setError(`Stock insuficiente en origen. Disponible: ${stock}`);
@@ -144,8 +145,8 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
 
   
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"}}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-6"}}>
       <UiBox 
         {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"})}
       >

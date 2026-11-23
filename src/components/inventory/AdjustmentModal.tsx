@@ -1,11 +1,13 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiSelect, UiInput, UiTextarea } from '../ui/controls';
 import React, { useState, useEffect } from 'react';
 import { X, Save, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { adjustmentService } from '../../modules/inventory/services/AdjustmentService';
-import { kardexRepository } from '../../modules/inventory/repositories/KardexRepository';
+import { branchBalanceFor } from '../../services/inventoryBalance';
+import { productKind, tracksStock } from '../../services/productModel';
 import { Product } from '../../modules/inventory/domain/schemas/product.schema';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -42,8 +44,7 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
     async function loadProducts() {
       try {
         const all = await productRepository.findAll();
-        // Solo ajustar productos físicos (excluir servicios)
-        setProducts(all.filter(p => p.type !== 'SERVICE'));
+        setProducts(all.filter(p => tracksStock(p) && productKind(p) !== 'COMBO'));
       } catch (err) {
         console.error(err);
       }
@@ -91,8 +92,8 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
 
         // Si es salida (OUT), verificar si hay stock suficiente en la sucursal
         if (operation === 'OUT') {
-          const balance = await kardexRepository.getLastBalance(selectedProductId, branchId);
-          const stock = balance ? balance.balanceQuantity : 0;
+          const product = products.find(p => p.id === selectedProductId);
+          const stock = branchBalanceFor(product, branchId).quantity;
           if (stock < quantity) {
             setError(`Stock insuficiente para realizar el egreso. Disponible: ${stock}`);
             setLoading(false);
@@ -143,8 +144,8 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
 
   const isZeroInventoryConfUnlocked = doubleConfirmationText === 'CONFIRMAR ZERO INVENTARIO';
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"}}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-6"}}>
       <UiBox 
         {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"})}
       >

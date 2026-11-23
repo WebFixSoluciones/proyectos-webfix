@@ -1,4 +1,5 @@
 import { resolveThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiCard, UiHeading, UiText } from '../ui/layout';
 import { UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
@@ -28,8 +29,8 @@ export default function MovimientoDetalle({ movimiento, onClose }) {
 
   const formatCurrency = (v) => `$${(Number(v) || 0).toFixed(2)}`;
 
-  return (
-    <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[105] flex items-start justify-center pt-10 pb-10 overflow-y-auto"}}>
+  return createThemedPortal(
+    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-start justify-center p-3 sm:p-6 overflow-y-auto"}}>
       <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-2xl mx-4"}}>
         <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-4"}}>
           <UiBox {...{"className":"flex items-center gap-3"}}>

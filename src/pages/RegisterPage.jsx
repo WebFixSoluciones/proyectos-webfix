@@ -36,7 +36,6 @@ export default function RegisterPage({ showToast }) {
     if (isRegistering) return;
     setIsRegistering(true);
     setRegisterError('');
-
     let createdUser = null;
     let workspaceCreated = false;
     let shouldDeleteUser = false;
@@ -88,7 +87,7 @@ export default function RegisterPage({ showToast }) {
       const userData = {
         uid: user.uid,
         name: name,
-        email: email,
+        email: user.email,
         tenantId: generatedTenantId,
         role: 'admin',
         status: 'active',
@@ -143,7 +142,7 @@ export default function RegisterPage({ showToast }) {
         await sendEmailVerification(user);
         showToast?.('Registro recibido. Verifica tu correo; el administrador revisará la habilitación de tu empresa.', 'success');
       } catch {
-        showToast?.('Empresa creada. Solicita el enlace de verificación en la siguiente pantalla.', 'warning');
+        showToast?.('Solicitud recibida. Reenvía el enlace de verificación desde la siguiente pantalla.', 'warning');
       }
       navigate('/verify-email');
     } catch (error) {
@@ -162,7 +161,7 @@ export default function RegisterPage({ showToast }) {
         'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
         'auth/network-request-failed': 'Error de red. Verifica tu conexión a internet.',
       };
-      setRegisterError(errorMessages[error.code] || `Error al registrarse: ${error.message}`);
+      setRegisterError(errorMessages[error.code] || 'No se pudo completar el registro. Intenta de nuevo.');
       showToast?.("Error en el registro", "error");
     } finally {
       setIsRegistering(false);

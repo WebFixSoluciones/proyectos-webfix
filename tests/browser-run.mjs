@@ -36,6 +36,27 @@ try {
   assert.equal(await page.locator('#admin-payment-section').evaluate(el => el === document.activeElement), true);
   console.log('PASS: venta administrativa pide pago con alerta breve y enfoca medio de pago');
 
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=admin-transfer-no-bank');
+  await page.getByRole('button', { name: 'Emitir Factura Electrónica (SRI)' }).click();
+  const bankIssue = page.getByRole('dialog', { name: 'ALERTA' });
+  await bankIssue.getByText('SELECCIONA CUENTA').waitFor();
+  await bankIssue.getByRole('button', { name: 'Seleccionar Cuenta' }).click();
+  assert.equal(await page.locator('#admin-bank-account').evaluate(el => el === document.activeElement), true);
+  console.log('PASS: venta administrativa exige cuenta de transferencia antes de emitir');
+
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=finance-payment');
+  await page.locator('#finance-payment-bank').waitFor();
+  assert.match(await page.locator('#finance-payment-bank').innerText(), /Selecciona una cuenta bancaria/, 'La cuenta no debe elegirse automáticamente');
+  await page.locator('#finance-payment-bank').click();
+  await page.getByRole('option', { name: /Banco de prueba/ }).click();
+  await page.locator('#finance-payment-method').click();
+  await page.getByRole('option', { name: 'Efectivo / Caja' }).click();
+  assert.equal(await page.locator('#finance-payment-bank').count(), 0);
+  await page.getByRole('button', { name: 'Confirmar Cobro' }).click();
+  await page.waitForFunction(() => !!globalThis.__payment);
+  assert.equal(await page.evaluate(() => globalThis.__payment.cuentaId), null);
+  console.log('PASS: cobro en efectivo no carga una cuenta bancaria previa');
+
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=pos');
   await page.getByText('Teclado USB', { exact: true }).first().waitFor();
   await page.keyboard.press('F12');
@@ -84,12 +105,22 @@ try {
   console.log('PASS: POS abre venta y conserva carrito al cancelar');
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=inventory');
   await page.getByRole('button', { name: /Nuevo Producto/i }).click();
+  assert.equal(await page.locator('.erp-dialog-overlay').last().evaluate(el => {
+    const panel = el.firstElementChild;
+    const rect = panel.getBoundingClientRect();
+    const center = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return document.body.contains(el) && panel.contains(center);
+  }), true, 'El selector de inventario debe quedar sobre la pantalla');
   await page.getByText('Combo / Kit Promocional', { exact: true }).click();
   await page.getByRole('button', { name: 'Componente', exact: true }).click();
   await page.getByRole('combobox', { name: 'Componente 1', exact: true }).click();
   await page.getByRole('option', { name: 'Teclado USB', exact: true }).click();
   await page.getByRole('spinbutton', { name: 'Cantidad del componente 1', exact: true }).fill('2');
   assert.match(await page.getByRole('combobox', { name: 'Componente 1', exact: true }).innerText(), /Teclado USB/);
+  assert.equal(await page.locator('button[title="Agregar Marca"]').evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    return rect.left >= 0 && rect.right <= window.innerWidth && el.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+  }), true, 'La acción de marca debe estar visible dentro del formulario');
   await page.screenshot({ path: 'docs/design-review/screenshots/inventario-combo.png', fullPage: true });
   console.log('PASS: inventario permite definir componentes y cantidades de un combo');
   await page.getByRole('button', { name: /Cancelar/i }).last().click();
@@ -147,14 +178,60 @@ try {
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_resumen');
   await page.getByRole('button', { name: /Registrar Compra/i }).first().waitFor();
   await page.screenshot({ path: 'docs/design-review/screenshots/radix-compras.png', fullPage: true });
+  await page.getByRole('button', { name: /Registrar Compra/i }).first().click();
+  assert.equal(await page.locator('.erp-dialog-overlay').last().evaluate(el => {
+    const panel = el.firstElementChild;
+    const rect = panel.getBoundingClientRect();
+    const center = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return document.body.contains(el) && panel.contains(center);
+  }), true, 'El selector de compra debe quedar sobre la pantalla');
   assert.deepEqual(errors, []);
   console.log('PASS: apertura de 11 submódulos financieros y compras con Themes sin errores JavaScript');
   await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_preventa');
   await page.getByRole('heading', { name: 'Registrar Compra', exact: true }).waitFor();
   await page.getByRole('button', { name: /Con Inventario - Manual/i }).click();
   await page.getByText('Proveedor', { exact: true }).first().waitFor();
+  const purchaseXml = `<factura><infoTributaria><ruc>0999999999001</ruc><razonSocial>Proveedor QA</razonSocial><estab>001</estab><ptoEmi>002</ptoEmi><secuencial>000000123</secuencial><claveAcceso>${'1'.repeat(49)}</claveAcceso></infoTributaria><infoFactura><fechaEmision>13/11/2026</fechaEmision><identificacionComprador>1790012345001</identificacionComprador><totalSinImpuestos>10.00</totalSinImpuestos><importeTotal>11.50</importeTotal></infoFactura><detalles><detalle><codigoPrincipal>DESCONOCIDO</codigoPrincipal><descripcion>Producto recibido</descripcion><cantidad>1</cantidad><precioUnitario>10.00</precioUnitario><descuento>0.00</descuento><precioTotalSinImpuesto>10.00</precioTotalSinImpuesto><impuestos><impuesto><baseImponible>10.00</baseImponible><valor>1.50</valor></impuesto></impuestos></detalle></detalles></factura>`;
+  await page.locator('label').filter({ hasText: 'Importar XML del SRI' }).locator('input[type=file]').setInputFiles({ name: 'compra.xml', mimeType: 'text/xml', buffer: Buffer.from(purchaseXml) });
+  await page.locator('input[value="001-002-000000123"]').waitFor();
+  assert.equal(await page.locator('input[value="2026-11-13"]').count(), 1);
+  await page.getByRole('button', { name: /Siguiente/i }).click();
+  const productMapping = page.getByRole('combobox', { name: 'Producto de inventario para Producto recibido' });
+  await productMapping.click();
+  await page.getByRole('option', { name: /Teclado USB/i }).click();
+  assert.match(await productMapping.innerText(), /Teclado USB/);
   assert.deepEqual(errors, []);
-  console.log('PASS: Registrar Compra abre el formulario desde la navegación');
+  console.log('PASS: Registrar Compra importa XML y permite vincular cada línea a inventario');
+
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_preventa');
+  await page.getByRole('button', { name: /Con Inventario - Manual/i }).click();
+  await page.getByRole('button', { name: 'Crear nuevo proveedor' }).click();
+  await page.getByPlaceholder('RUC *').fill('1754376901001');
+  await page.getByPlaceholder('Nombre *').fill('Proveedor QA');
+  await page.getByRole('button', { name: 'Crear Proveedor' }).click();
+  await page.getByRole('button', { name: 'Recibo / Nota Venta' }).click();
+  await page.getByText('Nro Documento').locator('..').locator('input').fill('001-001-000000999');
+  await page.getByRole('button', { name: /Siguiente/i }).click();
+  await page.getByPlaceholder('Buscar producto por nombre o SKU...').fill('Teclado');
+  await page.getByRole('button', { name: /Teclado USB.*TEC-001/i }).click();
+  await page.getByRole('button', { name: /Siguiente/i }).click();
+  await page.getByRole('button', { name: 'Guardar Compra' }).click();
+  await page.waitForFunction(() => [...globalThis.__fixtureData.keys()].some(key => key.includes('/fin_cxp/')));
+  assert.equal(await page.evaluate(() => globalThis.__fixtureData.get('artifacts/test/public/data/inventory_products/product-1').stock), 9);
+  assert.equal(await page.evaluate(() => [...globalThis.__fixtureData.values()].find(value => value?.documentNumber === '001-001-000000999')?.financialSyncStatus), 'complete');
+  assert.deepEqual(errors, []);
+  console.log('PASS: compra manual registra inventario, Kardex y cuenta por pagar');
+
+  await page.goto('http://127.0.0.1:5178/tests/browser/index.html?mode=purchases&tab=compras_nc');
+  await page.getByRole('button', { name: /Registrar N\. Crédito/i }).click();
+  const receivedNumber = page.getByText('Número recibido').locator('..').locator('input');
+  await receivedNumber.fill('001-001-000000777');
+  assert.equal(await receivedNumber.inputValue(), '001-001-000000777');
+  const receivedDate = page.getByText('Fecha Emisión').first().locator('..').locator('input');
+  await receivedDate.fill('2026-11-12');
+  assert.equal(await receivedDate.inputValue(), '2026-11-12');
+  assert.deepEqual(errors, []);
+  console.log('PASS: nota de crédito recibida permite capturar número y fecha reales');
 } catch (error) {
   await page.screenshot({ path: 'docs/design-review/screenshots/test-failure.png', fullPage: true });
   console.error('Browser errors:', errors);

@@ -50,5 +50,8 @@ export function getAdministrativeSaleIssues({ clientId, client, identificationVa
     const paid = ['efectivo', 'transferencia', 'tarjeta', 'cruce_cuentas'].reduce((sum, key) => sum + (Number(payments[key]) || 0), 0);
     issues.push(issue('payment', 'pago', paid === 0 ? 'Ingresa un valor en al menos un medio de pago.' : paymentStatus.error || 'Completa el medio de pago.', paid === 0 ? 'INGRESA PAGO' : 'COMPLETA PAGO', 'Ingresar Pago'));
   }
+  if (!isDraft && paymentStatus?.isValid && Number(payments.transferencia) > 0 && !payments.transferenciaBankId) {
+    issues.push(issue('bank', 'cuenta', 'Selecciona la cuenta bancaria de la transferencia.', 'SELECCIONA CUENTA', 'Seleccionar Cuenta'));
+  }
   return issues;
 }

@@ -160,16 +160,25 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     const saldoPendiente = Math.max(0, roundMoney(total - paid));
     const estado = previous?.estado === 'anulado' ? 'anulado' : saldoPendiente === 0 ? 'pagado' : paid > 0 ? 'parcial' : 'pendiente';
     const factura = { tipo: data.documentType || 'factura', numero: data.documentNumber || '', claveAcceso: data.claveAcceso || null, fecha: movData.fecha, fechaVencimiento: data.creditDueDate ? parsearFecha(data.creditDueDate) : movData.fechaVencimiento, montoTotal: total, baseImponible: Number(data.baseImponible || 0), iva: Number(data.ivaValor || 0), retencionFuente: Number(data.retencionFuente || 0), retencionIva: Number(data.retencionIva || 0) };
-
     // Construir asientos bancarios/caja por cada canal de pago inmediato con cuenta destino
     const candidatePostings = [];
+    const transferAmount = data.paymentsBreakdown
+      ? roundMoney(data.paymentsBreakdown.transferencia || 0)
+      : (data.paymentMethod === 'transferencia' ? roundMoney(initialPaid) : 0);
+    if (!Number.isFinite(transferAmount) || transferAmount < 0 || transferAmount > initialPaid + 0.01) {
+      throw new Error('El importe transferido no coincide con el pago.');
+    }
+    const transfBankId = data.transferenciaBankId || data.paymentReferences?.transferenciaBankId || defaultBankId;
+    if (transferAmount > 0 && !transfBankId) {
+      throw new Error('Selecciona la cuenta bancaria de la transferencia.');
+    }
+
     if (data.paymentsBreakdown) {
-      const amtTransf = roundMoney(data.paymentsBreakdown.transferencia || 0);
+      const amtTransf = transferAmount;
       const amtTarjeta = roundMoney(data.paymentsBreakdown.tarjeta || 0);
       const amtEfectivo = roundMoney(data.paymentsBreakdown.efectivo || 0);
-      const transfBankId = data.transferenciaBankId || data.paymentReferences?.transferenciaBankId || (amtTransf > 0 ? defaultBankId : '');
-      const tarjetaBankId = data.tarjetaBankId || data.paymentReferences?.tarjetaBankId || (amtTransf === 0 && amtTarjeta > 0 ? defaultBankId : '');
-      const efectivoCajaId = data.efectivoCajaId || data.paymentReferences?.efectivoCajaId || (amtTransf === 0 && amtTarjeta === 0 && amtEfectivo > 0 ? defaultBankId : '');
+      const tarjetaBankId = data.tarjetaBankId || data.paymentReferences?.tarjetaBankId || '';
+      const efectivoCajaId = data.efectivoCajaId || data.paymentReferences?.efectivoCajaId || '';
       if (amtTransf > 0 && transfBankId) {
         candidatePostings.push({
           docId: `mov_doc_${data.id}`,
@@ -213,9 +222,10 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     for (const bId of uniqueBankIds) {
       const bRef = doc(db, 'fin_bancos', bId);
       const bSnap = await tx.get(bRef);
-      if (bSnap?.exists?.() && bSnap.data()?.estado !== 'inactivo') {
-        bankSnaps.set(bId, bRef);
+      if (!bSnap?.exists?.() || bSnap.data()?.estado === 'inactivo' || (bSnap.data()?.estado && bSnap.data()?.estado !== 'activo')) {
+        throw new Error('La cuenta bancaria está inactiva o no existe.');
       }
+      bankSnaps.set(bId, bRef);
     }
     const validPostings = candidatePostings.filter(p => bankSnaps.has(p.cuentaId));
     const primaryBankMovId = validPostings[0]?.docId || null;

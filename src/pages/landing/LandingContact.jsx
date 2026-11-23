@@ -30,6 +30,12 @@ export default function LandingContact() {
       setErrorMsg('Por favor complete los campos obligatorios (*).');
       return;
     }
+    if (form.name.trim().length > 120 || form.email.trim().length > 254 ||
+      form.phone.trim().length > 40 || form.company.trim().length > 160 ||
+      form.message.trim().length > 5000) {
+      setErrorMsg('El mensaje supera el límite permitido. Acorta el contenido e inténtalo de nuevo.');
+      return;
+    }
     setLoading(true);
     try {
       if (!db) throw new Error('La conexión no está disponible.');
@@ -164,6 +170,7 @@ export default function LandingContact() {
                       <Input 
                         type="text" 
                         required 
+                        maxLength={120}
                         placeholder="Ej. Carlos Morales"
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -174,6 +181,7 @@ export default function LandingContact() {
                       <Input 
                         type="email" 
                         required 
+                        maxLength={254}
                         placeholder="tu@empresa.com"
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -186,6 +194,7 @@ export default function LandingContact() {
                       <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Teléfono / WhatsApp</UiLabel>
                       <Input 
                         type="tel" 
+                        maxLength={40}
                         placeholder="0991234567"
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -195,6 +204,7 @@ export default function LandingContact() {
                       <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Nombre de Empresa</UiLabel>
                       <Input 
                         type="text" 
+                        maxLength={160}
                         placeholder="Mi Negocio S.A."
                         value={form.company}
                         onChange={(e) => setForm({ ...form, company: e.target.value })}
@@ -206,6 +216,7 @@ export default function LandingContact() {
                     <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true}}>Mensaje o Consulta *</UiLabel>
                     <UiTextarea
                       required 
+                      maxLength={5000}
                       rows={4} 
                       placeholder="Cuéntanos cómo podemos ayudarte..."
                       value={form.message}

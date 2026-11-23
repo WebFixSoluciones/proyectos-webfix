@@ -13,124 +13,13 @@ import {
 } from 'lucide-react';
 import { collection, doc, setDoc, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { PRODUCTS_CATALOG } from '../../config/billingPlans';
+import { getPlanTotal } from '../../services/subscriptionPlan';
 import { useAuth } from '../../contexts/AuthContext';
 
-const PRODUCTS_CATALOG = {
-  facturacion: {
-    title: 'Facturación Electrónica SRI',
-    desc: 'Sistema de facturación automatizado y autorizado por el SRI del Ecuador.',
-    plans: [
-      {
-        id: 'sri_basico',
-        name: 'Plan Básico SRI',
-        priceMonthly: 9,
-        priceYearly: 7,
-        features: ['Hasta 50 facturas/mes', '1 Usuario', 'Firma electrónica compatible', 'Soporte vía email']
-      },
-      {
-        id: 'sri_pyme',
-        name: 'Plan Pyme SRI',
-        priceMonthly: 19,
-        priceYearly: 15,
-        features: ['Facturación Ilimitada', '3 Usuarios', 'Inventario básico', 'Soporte prioritario'],
-        isPopular: true
-      },
-      {
-        id: 'sri_enterprise',
-        name: 'Plan Enterprise SRI',
-        priceMonthly: 39,
-        priceYearly: 31,
-        features: ['Facturación Ilimitada', 'Usuarios Ilimitados', 'Sucursales y Bodegas', 'Soporte 24/7 y Capacitación']
-      }
-    ]
-  },
-  paginas: {
-    title: 'Sitios y Páginas Web',
-    desc: 'Presencia web profesional con hosting de alto rendimiento y SEO optimizado.',
-    plans: [
-      {
-        id: 'web_landing',
-        name: 'Landing Page',
-        priceMonthly: 15,
-        priceYearly: 12,
-        features: ['1 Sección de Aterrizaje', 'Hosting incluido', 'Certificado SSL Gratis', 'Formulario de contacto']
-      },
-      {
-        id: 'web_pro',
-        name: 'Sitio Web Pro',
-        priceMonthly: 35,
-        priceYearly: 28,
-        features: ['Hasta 5 páginas internas', 'Panel administrable', 'Blog de noticias', 'Diseño responsivo premium'],
-        isPopular: true
-      },
-      {
-        id: 'web_ecommerce',
-        name: 'Tienda Online',
-        priceMonthly: 75,
-        priceYearly: 60,
-        features: ['Productos ilimitados', 'Carrito de compras', 'Pasarela de pagos integrada', 'Control de pedidos']
-      }
-    ]
-  },
-  correos: {
-    title: 'Correos Corporativos',
-    desc: 'Comunicación profesional y segura con el dominio corporativo de tu empresa.',
-    plans: [
-      {
-        id: 'mail_pro',
-        name: 'Plan Mail Pro',
-        priceMonthly: 5,
-        priceYearly: 4,
-        features: ['10 GB de almacenamiento', 'Filtro Antispam premium', 'Webmail WebFix', 'Compatible con Outlook/Mobile']
-      },
-      {
-        id: 'mail_business',
-        name: 'Plan Mail Business',
-        priceMonthly: 12,
-        priceYearly: 10,
-        features: ['30 GB de almacenamiento', 'Videollamadas grupales', '100 GB en nube compartida', 'Calendario corporativo'],
-        isPopular: true
-      },
-      {
-        id: 'mail_enterprise',
-        name: 'Plan Mail Enterprise',
-        priceMonthly: 25,
-        priceYearly: 20,
-        features: ['100 GB de almacenamiento', 'Archivado inteligente de correos', 'Seguridad reforzada', 'Soporte telefónico 24/7']
-      }
-    ]
-  },
-  whatsapp: {
-    title: 'WhatsApp CRM',
-    desc: 'Multiagente, automatización y centralización de conversaciones comerciales.',
-    plans: [
-      {
-        id: 'crm_inbox',
-        name: 'Plan CRM Inbox',
-        priceMonthly: 20,
-        priceYearly: 16,
-        features: ['1 Línea Conectada', 'Bandeja compartida', 'Hasta 2 agentes', 'Respuestas rápidas']
-      },
-      {
-        id: 'crm_automation',
-        name: 'Plan CRM Automation',
-        priceMonthly: 45,
-        priceYearly: 36,
-        features: ['Línea oficial certificada', 'Chatbots interactivos', 'Hasta 5 agentes', 'Asignación automática de chats'],
-        isPopular: true
-      },
-      {
-        id: 'crm_enterprise',
-        name: 'Plan CRM Enterprise',
-        priceMonthly: 95,
-        priceYearly: 76,
-        features: ['Campañas oficiales masivas', 'Integración con APIs externas', 'Agentes Ilimitados', 'Reportes de desempeño']
-      }
-    ]
-  }
-};
 
 const SUBMODULES = [
+  { id: 'erp', label: 'Plan ERP', icon: Building },
   { id: 'facturacion', label: 'Facturación Electrónica', icon: FileText },
   { id: 'paginas', label: 'Páginas Web', icon: Globe },
   { id: 'correos', label: 'Correos Corporativos', icon: Mail },
@@ -145,6 +34,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
   
   const getInitialCategory = () => {
     if (initialSubTab === 'historial' || initialSubTab === 'pagos') return 'historial';
+    if (initialSubTab === 'planes') return 'erp';
     if (initialSubTab && PRODUCTS_CATALOG[initialSubTab]) return initialSubTab;
     return 'facturacion';
   };
@@ -159,11 +49,12 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
     bankName: 'Banco Pichincha',
     referenceNumber: '',
     amount: '',
-    transferDate: new Date().toISOString().split('T')[0],
-    receiptUrl: 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=500'
+    transferDate: new Date().toISOString().split('T')[0]
   });
   
   const [history, setHistory] = useState([]);
+  const [billingPlans, setBillingPlans] = useState([]);
+  const [plansLoaded, setPlansLoaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const lastInitialSubTabRef = useRef(null);
 
@@ -178,12 +69,12 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
     } else if (PRODUCTS_CATALOG[initialSubTab]) {
       if (activeCategory !== initialSubTab) {
         setActiveCategory(initialSubTab);
-        setSelectedPlanId(PRODUCTS_CATALOG[initialSubTab].plans[0].id);
+        setSelectedPlanId('');
       }
     } else if (initialSubTab === 'planes') {
-      if (activeCategory !== 'facturacion') {
-        setActiveCategory('facturacion');
-        setSelectedPlanId(PRODUCTS_CATALOG.facturacion.plans[0].id);
+      if (activeCategory !== 'erp') {
+        setActiveCategory('erp');
+        setSelectedPlanId('');
       }
     }
   }, [initialSubTab, activeCategory]);
@@ -202,6 +93,20 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
     }
   }, [tenantInfo?.billingPeriod, billingPeriod]);
 
+  useEffect(() => {
+    return onSnapshot(collection(db, 'plans'), (snap) => {
+      setBillingPlans(snap.docs.map(planDoc => ({ ...planDoc.data(), id: planDoc.id })));
+      setPlansLoaded(true);
+    }, () => {
+      setBillingPlans([]);
+      setPlansLoaded(true);
+      showToast('No se pudo cargar el catálogo de planes.', 'error');
+    });
+  }, [showToast]);
+
+  const categoryPlans = billingPlans.filter(plan => (plan.category || 'erp') === activeCategory && plan.active !== false);
+  const selectedPlan = categoryPlans.find(plan => plan.id === selectedPlanId) || categoryPlans[0] || null;
+
   // Load billing history (transfers)
   useEffect(() => {
     if (!tenantId) return;
@@ -219,19 +124,14 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
   const handleSelectCategory = (catId) => {
     setActiveCategory(catId);
     if (catId !== 'historial') {
-      const defaultPlan = PRODUCTS_CATALOG[catId]?.plans[0]?.id;
-      if (defaultPlan) setSelectedPlanId(defaultPlan);
+      setSelectedPlanId('');
     }
     if (onSubTabChange) {
-      onSubTabChange(catId === 'historial' ? 'pagos' : catId);
+      onSubTabChange(catId === 'historial' ? 'pagos' : catId === 'erp' ? 'planes' : catId);
     }
   };
 
-  const getSelectedPlanConfig = () => {
-    if (activeCategory === 'historial') return null;
-    const cat = PRODUCTS_CATALOG[activeCategory] || PRODUCTS_CATALOG.facturacion;
-    return cat.plans.find(p => p.id === selectedPlanId) || cat.plans[0];
-  };
+  const getSelectedPlanConfig = () => activeCategory === 'historial' ? null : selectedPlan;
 
   const getPrice = (plan) => {
     if (!plan) return 0;
@@ -240,28 +140,32 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
 
   const handleSubmitTransfer = async (e) => {
     e.preventDefault();
-    if (!transferData.referenceNumber.trim() || !Number.isFinite(Number(transferData.amount)) || Number(transferData.amount) <= 0) {
-      showToast("Por favor completa los campos del comprobante", "warning");
+    const planConfig = getSelectedPlanConfig();
+    const expectedTotal = getPlanTotal(planConfig, billingPeriod);
+    if (!tenantId || !planConfig || expectedTotal <= 0) {
+      showToast('Selecciona un plan disponible.', 'warning');
+      return;
+    }
+    if (!transferData.referenceNumber.trim() || Math.round(Number(transferData.amount) * 100) !== Math.round(expectedTotal * 100)) {
+      showToast(`Ingresa la referencia y el monto exacto: $${expectedTotal.toFixed(2)}.`, 'warning');
       return;
     }
     
     setIsProcessing(true);
     try {
-      const planConfig = getSelectedPlanConfig();
-      if (!planConfig) return;
-      const transferId = `trsf_${new Date().getTime()}`;
-      await setDoc(doc(db, 'transfers', transferId), {
-        id: transferId,
+      const transferRef = doc(collection(db, 'transfers'));
+      await setDoc(transferRef, {
+        id: transferRef.id,
         tenantId,
         companyName: tenantInfo?.companyName || 'Mi Empresa',
         planId: planConfig.id,
+        category: planConfig.category,
         billingPeriod,
-        amount: Number(transferData.amount),
+        amount: expectedTotal,
         referenceNumber: transferData.referenceNumber,
         status: 'pending',
         bankName: transferData.bankName,
         transferDate: transferData.transferDate,
-        receiptUrl: transferData.receiptUrl,
         createdAt: new Date().toISOString()
       });
 
@@ -270,8 +174,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
         bankName: 'Banco Pichincha',
         referenceNumber: '',
         amount: '',
-        transferDate: new Date().toISOString().split('T')[0],
-        receiptUrl: 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=500'
+        transferDate: new Date().toISOString().split('T')[0]
       });
     } catch (err) {
       showToast("Error al registrar reporte: " + err.message, "error");
@@ -461,9 +364,11 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
 
             {/* 3 Plans Grid */}
             <UiBox className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {(PRODUCTS_CATALOG[activeCategory]?.plans || []).map((plan) => {
-                const isSelected = selectedPlanId === plan.id;
+              {categoryPlans.map((plan) => {
+                const isSelected = selectedPlan?.id === plan.id;
                 const price = getPrice(plan);
+                const features = plan.features?.length ? plan.features : activeCategory === 'erp'
+                  ? [`${plan.maxUsers === 9999 ? 'Usuarios ilimitados' : `${plan.maxUsers || 0} usuarios`}`, `${(plan.modules || []).length} módulos configurados`] : [];
                 return (
                   <UiBox
                     key={plan.id}
@@ -487,20 +392,20 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
                       <UiBox className="flex items-baseline gap-1 my-3">
                         <span className="text-sm font-semibold text-[var(--gray-11)]">$</span>
                         <span className="text-3xl font-extrabold tracking-tight text-[var(--gray-12)] font-mono">
-                          {price}
+                          {Number(price).toFixed(2)}
                         </span>
                         <span className="text-xs text-[var(--gray-11)] font-medium">/mes</span>
                       </UiBox>
                       {billingPeriod === 'yearly' && (
                         <UiText as="p" size="1" color="gray" className="text-[11px] mb-3 -mt-2">
-                          ${price * 12}/año facturado anualmente
+                          ${getPlanTotal(plan, 'yearly').toFixed(2)}/año facturado anualmente
                         </UiText>
                       )}
 
                       <div className="border-t border-[var(--gray-a4)] my-3" />
 
                       <ul className="space-y-2 text-xs">
-                        {plan.features.map((feat, idx) => (
+                        {features.map((feat, idx) => (
                           <li key={idx} className="flex items-start gap-2 leading-relaxed text-[var(--gray-11)]">
                             <Check size={14} className="text-emerald-600 shrink-0 mt-0.5" />
                             <span>{feat}</span>
@@ -523,6 +428,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
                   </UiBox>
                 );
               })}
+              {plansLoaded && categoryPlans.length === 0 && <UiText as="p" size="2" color="gray">No hay planes disponibles. El administrador debe configurarlos.</UiText>}
             </UiBox>
           </UiBox>
 
@@ -549,7 +455,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
                 <div className="border-t border-[var(--gray-a5)] pt-2 flex justify-between items-baseline">
                   <span className="font-semibold text-[var(--gray-12)] text-sm">Total a Pagar:</span>
                   <span className="font-extrabold text-lg text-[var(--accent-11)] font-mono">
-                    ${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}
+                    ${getPlanTotal(getSelectedPlanConfig(), billingPeriod).toFixed(2)}
                   </span>
                 </div>
               </UiBox>
@@ -602,7 +508,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
                       type="number" 
                       value={transferData.amount}
                       onChange={e => setTransferData({ ...transferData, amount: e.target.value })}
-                      placeholder={`Total: $${billingPeriod === 'yearly' ? getPrice(getSelectedPlanConfig()) * 12 : getPrice(getSelectedPlanConfig())}`}
+                      placeholder={`Total: $${getPlanTotal(getSelectedPlanConfig(), billingPeriod).toFixed(2)}`}
                       size="2"
                       className="w-full"
                       required
@@ -611,7 +517,7 @@ export default function BillingPortal({ showToast, initialSubTab, onSubTabChange
 
                   <UiButton
                     type="submit"
-                    disabled={isProcessing}
+                    disabled={isProcessing || !selectedPlan}
                     size="2"
                     variant="solid"
                     color="blue"

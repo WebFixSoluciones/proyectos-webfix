@@ -1,14 +1,8 @@
 import { Info } from 'lucide-react';
 
-export default function FinancialPageHeader({
-  icon: Icon,
-  title,
-  description,
-  badge,
-  actions
-}) {
+export default function FinancialPageHeader({ icon: Icon, title, description, badge, actions }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-2 mb-4 border-b border-[#e3e3e3]">
+    <header className="erp-page-header flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-2 mb-4 border-b border-[#e3e3e3]">
       <div className="flex items-center gap-3 min-w-0">
         {Icon && (
           <div className="w-10 h-10 rounded-xl bg-[#e8fedf] text-[#004227] flex items-center justify-center shrink-0 border border-[#b3f4cb]">
@@ -17,7 +11,7 @@ export default function FinancialPageHeader({
         )}
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-bold text-[#1b1b1b] tracking-tight leading-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1b1b1b] tracking-tight leading-tight" title={description || undefined}>
               {title}
             </h1>
             {badge && (
@@ -38,12 +32,7 @@ export default function FinancialPageHeader({
           )}
         </div>
       </div>
-
-      {actions && (
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
-          {actions}
-        </div>
-      )}
-    </div>
+      {actions && <div className="flex items-center gap-2 shrink-0 flex-wrap">{actions}</div>}
+    </header>
   );
 }

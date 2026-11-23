@@ -40,8 +40,6 @@ export default function FinancialPaymentModal({
         .then(accs => {
           if (isMounted) {
             setBankAccounts(accs || []);
-            // Auto select first account if available
-            if (accs?.length > 0) setCuentaId(current => current || accs[0].id);
           }
         })
         .catch(err => console.error('Error cargando cuentas bancarias en modal de pago:', err));
@@ -62,13 +60,17 @@ export default function FinancialPaymentModal({
       showToast?.(`El monto ($${val.toFixed(2)}) supera el saldo pendiente ($${saldoPendiente.toFixed(2)}).`, 'warning');
       return;
     }
+    if (metodoPago === 'transferencia' && !cuentaId) {
+      showToast?.('Selecciona la cuenta bancaria de la transferencia.', 'warning');
+      return;
+    }
 
     setLoading(true);
     try {
       const paymentData = {
         monto: val,
         metodoPago,
-        cuentaId: cuentaId || null,
+        cuentaId: metodoPago === 'transferencia' ? cuentaId : null,
         referencia: referencia.trim(),
         fecha: new Date(fecha + 'T12:00:00').toISOString(),
         notas: notas.trim()
@@ -87,7 +89,7 @@ export default function FinancialPaymentModal({
   return createPortal(
     <UiBox
       {...mergeThemeProps(
-        { "style": { "backgroundColor": "var(--black-a7)" }, "className": "fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200" }
+        { "className": "erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4" }
       )}
       onClick={onClose}
     >
@@ -189,10 +191,7 @@ export default function FinancialPaymentModal({
                 )}
               </UiBox>
             </UiBox>
-            <UiBox className="relative">
-              <UiText {...mergeThemeProps({ "size": "2", "weight": "bold", "color": "gray", "highContrast": true, "className": "absolute left-3 top-1/2 -translate-y-1/2 opacity-60" })}>
-                $
-              </UiText>
+          <UiBox>
               <UiInput
                 type="number"
                 step="0.01"
@@ -201,7 +200,7 @@ export default function FinancialPaymentModal({
                 required
                 value={monto}
                 onChange={e => setMonto(e.target.value)}
-                style={{ paddingLeft: '28px' }}
+                iconPrefix={<DollarSign size={16} />}
                 {...mergeThemeProps({ "size": "2", "className": "w-full font-bold text-lg" })}
               />
             </UiBox>
@@ -214,6 +213,7 @@ export default function FinancialPaymentModal({
                 Método de Pago *
               </UiLabel>
               <UiSelect
+                id="finance-payment-method"
                 value={metodoPago}
                 onChange={e => setMetodoPago(e.target.value)}
                 {...mergeThemeProps({ "size": "2", "className": "w-full" })}
@@ -240,28 +240,28 @@ export default function FinancialPaymentModal({
           </UiBox>
 
           {/* Cuenta Bancaria de Destino/Origen */}
-          <UiBox className="space-y-1.5">
+          {metodoPago === 'transferencia' && <UiBox className="space-y-1.5">
             <UiLabel {...mergeThemeProps({ "size": "1", "weight": "bold", "color": "gray", "highContrast": true })}>
-              {isCobro ? 'Cuenta Bancaria de Destino (Depósito/Ingreso)' : 'Cuenta Bancaria de Origen (Salida de Fondos)'}
+              {isCobro ? 'Cuenta bancaria de destino *' : 'Cuenta bancaria de origen *'}
             </UiLabel>
             <UiSelect
+              id="finance-payment-bank"
+              required
               value={cuentaId}
               onChange={e => setCuentaId(e.target.value)}
               {...mergeThemeProps({ "size": "2", "className": "w-full" })}
             >
-              <option value="">-- Sin asignar a cuenta bancaria --</option>
+              <option value="">Selecciona una cuenta bancaria</option>
               {bankAccounts.map(b => (
                 <option key={b.id} value={b.id}>
                   {b.nombre || b.banco || 'Cuenta'} ({b.tipo || b.tipoCuenta || 'Banco'}{b.numeroCuenta ? ` ${b.numeroCuenta}` : ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
                 </option>
               ))}
             </UiSelect>
-            <UiText {...mergeThemeProps({ "size": "1", "color": "gray", "className": "text-[11px]" })}>
-              {cuentaId 
-                ? 'El saldo de esta cuenta se actualizará automáticamente y se generará un movimiento de tesorería.'
-                : 'Si seleccionas una cuenta, el movimiento se registrará en el submódulo de Bancos y Caja.'}
+            <UiText {...mergeThemeProps({ "size": "1", "color": "gray" })}>
+              El movimiento aparecerá en Bancos y Caja.
             </UiText>
-          </UiBox>
+          </UiBox>}
 
           {/* Referencia */}
           <UiBox className="space-y-1.5">

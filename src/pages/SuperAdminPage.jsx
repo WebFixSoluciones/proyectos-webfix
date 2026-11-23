@@ -41,6 +41,8 @@ import TenantAdminPanel from '../components/admin/TenantAdminPanel';
 import { getSubscriptionExpiry, isSubscriptionBlocked } from '../services/subscriptionAccess';
 import { tenantDateInput, tenantStatus, subscriptionUpdate } from '../services/tenantAdminModel';
 import { useAuth } from '../contexts/AuthContext';
+import { DEFAULT_BILLING_PLANS } from '../config/billingPlans';
+import { validatePlanPayment, isBasePlanCategory, getSubscriptionExpiry as computeNextPlanExpiry } from '../services/subscriptionPlan';
 
 export default function SuperAdminPage({ showToast }) {
   const navigate = useNavigate();
@@ -60,6 +62,7 @@ export default function SuperAdminPage({ showToast }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [loadError, setLoadError] = useState('');
   const [savingTenant, setSavingTenant] = useState(false);
+  const [pendingOnly, setPendingOnly] = useState(false);
   const tenantRequest = useRef(0);
   
   // Selected Tenant Details State (for inline editing)
@@ -123,7 +126,9 @@ export default function SuperAdminPage({ showToast }) {
     const unsubTenants = onSnapshot(collection(db, 'tenants'), (snap) => {
       const list = [];
       snap.forEach(doc => list.push({ ...doc.data(), id: doc.id }));
-      setTenants(list.sort((a, b) => (getSubscriptionExpiry(b)?.getTime() || 0) - (getSubscriptionExpiry(a)?.getTime() || 0)));
+      const created = tenant => tenant.createdAt?.toMillis?.() || Date.parse(tenant.createdAt || '') || 0;
+      list.sort((a, b) => created(b) - created(a));
+      setTenants(list);
       setLoading(false);
     }, (error) => {
       setLoadError("No se pudieron cargar las empresas. Comprueba los permisos de superadministrador.");
@@ -148,44 +153,12 @@ export default function SuperAdminPage({ showToast }) {
         const list = [];
         snap.forEach(doc => list.push({ ...doc.data(), id: doc.id }));
         
-        if (list.length === 0) {
-          // Initialize default plans if not created yet
-          const defaultPlans = [
-            {
-              id: 'starter',
-              name: 'Starter',
-              priceMonthly: 29,
-              priceYearly: 23,
-              maxUsers: 3,
-              maxProducts: 100,
-              modules: ['dashboard', 'ventas', 'personas', 'general_settings']
-            },
-            {
-              id: 'professional',
-              name: 'Profesional',
-              priceMonthly: 79,
-              priceYearly: 63,
-              maxUsers: 10,
-              maxProducts: 1000,
-              modules: ['dashboard', 'ventas', 'personas', 'inventario', 'general_settings']
-            },
-            {
-              id: 'enterprise',
-              name: 'Enterprise',
-              priceMonthly: 149,
-              priceYearly: 119,
-              maxUsers: 9999, // Ilimitado
-              maxProducts: 99999, // Ilimitado
-              modules: ['dashboard', 'ventas', 'personas', 'inventario', 'finances', 'compras', 'gastos_creditos', 'general_settings']
-            }
-          ];
-          for (const p of defaultPlans) {
-            await setDoc(doc(db, 'plans', p.id), p);
-          }
-          setPlans(defaultPlans);
-        } else {
-          setPlans(list);
+        const existingIds = new Set(list.map(plan => plan.id));
+        const missing = DEFAULT_BILLING_PLANS.filter(plan => !existingIds.has(plan.id));
+        for (const plan of missing) {
+          await setDoc(doc(db, 'plans', plan.id), plan);
         }
+        setPlans([...list, ...missing]);
       } catch (err) {
         console.error("Error cargando planes:", err);
       }
@@ -230,6 +203,33 @@ export default function SuperAdminPage({ showToast }) {
   };
 
   // Actions
+  const handleApproveRegistration = async (tenant) => {
+    try {
+      await runTransaction(db, async transaction => {
+        const tenantRef = doc(db, 'tenants', tenant.id);
+        const snapshot = await transaction.get(tenantRef);
+        if (!snapshot.exists() || snapshot.data().planStatus !== 'pending_approval') {
+          throw new Error('Esta solicitud ya fue procesada. Actualiza el listado.');
+        }
+        const approvedAt = new Date();
+        const expiresAt = new Date(approvedAt);
+        expiresAt.setUTCDate(expiresAt.getUTCDate() + 14);
+        transaction.update(tenantRef, {
+          planStatus: 'trial',
+          trialExpiresAt: Timestamp.fromDate(expiresAt),
+          expiresAt: expiresAt.toISOString(),
+          approvedAt: approvedAt.toISOString(),
+          approvedBy: currentUser.uid
+        });
+      });
+      showToast('Empresa aprobada. La prueba de 14 días comienza hoy.', 'success');
+      setViewMode('list');
+      setSelectedTenantDetails(null);
+    } catch (error) {
+      showToast(error.message || 'No se pudo aprobar la solicitud.', 'error');
+    }
+  };
+
   const handleApproveTransfer = async (transfer) => {
     try {
       await runTransaction(db, async transaction => {
@@ -239,22 +239,41 @@ export default function SuperAdminPage({ showToast }) {
           throw new Error('Este pago ya fue procesado. Actualiza el listado.');
         }
         const payment = transferSnap.data();
+        const planRef = doc(db, 'plans', payment.planId);
+        const planSnap = await transaction.get(planRef);
+        if (!planSnap.exists()) throw new Error('El plan no existe en el catálogo del administrador.');
+        const plan = planSnap.data();
+        const category = validatePlanPayment(plan, payment);
         const tenantRef = doc(db, 'tenants', payment.tenantId);
         const tenantSnap = await transaction.get(tenantRef);
         if (!tenantSnap.exists()) throw new Error('No se encontró la empresa del pago.');
 
-        const currentExpiry = getSubscriptionExpiry(tenantSnap.data()) || new Date(0);
-        if (tenantSnap.data().planStatus === 'suspended') throw new Error('La empresa está suspendida. Revisa y reactiva su acceso antes de aprobar el pago.');
-        const newExpiresAt = currentExpiry > new Date() ? currentExpiry : new Date();
-        newExpiresAt.setMonth(newExpiresAt.getMonth() + (payment.billingPeriod === 'yearly' ? 12 : 1));
-        transaction.update(tenantRef, {
-          planStatus: 'active',
-          expiresAt: newExpiresAt.toISOString(),
-          subscriptionExpiresAt: Timestamp.fromDate(newExpiresAt),
-          planId: payment.planId,
-          billingPeriod: payment.billingPeriod
-        });
-        transaction.set(doc(collection(db, 'tenants', payment.tenantId, 'admin_events')), { action: 'Pago aprobado', actorUid: currentUser.uid, createdAt: serverTimestamp(), changes: { planId: payment.planId, expiresAt: newExpiresAt.toISOString(), transferId: transfer.id } });
+        const isBasePlan = isBasePlanCategory(category);
+        const tenant = tenantSnap.data();
+        if (tenant.planStatus === 'suspended') throw new Error('La empresa está suspendida. Revisa y reactiva su acceso antes de aprobar el pago.');
+        const currentExpiryValue = isBasePlan
+          ? (tenant.subscriptionExpiresAt || tenant.expiresAt)
+          : tenant.serviceSubscriptions?.[category]?.expiresAt;
+        const newExpiresAt = computeNextPlanExpiry(currentExpiryValue, payment.billingPeriod);
+        if (isBasePlan) {
+          transaction.update(tenantRef, {
+            planStatus: 'active',
+            expiresAt: newExpiresAt.toISOString(),
+            subscriptionExpiresAt: Timestamp.fromDate(newExpiresAt),
+            planId: payment.planId,
+            billingPeriod: payment.billingPeriod
+          });
+        } else {
+          transaction.update(tenantRef, {
+            [`serviceSubscriptions.${category}`]: {
+              planId: payment.planId,
+              status: 'active',
+              billingPeriod: payment.billingPeriod,
+              expiresAt: Timestamp.fromDate(newExpiresAt)
+            }
+          });
+        }
+        transaction.set(doc(collection(db, 'tenants', payment.tenantId, 'admin_events')), { action: 'Pago aprobado', actorUid: currentUser.uid, createdAt: serverTimestamp(), changes: { planId: payment.planId, category, expiresAt: newExpiresAt.toISOString(), transferId: transfer.id } });
         transaction.update(transferRef, {
           status: 'approved',
           approvedAt: new Date().toISOString(),
@@ -295,6 +314,10 @@ export default function SuperAdminPage({ showToast }) {
     if (savingTenant) return;
     setSavingTenant(true);
     try {
+      if (tenants.find(item => item.id === selectedTenantDetails.id)?.planStatus === 'pending_approval' && selectedTenantDetails.planStatus !== 'pending_approval') {
+        showToast('Aprueba primero el registro desde el listado o desde Usuarios y altas.', 'warning');
+        return;
+      }
       const changes = subscriptionUpdate(selectedTenantDetails);
       const expiry = changes.expiresAt ? Timestamp.fromDate(new Date(changes.expiresAt)) : null;
       const batch = writeBatch(db);
@@ -316,7 +339,15 @@ export default function SuperAdminPage({ showToast }) {
   const handleSavePlanEdit = async (e) => {
     e.preventDefault();
     try {
-      await setDoc(doc(db, 'plans', editingPlan.id), editingPlan, { merge: true });
+      if (![editingPlan.priceMonthly, editingPlan.priceYearly].every(price => Number.isFinite(price) && price > 0) ||
+        ![editingPlan.maxUsers, editingPlan.maxProducts].every(limit => Number.isInteger(limit) && limit >= 0)) {
+        showToast('Ingresa precios positivos y límites válidos.', 'warning');
+        return;
+      }
+      const { featuresText, ...planFields } = editingPlan;
+      const planToSave = { ...planFields, features: (featuresText || '').split('\n').map(item => item.trim()).filter(Boolean) };
+      await setDoc(doc(db, 'plans', editingPlan.id), planToSave, { merge: true });
+      setPlans(current => current.map(plan => plan.id === editingPlan.id ? planToSave : plan));
       showToast(`Configuración del plan ${editingPlan.name} guardada`, "success");
       setEditingPlan(null);
     } catch {
@@ -615,9 +646,13 @@ export default function SuperAdminPage({ showToast }) {
     }
   };
 
-  const filteredTenants = tenants.filter(t => 
-    t.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.id?.toLowerCase().includes(searchTerm.toLowerCase()) || t.ownerEmail?.toLowerCase().includes(searchTerm.toLowerCase())
+  const pendingRegistrations = tenants.filter(tenant => tenant.planStatus === 'pending_approval');
+  const filteredTenants = tenants.filter(tenant =>
+    (!pendingOnly || tenant.planStatus === 'pending_approval') && (
+      tenant.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tenant.ownerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tenant.id?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   // Dashboard Stats
@@ -746,7 +781,7 @@ export default function SuperAdminPage({ showToast }) {
   const sidebarLinks = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'Usuarios y altas', icon: ShieldAlert, count: registrationSummary.incomplete },
-    { id: 'tenants', label: 'Empresas (Tenants)', icon: Building },
+    { id: 'tenants', label: 'Empresas (Tenants)', icon: Building, count: pendingRegistrations.length },
     { id: 'sri_monitor', label: 'Monitor SRI Global', icon: ShieldAlert, count: pendingSriDocs.length },
     { id: 'transfers', label: 'Aprobaciones', icon: CreditCard, count: pendingTransfers.length },
     { id: 'plans', label: 'Tarifas y Planes', icon: Sliders }
@@ -979,13 +1014,17 @@ export default function SuperAdminPage({ showToast }) {
                         type="text" 
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        placeholder="Buscar empresa, ID o correo del propietario..."
+                        placeholder="Buscar empresa, correo o ID..."
                         iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
                         size="2"
                         className="w-full"
                       />
                     </div>
                     
+                    <button type="button" onClick={() => setPendingOnly(value => !value)}
+                      className={`px-4 py-2.5 rounded-md border text-xs font-bold ${pendingOnly ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-white border-border-default text-text-secondary'}`}>
+                      Pendientes ({pendingRegistrations.length})
+                    </button>
                     <button 
                       onClick={() => setViewMode('create')}
                       className="px-4 py-2.5 bg-primary hover:opacity-90 text-white text-xs font-bold rounded-md flex items-center gap-1.5 transition-colors self-end sm:self-auto"
@@ -999,6 +1038,7 @@ export default function SuperAdminPage({ showToast }) {
                       <thead>
                         <tr className={`border-b text-xs font-bold uppercase tracking-wider text-text-secondary ${'border-border-default bg-surface-bg'}`}>
                           <th className="px-6 py-4">Empresa</th>
+                          <th className="px-6 py-4">Correo de registro</th>
                           <th className="px-6 py-4">Inquilino ID</th>
                           <th className="px-6 py-4">Plan</th>
                           <th className="px-6 py-4">Estado</th>
@@ -1009,12 +1049,13 @@ export default function SuperAdminPage({ showToast }) {
                       <tbody className="divide-y divide-slate-200/50  text-xs font-medium">
                         {filteredTenants.length === 0 ? (
                           <tr>
-                            <td colSpan="6" className="text-center py-10 text-text-secondary font-semibold">No se encontraron empresas.</td>
+                            <td colSpan="7" className="text-center py-10 text-text-secondary font-semibold">No se encontraron empresas.</td>
                           </tr>
                         ) : (
                           filteredTenants.map((tenant) => (
                             <tr key={tenant.id} className="hover:bg-surface-muted/10  transition-colors">
                               <td className="px-6 py-4 font-bold">{tenant.companyName}</td>
+                              <td className="px-6 py-4">{tenant.ownerEmail || '—'}</td>
                               <td className="px-6 py-4 font-mono text-text-secondary">{tenant.id}</td>
                               <td className="px-6 py-4 capitalize">{tenant.planId} ({tenant.billingPeriod || 'mensual'})</td>
                               <td className="px-6 py-4">
@@ -1027,8 +1068,14 @@ export default function SuperAdminPage({ showToast }) {
                                   {tenantStatus(tenant)}
                                 </span>
                               </td>
-                              <td className="px-6 py-4">{getSubscriptionExpiry(tenant)?.toLocaleDateString('es-EC') || 'Sin fecha'}</td>
-                              <td className="px-6 py-4 text-right">
+                              <td className="px-6 py-4">{getSubscriptionExpiry(tenant)?.toLocaleDateString('es-EC') || 'Sin activar'}</td>
+                              <td className="px-6 py-4 text-right whitespace-nowrap">
+                                {tenant.planStatus === 'pending_approval' && (
+                                  <button type="button" onClick={() => handleApproveRegistration(tenant)}
+                                    className="mr-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+                                    Aprobar
+                                  </button>
+                                )}
                                 <button 
                                   onClick={() => handleSelectTenant(tenant)} 
                                   className="p-1.5 rounded-md bg-surface-card/10 text-primary  hover:bg-surface-card hover:text-white transition-colors"
@@ -1531,7 +1578,7 @@ export default function SuperAdminPage({ showToast }) {
                 {plans.map((plan) => (
                   <div key={plan.id} className={`p-6 rounded-card border flex flex-col justify-between ${'bg-white border-border-default'}`}>
                     <div>
-                      <h4 className="text-sm font-bold mb-3">{plan.name}</h4>
+                      <h4 className="text-sm font-bold mb-3">{plan.name} <span className="text-xs text-text-secondary">({plan.category || 'erp'})</span></h4>
                       <div className="space-y-3.5 text-xs text-text-secondary">
                         <div className="flex justify-between">
                           <span>Precio Mensual:</span>
@@ -1552,7 +1599,7 @@ export default function SuperAdminPage({ showToast }) {
                         <div>
                           <span className="block mb-1">Módulos Habilitados:</span>
                           <div className="flex flex-wrap gap-1.5">
-                            {plan.modules.map(mod => (
+                            {(plan.modules || []).map(mod => (
                               <span key={mod} className="px-2 py-0.5 rounded bg-surface-muted  text-xs font-bold text-text-secondary uppercase">{mod}</span>
                             ))}
                           </div>
@@ -1561,7 +1608,7 @@ export default function SuperAdminPage({ showToast }) {
                     </div>
 
                     <button 
-                      onClick={() => setEditingPlan(plan)}
+                      onClick={() => setEditingPlan({ ...plan, featuresText: (plan.features || []).join('\n') })}
                       className="w-full mt-6 py-2.5 text-xs font-bold border border-border-default text-text-secondary hover:bg-surface-card hover:text-white rounded-card transition-all"
                     >
                       Personalizar Plan
@@ -1862,6 +1909,12 @@ export default function SuperAdminPage({ showToast }) {
               <button onClick={() => setEditingPlan(null)} className="text-slate-500 hover:text-slate-900 cursor-pointer"><X size={16}/></button>
             </div>
             <form onSubmit={handleSavePlanEdit} className="space-y-4 text-left text-xs">
+              <div>
+                <label className="block font-bold mb-1">Nombre del plan</label>
+                <input type="text" maxLength={100} required value={editingPlan.name || ''}
+                  onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
+                  className="w-full p-2.5 rounded-md border outline-none bg-white border-border-strong" />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold mb-1">Precio Mensual ($ USD)</label>
@@ -1905,6 +1958,12 @@ export default function SuperAdminPage({ showToast }) {
               </div>
 
               <div>
+                <label className="block font-bold mb-1">Beneficios visibles en el catálogo (uno por línea)</label>
+                <textarea rows={4} value={editingPlan.featuresText || ''}
+                  onChange={e => setEditingPlan({ ...editingPlan, featuresText: e.target.value })}
+                  className="w-full p-2.5 rounded-md border outline-none bg-white border-border-strong" />
+              </div>
+              <div>
                 <label className="block font-bold mb-2">Módulos Habilitados</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 rounded-card border border-slate-200 bg-slate-50">
                   {(() => {
@@ -1918,7 +1977,8 @@ export default function SuperAdminPage({ showToast }) {
                       personas: 'Personas (Contactos)',
                       calendar: 'Calendario',
                       team: 'Equipo',
-                      contabilidad: 'Contabilidad SRI'
+                      contabilidad: 'Contabilidad SRI',
+                      general_settings: 'Ajustes generales'
                     };
                     return Object.keys(moduleLabels).map((mod) => {
                       const isChecked = editingPlan.modules?.includes(mod) || false;

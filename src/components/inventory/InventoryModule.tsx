@@ -1,4 +1,5 @@
 import { mergeThemeProps } from '../ui/themeProps';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiText, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect, useMemo } from 'react';
@@ -142,17 +143,11 @@ export default function InventoryModule({ initialSubTab, transactions = [], comp
         .then((list) => { if (list.length > 0) setWarehouses(list); })
         .catch(() => {});
       
-      // Deduplicar productos por ID y por SKU
+      // El ID identifica cada registro. Los SKU duplicados heredados deben seguir visibles
+      // para que el administrador pueda corregirlos o desactivarlos.
       const uniqueMap = new Map<string, Product>();
-      const seenSkus = new Set<string>();
       for (const prod of allProducts) {
-        if (!prod || !prod.id) continue;
-        const skuKey = prod.sku ? prod.sku.trim().toUpperCase() : '';
-        if (uniqueMap.has(prod.id)) continue;
-        if (skuKey && seenSkus.has(skuKey)) continue;
-
-        uniqueMap.set(prod.id, prod);
-        if (skuKey) seenSkus.add(skuKey);
+        if (prod?.id) uniqueMap.set(prod.id, prod);
       }
       const uniqueProducts = Array.from(uniqueMap.values());
 
@@ -321,7 +316,7 @@ export default function InventoryModule({ initialSubTab, transactions = [], comp
       showToast?.(permanent ? 'Producto eliminado definitivamente.' : 'Producto desactivado y oculto de ventas.', 'success');
     } catch (err) {
       console.error(err);
-      showToast?.('Error al procesar la eliminación del producto.', 'error');
+      showToast?.(err instanceof Error ? err.message : 'Error al procesar la eliminación del producto.', 'error');
     }
   };
 
@@ -380,7 +375,7 @@ export default function InventoryModule({ initialSubTab, transactions = [], comp
   ];
 
   return (
-    <UiBox {...{"className":"flex flex-col h-full w-full overflow-hidden animate-in fade-in duration-500"}}>
+    <UiBox {...{"className":"erp-workspace flex flex-col h-full w-full overflow-hidden"}}>
       
 
 
@@ -998,10 +993,10 @@ export default function InventoryModule({ initialSubTab, transactions = [], comp
 
       {/* --- MODAL DIALOGS --- */}
       {/* --- MODAL DIALOGS: SELECCIONAR TIPO DE PRODUCTO --- */}
-      {showProductTypeSelector && (
+      {showProductTypeSelector && createThemedPortal(
         <div
           style={{ backgroundColor: 'var(--black-a7)' }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+          className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"
           onClick={() => setShowProductTypeSelector(false)}
         >
           <div

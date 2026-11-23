@@ -1,5 +1,6 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiHeading, UiCard, UiText, UiLabel } from '../ui/layout';
+import { createThemedPortal } from '../ui/themePortal';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect } from 'react';
 import { 
@@ -9,11 +10,12 @@ import {
 } from 'lucide-react';
 import { doc, setDoc, getDoc, getDocs, collection, deleteDoc } from '../../services/financeStore.js';
 import { getEcuadorDateString, consultarAutorizacionSRI } from '../../services/sriService';
-import { registrarMovimientoKardex } from '../../services/inventoryService';
-import { sincronizarCompra } from '../../services/integracionFinanzasService';
+import { parsePurchaseInvoiceXml } from '../../services/purchaseXml';
+import { verifyPurchaseSriXml } from '../../services/purchaseSriVerification';
+import { tracksStock } from '../../services/productModel';
 import { Badge } from '../ui/badge';
 
-export default function ComprasSriView({ transactions = [], showToast, db, appId }) {
+export default function ComprasSriView({ transactions = [], showToast, db, appId, onReviewPurchase }) {
   const [activeSection, setActiveSection] = useState('sri');
   const [sriBills, setSriBills] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,6 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     paymentMethod: 'transferencia', paymentStatus: 'pagado',
     description: '', reference: ''
   });
-  const [manualSaving, setManualSaving] = useState(false);
   const [showSupplierSearch, setShowSupplierSearch] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
   const [showProductSearch, setShowProductSearch] = useState(false);
@@ -147,9 +148,9 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       const parser = new DOMParser();
       let xmlDoc = parser.parseFromString(text, "text/xml");
       // Soportar XML oficial descargado del SRI (<autorizacion><comprobante><![CDATA[...]]></comprobante></autorizacion>)
-      const wrappedComprobante = xmlDoc.getElementsByTagName("comprobante")?.[0]?.textContent?.trim();
-      if (wrappedComprobante && wrappedComprobante.startsWith('<')) {
-        xmlDoc = parser.parseFromString(wrappedComprobante, "text/xml");
+      if (!xmlDoc.getElementsByTagName('infoTributaria').length) {
+        const inner = xmlDoc.getElementsByTagName('comprobante')?.[0]?.textContent?.trim();
+        if (inner) xmlDoc = parser.parseFromString(inner, 'text/xml');
       }
       
       const infoTrib = xmlDoc.getElementsByTagName("infoTributaria")?.[0];
@@ -179,40 +180,15 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       if (infoNC) tipoComprobante = 'nota_credito';
       else if (infoRet) tipoComprobante = 'retencion';
 
-      const rawDate = infoDoc?.getElementsByTagName("fechaEmision")?.[0]?.textContent?.trim() || '';
-      const ecMatch = rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      const date = ecMatch ? `${ecMatch[3]}-${ecMatch[2]}-${ecMatch[1]}` : (rawDate || getEcuadorDateString());
+      const rawDate = infoDoc?.getElementsByTagName("fechaEmision")?.[0]?.textContent?.trim() || getEcuadorDateString();
+      const date = /^\d{2}\/\d{2}\/\d{4}$/.test(rawDate) ? `${rawDate.slice(6)}-${rawDate.slice(3, 5)}-${rawDate.slice(0, 2)}` : rawDate;
       const totalConImpuesto = infoDoc?.getElementsByTagName("importeTotal")?.[0] || infoDoc?.getElementsByTagName("valorModificacion")?.[0];
       const totalSinImpuesto = infoDoc?.getElementsByTagName("totalSinImpuestos")?.[0];
       const total = Number(totalConImpuesto?.textContent || 0);
       const baseImponible = Number(totalSinImpuesto?.textContent || total / 1.15);
       const ivaValor = Math.round((total - baseImponible) * 100) / 100;
-
-      // Extraer líneas <detalle> del XML para que "Importar con Inventario" ingrese stock/Kardex correctamente
-      const detallesNodes = xmlDoc.getElementsByTagName("detalle");
-      const parsedItems = [];
-      for (let i = 0; i < detallesNodes.length; i++) {
-        const d = detallesNodes[i];
-        const codigo = d.getElementsByTagName("codigoPrincipal")?.[0]?.textContent?.trim() || d.getElementsByTagName("codigoInterno")?.[0]?.textContent?.trim() || '';
-        const desc = d.getElementsByTagName("descripcion")?.[0]?.textContent?.trim() || 'Ítem XML';
-        const qty = Number(d.getElementsByTagName("cantidad")?.[0]?.textContent || 1);
-        const unitPrice = Number(d.getElementsByTagName("precioUnitario")?.[0]?.textContent || 0);
-        const discount = Number(d.getElementsByTagName("descuento")?.[0]?.textContent || 0);
-        const matched = products.find(p =>
-          (codigo && (String(p.sku || '').toLowerCase() === codigo.toLowerCase() || String(p.codigoBarras || '').toLowerCase() === codigo.toLowerCase())) ||
-          String(p.name || '').toLowerCase() === desc.toLowerCase()
-        );
-        parsedItems.push({
-          productId: matched?.id || '',
-          sku: matched?.sku || codigo,
-          name: matched?.name || desc,
-          quantity: qty,
-          price: unitPrice,
-          unitCost: unitPrice,
-          discount,
-          subtotal: Math.round((qty * unitPrice - discount) * 100) / 100
-        });
-      }
+      if (!/^\d{49}$/.test(claveAcceso)) throw new Error('La clave SRI del XML debe tener 49 dígitos.');
+      const invoice = tipoComprobante === 'factura' ? parsePurchaseInvoiceXml(text, products) : null;
 
       // Check for duplicates
       const existing = sriBills.find(b => b.claveAcceso === claveAcceso);
@@ -224,6 +200,11 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
         try {
           const sriResult = await consultarAutorizacionSRI(claveAcceso, claveAcceso[23]);
           if (sriResult.status === 'autorizado') {
+            if (invoice) {
+              verifyPurchaseSriXml(sriResult.signedXml, {
+                claveAcceso, companyRuc, supplierRuc: ruc, documentNumber, total
+              });
+            }
             const sriXml = new DOMParser().parseFromString(sriResult.signedXml, 'text/xml');
             const sriReceiver = sriXml.getElementsByTagName('identificacionComprador')?.[0]?.textContent?.trim()
               || sriXml.getElementsByTagName('identificacionSujetoRetenido')?.[0]?.textContent?.trim()
@@ -232,10 +213,11 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
               showToast?.('El SRI no confirma a esta empresa como receptora.', 'error');
               return;
             }
-            sriStatus = 'autorizado';
+            if (invoice) sriStatus = 'autorizado';
             xmlAutorizado = sriResult.xmlAutorizado;
           }
         } catch (verificationError) {
+          if (verificationError.code === 'PURCHASE_SRI_MISMATCH') throw verificationError;
           console.warn('La verificación SRI quedó pendiente:', verificationError);
         }
       }
@@ -243,10 +225,12 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       const billId = `sri_xml_${claveAcceso || Date.now()}`;
       const bill = {
         id: billId, tipoComprobante, ruc, razonSocial, documentNumber,
-        date, baseImponible, ivaValor, total, claveAcceso,
-        items: parsedItems,
+        date, baseImponible: invoice?.baseImponible ?? baseImponible,
+        ivaValor: invoice?.ivaValor ?? ivaValor, otrosImpuestos: invoice?.otrosImpuestos || 0,
+        total, claveAcceso,
         category: 'compras', description: `Compra ${tipoComprobante} ${documentNumber}`,
         receiverRuc: companyRuc, xmlContent: text, xmlAutorizado,
+        items: invoice?.items || [],
         sriStatus
       };
 
@@ -264,7 +248,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       setSriBills(list);
       
       showToast?.(`${razonSocial} - ${documentNumber}: ${sriStatus === 'autorizado' ? 'autorizado por el SRI' : 'pendiente de verificación'}`, sriStatus === 'autorizado' ? 'success' : 'warning');
-    } catch (err) { console.error(err); showToast?.('Error al procesar XML', 'error'); }
+    } catch (err) { console.error(err); showToast?.(err.message || 'Error al procesar XML', 'error'); }
     finally { setLoading(false); e.target.value = ''; }
   };
 
@@ -308,82 +292,25 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   };
   const handleOpenImport = (bill) => setImportModal({ bill, method: null });
 
-  // Execute import with kardex
-  const handleConfirmImport = async (method) => {
+  // Review in the central purchase form before any stock or finance write.
+  const handleConfirmImport = (method) => {
     if (!importModal) return;
     const { bill } = importModal;
-    const docId = `compra_sri_${Date.now()}`;
+    if (bill.tipoComprobante !== 'factura') {
+      showToast?.('Este comprobante requiere su submódulo específico.', 'warning');
+      return;
+    }
     try {
-      if (method === 'con_inventario') {
-        const txPayload = {
-          id: docId, type: 'egreso', documentType: bill.tipoComprobante || 'factura', category: 'compras',
-          documentNumber: bill.documentNumber, claveAcceso: bill.claveAcceso,
-          date: bill.date, thirdPartyId: '', thirdPartyName: bill.razonSocial,
-          thirdPartyRuc: bill.ruc, baseImponible: bill.baseImponible,
-          ivaPorcentaje: 15, ivaValor: bill.ivaValor, total: bill.total,
-          paymentMethod: 'transferencia', paymentStatus: 'pagado',
-          sriStatus: bill.sriStatus === 'autorizado' ? 'autorizado' : 'pendiente_verificacion', description: bill.description,
-          items: bill.items || [], bodega: 'Bodega Central',
-          inventarioRegistrado: Boolean(bill.items?.some(i => i.productId))
-        };
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), txPayload);
-        if (bill.items?.length) {
-          for (const item of bill.items) {
-            if (item.productId) {
-              await registrarMovimientoKardex(db, appId, {
-                productId: item.productId, type: 'entrada',
-                quantity: Number(item.quantity), cost: Number(item.price || item.unitCost || 0),
-                price: Number(item.price || item.unitCost || 0),
-                concept: `Compra SRI #${bill.documentNumber}`, referenceId: docId,
-                bodega: 'Bodega Central'
-              });
-            }
-          }
-        }
-        showToast?.('Compra importada con movimiento de inventario', 'success');
-      } else {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), {
-          id: docId, type: 'egreso', documentType: 'factura', category: 'compras',
-          documentNumber: bill.documentNumber, claveAcceso: bill.claveAcceso,
-          date: bill.date, thirdPartyId: '', thirdPartyName: bill.razonSocial,
-          thirdPartyRuc: bill.ruc, baseImponible: bill.baseImponible,
-          ivaPorcentaje: 15, ivaValor: bill.ivaValor, total: bill.total,
-          paymentMethod: 'transferencia', paymentStatus: 'pagado',
-          sriStatus: bill.sriStatus === 'autorizado' ? 'autorizado' : 'pendiente_verificacion', description: bill.description,
-          items: [], bodega: 'Bodega Central'
-        });
-        showToast?.('Compra importada sin movimiento de inventario', 'success');
-      }
-
-      try {
-        await sincronizarCompra({
-          id: docId,
-          type: 'egreso',
-          documentType: 'factura',
-          documentNumber: bill.documentNumber,
-          claveAcceso: bill.claveAcceso || '',
-          total: Number(bill.total) || 0,
-          baseImponible: Number(bill.baseImponible) || 0,
-          ivaValor: Number(bill.ivaValor) || 0,
-          proveedorNombre: bill.razonSocial || '',
-          proveedorRuc: bill.ruc || '',
-          thirdPartyId: '',
-          date: bill.date || new Date().toISOString(),
-          paymentMethod: 'transferencia',
-          paymentStatus: 'pagado',
-          sriStatus: bill.sriStatus === 'autorizado' ? 'autorizado' : 'pendiente_verificacion',
-          category: 'compras',
-          descripcion: bill.description || '',
-          creadoPor: '',
-        }, db, { uid: '', email: '' });
-      } catch (syncErr) {
-        console.error('Error sincronizando compra SRI con modulo financiero:', syncErr);
-      }
-
-      importedKeys.add(bill.claveAcceso);
-      importedDocNumbers.add(bill.documentNumber);
+      if (!bill.xmlContent) throw new Error('El comprobante no tiene XML para revisar sus líneas.');
+      const parsed = parsePurchaseInvoiceXml(bill.xmlContent, products);
+      onReviewPurchase?.({
+        ...parsed,
+        supplierId: thirdParties.find(p => p.ruc === parsed.supplierRuc && p.type !== 'cliente')?.id || '',
+        paymentMethod: 'transferencia', paymentStatus: 'pendiente',
+        description: bill.description || '', bodega: 'Bodega Central'
+      }, method);
       setImportModal(null);
-    } catch (err) { console.error(err); showToast?.('Error al importar', 'error'); }
+    } catch (error) { showToast?.(error.message || 'No se pudo revisar la factura.', 'error'); }
   };
 
   // Manual form handlers
@@ -423,131 +350,31 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     return { baseImponible: base, ivaValor: iva, total: base + iva };
   };
 
-  const handleManualXmlUpload = (e) => {
+  const handleManualXmlUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const text = ev.target.result;
-        const parser = new DOMParser();
-        let xmlDoc = parser.parseFromString(text, "text/xml");
-        const wrapped = xmlDoc.getElementsByTagName("comprobante")?.[0]?.textContent?.trim();
-        if (wrapped && wrapped.startsWith('<')) {
-          xmlDoc = parser.parseFromString(wrapped, "text/xml");
-        }
-        const infoTrib = xmlDoc.getElementsByTagName("infoTributaria")?.[0];
-        const infoFact = xmlDoc.getElementsByTagName("infoFactura")?.[0];
-        if (infoTrib) {
-          const rawFecha = infoFact?.getElementsByTagName("fechaEmision")?.[0]?.textContent?.trim() || '';
-          const ecMatch = rawFecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-          const isoDate = ecMatch ? `${ecMatch[3]}-${ecMatch[2]}-${ecMatch[1]}` : (rawFecha || '');
-          setManualForm(prev => ({
-            ...prev,
-            documentNumber: `${infoTrib.getElementsByTagName("estab")?.[0]?.textContent || ''}-${infoTrib.getElementsByTagName("ptoEmi")?.[0]?.textContent || ''}-${infoTrib.getElementsByTagName("secuencial")?.[0]?.textContent || ''}`,
-            supplierRuc: infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '',
-            supplierName: infoTrib.getElementsByTagName("razonSocial")?.[0]?.textContent || '',
-            claveAcceso: infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '',
-            date: isoDate || prev.date,
-          }));
-        }
-        const detalles = xmlDoc.getElementsByTagName("detalle");
-        const newItems = [];
-        for (let i = 0; i < detalles.length; i++) {
-          const d = detalles[i];
-          const desc = d.getElementsByTagName("descripcion")?.[0]?.textContent || '';
-          const cant = Number(d.getElementsByTagName("cantidad")?.[0]?.textContent || 1);
-          const precio = Number(d.getElementsByTagName("precioUnitario")?.[0]?.textContent || 0);
-          const matched = products.find(p => p.sku && desc.includes(p.sku)) || products.find(p => desc.toLowerCase().includes(p.name?.toLowerCase()));
-          newItems.push({
-            productId: matched?.id || '',
-            name: matched?.name || desc,
-            sku: matched?.sku || '',
-            quantity: cant, price: precio, discount: 0,
-            subtotal: cant * precio
-          });
-        }
-        setManualForm(prev => ({ ...prev, items: newItems, ...recalcTotals(newItems) }));
-        showToast?.('XML importado correctamente', 'success');
-      // eslint-disable-next-line no-unused-vars
-      } catch (_err) { showToast?.('Error al procesar XML', 'error'); }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
+    try {
+      const parsed = parsePurchaseInvoiceXml(await file.text(), products);
+      setManualForm(prev => ({
+        ...prev, ...parsed,
+        supplierId: thirdParties.find(p => p.ruc === parsed.supplierRuc && p.type !== 'cliente')?.id || ''
+      }));
+      showToast?.('XML cargado. Revisa las líneas antes de guardar.', 'info');
+    } catch (error) { showToast?.(error.message || 'Error al procesar XML.', 'error'); }
+    finally { e.target.value = ''; }
   };
 
-  const handleManualSave = async () => {
-    if (!manualForm.documentNumber) { showToast?.('Complete el número de documento', 'warning'); return; }
-    if (manualForm.type === 'con_inventario' && !manualForm.items.length) { showToast?.('Agrega al menos 1 producto para una compra con inventario', 'warning'); return; }
-    if (manualForm.type === 'sin_inventario' && Number(manualForm.total) <= 0) { showToast?.('Ingresa un monto total mayor a $0.00', 'warning'); return; }
-    setManualSaving(true);
-    const docId = `compra_manual_${Date.now()}`;
-    try {
-      const payload = {
-        id: docId, type: 'egreso', documentType: manualForm.documentType,
-        category: 'compras', documentNumber: manualForm.documentNumber,
-        claveAcceso: manualForm.claveAcceso || '', date: manualForm.date,
-        thirdPartyId: manualForm.supplierId, thirdPartyName: manualForm.supplierName,
-        thirdPartyRuc: manualForm.supplierRuc,
-        baseImponible: manualForm.baseImponible, ivaPorcentaje: 15,
-        ivaValor: manualForm.ivaValor, total: manualForm.total,
-        paymentMethod: manualForm.paymentMethod, paymentStatus: manualForm.paymentStatus,
-        sriStatus: 'pendiente_verificacion',
-        description: manualForm.description, reference: manualForm.reference,
-        items: manualForm.items, bodega: manualForm.bodega
-      };
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), payload);
-
-      if (manualForm.type === 'con_inventario') {
-        for (const item of manualForm.items) {
-          if (item.productId) {
-            await registrarMovimientoKardex(db, appId, {
-              productId: item.productId, type: 'entrada',
-              quantity: Number(item.quantity), cost: Number(item.price),
-              price: Number(item.price),
-              concept: `Compra Manual #${manualForm.documentNumber}`,
-              referenceId: docId, bodega: manualForm.bodega
-            });
-          }
-        }
-      }
-
-      try {
-        await sincronizarCompra({
-          id: docId,
-          type: 'egreso',
-          documentType: manualForm.documentType,
-          documentNumber: manualForm.documentNumber,
-          claveAcceso: manualForm.claveAcceso || '',
-          total: Number(manualForm.total) || 0,
-          baseImponible: Number(manualForm.baseImponible) || 0,
-          ivaValor: Number(manualForm.ivaValor) || 0,
-          proveedorNombre: manualForm.supplierName || '',
-          proveedorRuc: manualForm.supplierRuc || '',
-          thirdPartyId: manualForm.supplierId || '',
-          date: manualForm.date || new Date().toISOString(),
-          paymentMethod: manualForm.paymentMethod || 'transferencia',
-          paymentStatus: manualForm.paymentStatus || 'pagado',
-          sriStatus: 'pendiente_verificacion',
-          category: 'compras',
-          descripcion: manualForm.description || '',
-          creadoPor: '',
-        }, db, { uid: '', email: '' });
-      } catch (syncErr) {
-        console.error('Error sincronizando compra manual con modulo financiero:', syncErr);
-      }
-
-      showToast?.('Compra manual registrada exitosamente', 'success');
-      setManualForm({
-        type: 'con_inventario', supplierId: '', supplierName: '', supplierRuc: '',
-        documentType: 'factura', documentNumber: '', claveAcceso: '',
-        date: getEcuadorDateString(), bodega: 'Bodega Central',
-        items: [], baseImponible: 0, ivaValor: 0, total: 0,
-        paymentMethod: 'transferencia', paymentStatus: 'pagado',
-        description: '', reference: ''
-      });
-    } catch (err) { console.error(err); showToast?.('Error al guardar', 'error'); }
-    finally { setManualSaving(false); }
+  const handleManualSave = () => {
+    if (!manualForm.documentNumber || !manualForm.supplierName || Number(manualForm.total) <= 0) {
+      showToast?.('Completa proveedor, documento e importe.', 'warning');
+      return;
+    }
+    onReviewPurchase?.({
+      ...manualForm,
+      purchaseType: manualForm.type,
+      paymentStatus: manualForm.paymentStatus,
+      description: manualForm.description
+    }, manualForm.type);
   };
 
   // Helpers
@@ -556,11 +383,11 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   // eslint-disable-next-line no-unused-vars
   const badgeClass = (status) => `inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${status === 'Importado' || status === 'Nuevo' && !status ? {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}} : {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}}}`;
 
-  const filteredSuppliers = thirdParties.filter(t => 
-    supplierSearch ? (t.name?.toLowerCase().includes(supplierSearch.toLowerCase()) || t.ruc?.includes(supplierSearch)) : true
+  const filteredSuppliers = thirdParties.filter(t =>
+    t.type !== 'cliente' && (supplierSearch ? (t.name?.toLowerCase().includes(supplierSearch.toLowerCase()) || t.ruc?.includes(supplierSearch)) : true)
   ).slice(0, 8);
 
-  const filteredProducts = products.filter(p =>
+  const filteredProducts = products.filter(p => tracksStock(p) &&
     productSearchTerm ? (p.name?.toLowerCase().includes(productSearchTerm.toLowerCase()) || p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase())) : true
   ).slice(0, 10);
 
@@ -794,6 +621,14 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                   <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Referencia / Descripcion</UiLabel>
                   <UiInput value={manualForm.description} onChange={e => setManualForm(prev => ({ ...prev, description: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
                 </UiBox>
+                {manualForm.type === 'sin_inventario' && (
+                  <UiBox>
+                    <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Importe total</UiLabel>
+                    <UiInput type="number" min="0.01" step="0.01" value={manualForm.total || ''}
+                      onChange={e => setManualForm(prev => ({ ...prev, total: Number(e.target.value) }))}
+                      {...{"size":"2","color":"gray","className":"w-full"}} />
+                  </UiBox>
+                )}
               </UiBox>
             </UiCard>
 
@@ -948,9 +783,9 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
 
             {/* Save button */}
             <UiBox {...{"className":"flex justify-end gap-3"}}>
-              <UiButton onClick={handleManualSave} disabled={manualSaving} {...{"variant":"solid","color":"blue"}}>
+              <UiButton onClick={handleManualSave} {...{"variant":"solid","color":"blue"}}>
                 <FileCheck size={14} />
-                <UiText>{manualSaving ? 'Guardando...' : 'Registrar Compra'}</UiText>
+                <UiText>Revisar compra</UiText>
               </UiButton>
             </UiBox>
           </UiBox>
@@ -977,8 +812,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       )}
 
       {/* ============ MODAL: RIDE Viewer ============ */}
-      {selectedRide && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setSelectedRide(null)}>
+      {selectedRide && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setSelectedRide(null)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-lg"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
               <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>RIDE - {selectedRide.documentNumber}</UiHeading>
@@ -999,7 +834,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
               <UiBox {...{"className":"pt-2"}}><UiText {...{"color":"gray","highContrast":true}}>Clave de Acceso:</UiText> <UiText {...{"weight":"regular","size":"1","className":"break-all"}}>{selectedRide.claveAcceso}</UiText></UiBox>
               <UiBox {...{"className":"pt-3 flex gap-2"}}>
                 <UiButton onClick={() => { handleDownloadXml(selectedRide); }} {...{"variant":"surface","color":"blue"}}><Download size={14} /> Descargar XML</UiButton>
-                {!isBillImported(selectedRide) && <UiButton onClick={() => { setSelectedRide(null); handleOpenImport(selectedRide); }} {...{"variant":"solid","color":"blue"}}><ArrowRight size={14} /> Importar</UiButton>}
+                {!isBillImported(selectedRide) && selectedRide.tipoComprobante === 'factura' && <UiButton onClick={() => { setSelectedRide(null); handleOpenImport(selectedRide); }} {...{"variant":"solid","color":"blue"}}><ArrowRight size={14} /> Importar</UiButton>}
               </UiBox>
             </UiBox>
           </UiCard>
@@ -1007,8 +842,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       )}
 
       {/* ============ MODAL: Import Method Selector ============ */}
-      {importModal && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setImportModal(null)}>
+      {importModal && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setImportModal(null)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
               <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Importar a Historial de Compras</UiHeading>
@@ -1020,7 +855,6 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                 Total: <strong>${(importModal.bill.total || 0).toFixed(2)}</strong>
               </UiText>
               <UiBox {...{"className":"space-y-2"}}>
-                {/* eslint-disable-next-line react-hooks/immutability */}
                 <UiButton onClick={() => handleConfirmImport('con_inventario')} {...{"variant":"outline","className":"w-full text-left"}}>
                   <UiBox {...{"className":"flex items-center gap-2 mb-1"}}><Package size={16} {...{}} /><UiText {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Con Movimiento de Inventario</UiText></UiBox>
                   <UiText as="p" {...{"size":"1","color":"gray","highContrast":true}}>Actualiza stock, calcula promedio ponderado y registra en kardex.</UiText>
@@ -1036,8 +870,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       )}
 
       {/* ============ MODAL: Confirmar Limpieza de Buzon ============ */}
-      {confirmClear && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setConfirmClear(false)}>
+      {confirmClear && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setConfirmClear(false)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"className":"p-5 text-center space-y-4"}}>
               <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"mx-auto w-12 h-12 flex items-center justify-center"}}>
@@ -1059,8 +893,8 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       )}
 
       {/* ============ MODAL: Confirmar Eliminacion Individual ============ */}
-      {confirmDeleteId && (
-        <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[200] flex items-center justify-center p-4"}} onClick={() => setConfirmDeleteId(null)}>
+      {confirmDeleteId && createThemedPortal(
+        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setConfirmDeleteId(null)}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm"}} onClick={e => e.stopPropagation()}>
             <UiBox {...{"className":"p-5 text-center space-y-4"}}>
               <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--color-panel-solid)"},"className":"mx-auto w-12 h-12 flex items-center justify-center"}}>

@@ -41,6 +41,7 @@ import LandingContact from './pages/landing/LandingContact';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import PendingApprovalPage from './pages/PendingApprovalPage';
 import SuperAdminPage from './pages/SuperAdminPage';
 import BillingPortal from './pages/billing/BillingPortal';
 import PublicRideView from './pages/PublicRideView';
@@ -156,7 +157,7 @@ export default function App() {
     const isSuperAdmin = String(userRole || '').toLowerCase().trim() === 'superadmin';
 
     if (!isAuthenticated) {
-      if (path.startsWith('/app') || path === '/superadmin' || path === '/verify-email') {
+      if (path.startsWith('/app') || path === '/superadmin' || path === '/verify-email' || path === '/pending-approval') {
         navigate('/login', { state: { from: path } });
       }
     } else {
@@ -165,6 +166,14 @@ export default function App() {
         return;
       }
       if (!emailVerificationRequired && path === '/verify-email') {
+        navigate(isSuperAdmin ? '/superadmin' : tenantInfo?.planStatus === 'pending_approval' ? '/pending-approval' : '/app');
+        return;
+      }
+      if (!isSuperAdmin && tenantInfo?.planStatus === 'pending_approval') {
+        if (path !== '/pending-approval') navigate('/pending-approval');
+        return;
+      }
+      if (path === '/pending-approval') {
         navigate(isSuperAdmin ? '/superadmin' : '/app');
         return;
       }
@@ -176,7 +185,7 @@ export default function App() {
         }
       }
     }
-  }, [isAuthenticated, location.pathname, userRole, emailVerificationRequired, navigate]);
+  }, [isAuthenticated, location.pathname, userRole, emailVerificationRequired, tenantInfo?.planStatus, navigate]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -212,23 +221,25 @@ export default function App() {
     if (!planId) return;
     const currentPlan = plansList.find(p => p.id === planId) || PLANS[planId];
     if (currentPlan && currentPlan.modules) {
-      const isProfessional = currentPlan.id === 'professional';
-      const isEnterprise = currentPlan.id === 'enterprise';
-      const isStarter = currentPlan.id === 'starter';
-
+      const serviceModules = Object.values(tenantInfo?.serviceSubscriptions || {}).flatMap(subscription => {
+        const expiry = subscription.expiresAt?.toDate?.() || new Date(subscription.expiresAt || 0);
+        if (subscription.status !== 'active' || expiry <= new Date()) return [];
+        return plansList.find(plan => plan.id === subscription.planId)?.modules || [];
+      });
+      const hasModule = moduleId => currentPlan.modules.includes(moduleId) || serviceModules.includes(moduleId);
       const newModules = {
-        dashboard: currentPlan.modules.includes('dashboard'),
-        ventas: currentPlan.modules.includes('ventas'),
-        finances: currentPlan.modules.includes('finances') || currentPlan.modules.includes('contabilidad') || isEnterprise,
-        compras: currentPlan.modules.includes('compras') || currentPlan.modules.includes('contabilidad') || isEnterprise,
-        gastos_creditos: currentPlan.modules.includes('gastos_creditos') || currentPlan.modules.includes('contabilidad') || isEnterprise,
-        inventario: currentPlan.modules.includes('inventario') || isProfessional || isEnterprise,
-        personas: currentPlan.modules.includes('personas') || isStarter || isProfessional || isEnterprise,
-        team: currentPlan.modules.includes('team') || isProfessional || isEnterprise
+        dashboard: hasModule('dashboard'),
+        ventas: hasModule('ventas'),
+        finances: hasModule('finances') || hasModule('contabilidad'),
+        compras: hasModule('compras') || hasModule('contabilidad'),
+        gastos_creditos: hasModule('gastos_creditos') || hasModule('contabilidad'),
+        inventario: hasModule('inventario'),
+        personas: hasModule('personas'),
+        team: hasModule('team')
       };
       setActiveModules(newModules);
     }
-  }, [planId, plansList]);
+  }, [planId, plansList, tenantInfo?.serviceSubscriptions]);
   const [ventasInitialSubTab, setVentasInitialSubTab] = useState(() => localStorage.getItem('ventasInitialSubTab') || 'resumen_ventas');
   const [comprasInitialSubTab, setComprasInitialSubTab] = useState(() => localStorage.getItem('comprasInitialSubTab') || 'compras_resumen');
   const [contabilidadInitialSubTab, setContabilidadInitialSubTab] = useState(() => {
@@ -813,6 +824,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage showToast={showToast} companyProfile={companyProfile} />} />
       <Route path="/register" element={<RegisterPage showToast={showToast} />} />
       <Route path="/verify-email" element={<VerifyEmailPage showToast={showToast} />} />
+      <Route path="/pending-approval" element={<PendingApprovalPage />} />
       <Route path="/superadmin" element={<SuperAdminPage showToast={showToast} />} />
       <Route path="/public/ride" element={<PublicRideView />} />
       <Route path="/app/*" element={
