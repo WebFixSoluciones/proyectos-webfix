@@ -34,6 +34,8 @@ export const UiInput = forwardRef(function UiInput({ className, type = 'text', s
     return <input ref={ref} type={type} size={size} className={cn('webfix-native-input', className)} {...props} />;
   }
   const radixSize = ['1', '2', '3'].includes(String(size)) ? String(size) : '2';
+  const hasExplicitWidth = typeof className === 'string' && /(?:^|\s)(?:[a-z]+:)?w-/.test(className);
+  const defaultWidth = hasExplicitWidth ? '' : (type === 'date' ? 'w-auto min-w-[148px]' : 'w-full');
   if (iconPrefix || iconSuffix || children) {
     const cleanClassName = className ? className.replace(/\bpl-\d+\b/g, '').replace(/\bpr-\d+\b/g, '').trim() : className;
     let cleanProps = props;
@@ -44,14 +46,14 @@ export const UiInput = forwardRef(function UiInput({ className, type = 'text', s
       cleanProps = { ...props, style: restStyle };
     }
     return (
-      <TextField.Root ref={ref} type={type} size={radixSize} variant="surface" className={cn('w-full', cleanClassName)} {...cleanProps}>
+      <TextField.Root ref={ref} type={type} size={radixSize} variant="surface" className={cn(defaultWidth, cleanClassName)} {...cleanProps}>
         {iconPrefix && <TextField.Slot side="left">{iconPrefix}</TextField.Slot>}
         {children}
         {iconSuffix && <TextField.Slot side="right">{iconSuffix}</TextField.Slot>}
       </TextField.Root>
     );
   }
-  return <TextField.Root ref={ref} type={type} size={radixSize} variant="surface" className={cn('w-full', className)} {...props} />;
+  return <TextField.Root ref={ref} type={type} size={radixSize} variant="surface" className={cn(defaultWidth, className)} {...props} />;
 });
 
 export const UiTextarea = forwardRef(function UiTextarea({ className, ...props }, ref) {

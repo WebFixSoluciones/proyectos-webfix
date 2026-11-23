@@ -280,82 +280,82 @@ export default function CuentasPorCobrarView({
         }
       />
 
-      {/* 2. MÉTRICAS CLARAS Y MINIMALISTAS (Solo 3 tarjetas esenciales) */}
+      {/* 2. MÉTRICAS CLARAS Y MINIMALISTAS (Solo 3 tarjetas esenciales - Brevo Flat) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Por Cobrar */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 sm:p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[#666666] uppercase tracking-wider block">
               Total por Cobrar
             </span>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-[#1b1b1b] tracking-tight">
               {formatCurrency(metrics.totalPorCobrar)}
             </div>
-            <span className="text-[11px] font-medium text-blue-600 block">
+            <span className="text-[11px] font-semibold text-[#004227] block">
               {metrics.countPorCobrar} comprobantes pendientes de pago
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-            <Wallet size={22} />
+          <div className="w-11 h-11 rounded-2xl bg-[#e8fedf] text-[#004227] flex items-center justify-center shrink-0 border border-[#b3f4cb]">
+            <Wallet size={20} />
           </div>
         </div>
 
         {/* Card 2: Cartera Vencida */}
-        <div className={`border rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs ${
-          metrics.countVencidos > 0 
-            ? 'bg-rose-50/50 border-rose-200' 
-            : 'bg-white border-slate-200/90'
+        <div className={`border rounded-2xl p-4 sm:p-5 flex items-center justify-between ${
+          metrics.countVencidos > 0
+            ? 'bg-[#fff0f5] border-[#fbc6d9]'
+            : 'bg-white border-[#e3e3e3]'
         }`}>
           <div className="space-y-1">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[#666666] uppercase tracking-wider block">
               Cartera Vencida
             </span>
-            <div className={`text-2xl sm:text-3xl font-extrabold font-mono tracking-tight ${
-              metrics.countVencidos > 0 ? 'text-rose-600' : 'text-slate-900'
+            <div className={`text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight ${
+              metrics.countVencidos > 0 ? 'text-[#851b40]' : 'text-[#1b1b1b]'
             }`}>
               {formatCurrency(metrics.totalVencido)}
             </div>
             <span className={`text-[11px] font-medium block ${
-              metrics.countVencidos > 0 ? 'text-rose-700 font-semibold' : 'text-emerald-600'
+              metrics.countVencidos > 0 ? 'text-[#851b40] font-semibold' : 'text-[#0b996f]'
             }`}>
-              {metrics.countVencidos > 0 
-                ? `${metrics.countVencidos} facturas vencidas (+ días)` 
+              {metrics.countVencidos > 0
+                ? `${metrics.countVencidos} facturas vencidas (+ días)`
                 : '✓ Cartera al día, sin vencidos'}
             </span>
           </div>
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
-            metrics.countVencidos > 0 
-              ? 'bg-rose-100 text-rose-600 border-rose-200' 
-              : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
+            metrics.countVencidos > 0
+              ? 'bg-[#ffe4ed] text-[#851b40] border-[#fbc6d9]'
+              : 'bg-[#f0fdf4] text-[#0b996f] border-[#b3f4cb]'
           }`}>
-            <AlertTriangle size={22} />
+            <AlertTriangle size={20} />
           </div>
         </div>
 
         {/* Card 3: Total Cobrado / Recaudado */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 sm:p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[#666666] uppercase tracking-wider block">
               Cobros Recaudados
             </span>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-700 tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-[#004227] tracking-tight">
               {formatCurrency(metrics.totalCobrado)}
             </div>
-            <span className="text-[11px] font-medium text-slate-500 block">
+            <span className="text-[11px] font-medium text-[#666666] block">
               {metrics.countPagados} facturas totalmente liquidadas
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-            <CheckCircle2 size={22} />
+          <div className="w-11 h-11 rounded-2xl bg-[#e8fedf] text-[#0b996f] flex items-center justify-center shrink-0 border border-[#b3f4cb]">
+            <CheckCircle2 size={20} />
           </div>
         </div>
       </div>
 
       {/* 3. BARRA DE FILTROS & PESTAÑAS RÁPIDAS */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-4 space-y-3 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white border border-[#e3e3e3] rounded-2xl p-3 sm:p-4 space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Píldoras de estado */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+          <div className="flex flex-wrap items-center gap-1 bg-[#f4f4f5] p-1 rounded-xl">
             {[
               { id: 'todos', label: 'Todos', count: metrics.totalDocumentos },
               { id: 'por_cobrar', label: 'Por Cobrar', count: metrics.countPorCobrar, highlight: true },
@@ -366,20 +366,21 @@ export default function CuentasPorCobrarView({
               return (
                 <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setStatusTab(tab.id)}
-                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    active 
-                      ? 'bg-white text-slate-900 shadow-xs' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    active
+                      ? 'bg-[#e8fedf] text-[#004227] border border-[#b3f4cb]'
+                      : 'text-[#666666] hover:text-[#1b1b1b] hover:bg-white/70 border border-transparent'
                   }`}
                 >
                   <span>{tab.label}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    active 
-                      ? 'bg-slate-100 text-slate-800' 
-                      : tab.alert 
-                        ? 'bg-rose-100 text-rose-700' 
-                        : 'bg-slate-200 text-slate-600'
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                    active
+                      ? 'bg-[#004227] text-white'
+                      : tab.alert
+                        ? 'bg-[#ffe4ed] text-[#851b40]'
+                        : 'bg-[#e3e3e3] text-[#444444]'
                   }`}>
                     {tab.count}
                   </span>
@@ -389,51 +390,62 @@ export default function CuentasPorCobrarView({
           </div>
 
           {/* Buscador rápido */}
-          <div className="relative flex-1 max-w-md">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="relative flex-1 lg:max-w-sm">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
             <input
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Buscar cliente, RUC, N° documento..."
-              className="w-full pl-9 pr-8 py-1.5 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+              placeholder="Buscar cliente, RUC o N° documento..."
+              className="w-full pl-9 pr-8 py-2 text-xs bg-[#fafafa] hover:bg-white focus:bg-white border border-[#e3e3e3] rounded-xl focus:outline-hidden focus:border-[#0b996f] transition-colors font-medium text-[#1b1b1b]"
             />
             {searchTerm && (
               <button
+                type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#666666] hover:text-[#1b1b1b] p-0.5 cursor-pointer"
+                aria-label="Limpiar búsqueda"
               >
-                <X size={12} />
+                <X size={13} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Filtros de fechas opcionales (colapsados de forma limpia) */}
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 text-xs text-slate-600">
-          <span className="font-semibold text-slate-700 flex items-center gap-1">
-            <Calendar size={13} className="text-slate-400" /> Rango de Fecha:
-          </span>
-          <div className="flex items-center gap-2">
+        {/* Filtros de fechas compactos en una sola línea */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-[#efefef] text-xs text-[#666666]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-[#1b1b1b] flex items-center gap-1.5">
+              <Calendar size={13} className="text-[#0b996f]" /> Fecha de emisión:
+            </span>
             <input
               type="date"
               value={fechaDesde}
               onChange={e => setFechaDesde(e.target.value)}
-              className="py-1 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+              aria-label="Fecha desde"
+              className="w-[144px] py-1.5 px-2.5 bg-[#fafafa] border border-[#e3e3e3] rounded-lg text-xs text-[#1b1b1b] focus:outline-hidden focus:border-[#0b996f]"
             />
-            <span>hasta</span>
+            <span className="text-[#666666]">hasta</span>
             <input
               type="date"
               value={fechaHasta}
               onChange={e => setFechaHasta(e.target.value)}
-              className="py-1 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+              aria-label="Fecha hasta"
+              className="w-[144px] py-1.5 px-2.5 bg-[#fafafa] border border-[#e3e3e3] rounded-lg text-xs text-[#1b1b1b] focus:outline-hidden focus:border-[#0b996f]"
             />
-            {(fechaDesde || fechaHasta) && (
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-medium text-[#666666]">
+              Mostrando <strong className="text-[#1b1b1b]">{filteredItems.length}</strong> de {metrics.totalDocumentos}
+            </span>
+            {(searchTerm || statusTab !== 'todos' || fechaDesde || fechaHasta) && (
               <button
-                onClick={() => { setFechaDesde(''); setFechaHasta(''); }}
-                className="text-[11px] text-blue-600 hover:underline cursor-pointer"
+                type="button"
+                onClick={() => { setSearchTerm(''); setStatusTab('todos'); setFechaDesde(''); setFechaHasta(''); }}
+                className="py-1 px-2.5 rounded-lg bg-[#f4f4f5] hover:bg-[#e8fedf] text-[#1b1b1b] hover:text-[#004227] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
               >
-                Limpiar fechas
+                <X size={12} /> Limpiar filtros
               </button>
             )}
           </div>
@@ -441,7 +453,7 @@ export default function CuentasPorCobrarView({
       </div>
 
       {/* 4. TABLA PRINCIPAL DE CUENTAS POR COBRAR */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
+      <div className="bg-white border border-[#e3e3e3] rounded-2xl overflow-hidden">
         {filteredItems.length === 0 ? (
           <div className="text-center py-16 space-y-3">
             <FileText size={40} className="text-slate-300 mx-auto" />
@@ -543,8 +555,8 @@ export default function CuentasPorCobrarView({
                       </td>
 
                       {/* Saldo Pendiente */}
-                      <td className="py-3 px-3.5 text-right font-mono font-extrabold">
-                        <span className={saldo > 0 ? 'text-blue-700' : 'text-slate-400'}>
+                      <td className="py-3 px-3.5 text-right font-mono font-extrabold tabular-nums">
+                        <span className={saldo > 0 ? 'text-[#004227]' : 'text-[#999999]'}>
                           {formatCurrency(saldo)}
                         </span>
                       </td>
@@ -552,19 +564,19 @@ export default function CuentasPorCobrarView({
                       {/* Estado */}
                       <td className="py-3 px-3.5 text-center whitespace-nowrap">
                         {isPagado ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                            <CheckCircle2 size={11} className="text-emerald-600" /> Pagado
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#e8fedf] text-[#004227] border border-[#b3f4cb]">
+                            <CheckCircle2 size={11} className="text-[#0b996f]" /> Pagado
                           </span>
                         ) : isVencido ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                            <AlertTriangle size={11} className="text-rose-600" /> Vencido
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#ffe4ed] text-[#851b40] border border-[#fbc6d9]">
+                            <AlertTriangle size={11} className="text-[#be123c]" /> Vencido
                           </span>
                         ) : abonado > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fcfbe7] text-[#866308] border border-[#f0df8a]">
                             Parcial
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fcfbe7] text-[#866308] border border-[#f0df8a]">
                             Pendiente
                           </span>
                         )}
@@ -578,18 +590,18 @@ export default function CuentasPorCobrarView({
                             <button
                               type="button"
                               onClick={() => setSelectedItemForPayment(item)}
-                              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs transition-all cursor-pointer"
+                              className="px-2.5 py-1.5 rounded-xl bg-[#0b996f] hover:bg-[#004227] text-white text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                               title="Registrar un abono o pago a esta factura"
                             >
                               <Plus size={13} strokeWidth={2.5} />
                               <span>Abonar</span>
                             </button>
                           ) : (
-                            <span 
-                              className="px-2 py-1 rounded-xl bg-slate-100 text-slate-400 text-[11px] font-medium flex items-center gap-1 cursor-default"
+                            <span
+                              className="px-2 py-1 rounded-xl bg-[#f4f4f5] text-[#666666] text-[11px] font-medium flex items-center gap-1 cursor-default"
                               title="Factura pagada en su totalidad"
                             >
-                              <CheckCircle2 size={12} className="text-emerald-500" /> Liquidado
+                              <CheckCircle2 size={12} className="text-[#0b996f]" /> Liquidado
                             </span>
                           )}
 
@@ -597,20 +609,20 @@ export default function CuentasPorCobrarView({
                           <button
                             type="button"
                             onClick={() => setSelectedItemForDetail(item)}
-                            className="p-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs flex items-center justify-center transition-colors cursor-pointer"
+                            className="p-1.5 rounded-xl border border-[#e3e3e3] bg-white hover:bg-[#fafafa] text-[#444444] text-xs flex items-center justify-center transition-colors cursor-pointer"
                             title="Ver historial de abonos y movimientos de este comprobante"
                           >
-                            <History size={14} className="text-slate-600" />
+                            <History size={14} className="text-[#444444]" />
                           </button>
 
                           {/* 3. Botón Ver Comprobante / RIDE */}
                           <button
                             type="button"
                             onClick={() => handleOpenRide(item)}
-                            className="p-1.5 rounded-xl border border-slate-200 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 hover:border-blue-200 text-xs flex items-center justify-center transition-colors cursor-pointer"
+                            className="p-1.5 rounded-xl border border-[#e3e3e3] bg-white hover:bg-[#e8fedf] text-[#444444] hover:text-[#004227] hover:border-[#b3f4cb] text-xs flex items-center justify-center transition-colors cursor-pointer"
                             title="Ver factura oficial / RIDE"
                           >
-                            <FileText size={14} className="text-blue-600" />
+                            <FileText size={14} className="text-[#0b996f]" />
                           </button>
 
                           {/* 4. Botón WhatsApp Recordatorio (solo si tiene saldo pendiente) */}

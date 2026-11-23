@@ -675,7 +675,7 @@ function AsientoForm({ cuentas, centros, onSave, onCancel }) {
         <UiButton iconOnly onClick={onCancel} variant="surface" color="gray"><X size={14} /></UiButton>
       </UiBox>
       <UiBox className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <UiInput type="date" value={fecha} onChange={e => setFecha(e.target.value)} size="2" color="gray" />
+        <UiInput type="date" value={fecha} onChange={e => setFecha(e.target.value)} size="2" color="gray" className="w-full" />
         <UiBox className="sm:col-span-2">
           <UiInput
             value={descripcion}
