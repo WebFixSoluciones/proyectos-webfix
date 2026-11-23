@@ -6,7 +6,7 @@ import {
   Package, Plus, Search, Tag, BarChart3, 
   ArrowRightLeft, Settings, Database, RefreshCw, 
   Trash2, Briefcase, PlusCircle, CheckCircle, ShieldAlert,
-  SlidersHorizontal, Layers, Award, Edit2, X, Box, ArrowRight
+  SlidersHorizontal, Layers, Award, Edit2, X, Box, ArrowRight, ScanBarcode
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import ProductCreationForm from './ProductCreationForm';
@@ -16,6 +16,11 @@ import confirmAction from '../../services/confirmDialog';
 import CategoryBrandModal from './CategoryBrandModal';
 import TransferModal from './TransferModal';
 import AdjustmentModal from './AdjustmentModal';
+import BarcodeScannerModal from '../../modules/warehouse/ui/BarcodeScannerModal';
+import LabelDesignerView from '../../modules/warehouse/ui/LabelDesignerView';
+import WarehouseDispatchView from '../../modules/warehouse/ui/WarehouseDispatchView';
+import WarehousesView from '../../modules/warehouse/ui/WarehousesView';
+import { fetchUnifiedWarehouses } from '../../modules/warehouse/infrastructure/WarehouseRepository';
 
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { categoryBrandRepository } from '../../modules/inventory/repositories/CategoryBrandRepository';
@@ -29,17 +34,23 @@ import { db, appId } from '../../firebase';
 
 interface InventoryModuleProps {
   initialSubTab?: string;
+  onSubTabChange?: (tab: string) => void;
+  transactions?: any[];
+  companyProfile?: any;
   showToast?: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
-const BRANCHES = [
-  { id: 'sucursal-central-uuid', name: 'Sucursal Central (Principal)' },
-  { id: 'sucursal-sur-uuid', name: 'Sucursal Sur' },
-  { id: 'sucursal-norte-uuid', name: 'Sucursal Norte' }
+const DEFAULT_BRANCHES = [
+  { id: 'sucursal-central-uuid', name: 'Bodega Central (Principal)', isDefault: true },
+  { id: 'sucursal-sur-uuid', name: 'Sucursal Sur', isDefault: false },
+  { id: 'sucursal-norte-uuid', name: 'Sucursal Norte', isDefault: false }
 ];
 
-export default function InventoryModule({ initialSubTab, showToast }: InventoryModuleProps) {
+export default function InventoryModule({ initialSubTab, transactions = [], companyProfile = null, showToast }: InventoryModuleProps) {
   const [activeTab, setActiveTab] = useState('productos');
+  const [warehouses, setWarehouses] = useState<any[]>(DEFAULT_BRANCHES);
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
+  const BRANCHES = warehouses.length > 0 ? warehouses : DEFAULT_BRANCHES;
   
   // Data lists
   const [products, setProducts] = useState<Product[]>([]);
@@ -127,6 +138,9 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
         categoryBrandRepository.getCategories(),
         categoryBrandRepository.getBrands()
       ]);
+      fetchUnifiedWarehouses({ firestore: db, tenantId: appId, products: allProducts as any[] })
+        .then((list) => { if (list.length > 0) setWarehouses(list); })
+        .catch(() => {});
       
       // Deduplicar productos por ID y por SKU
       const uniqueMap = new Map<string, Product>();
@@ -333,8 +347,11 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
       if (statusFilter === 'ACTIVE' && pStatus === 'INACTIVE') return false;
       if (statusFilter === 'INACTIVE' && pStatus !== 'INACTIVE') return false;
 
-      const matchesSearch = (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const q = searchQuery.trim().toLowerCase();
+      const matchesSearch = !q ||
+                            (p.name || '').toLowerCase().includes(q) || 
+                            (p.sku || '').toLowerCase().includes(q) ||
+                            ((p as any).codigoBarras || '').toLowerCase().includes(q);
       const matchesCategory = selectedCategory ? p.categoryId === selectedCategory : true;
       const matchesType = selectedType ? p.type === selectedType : true;
       return matchesSearch && matchesCategory && matchesType;
@@ -403,6 +420,15 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                     >
                       <Tag size={14} /> 
                       <span>Categorías y Marcas</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsBarcodeScannerOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-colors cursor-pointer"
+                      title="Escanear código de barras (USB o Cámara)"
+                    >
+                      <ScanBarcode size={14} />
+                      <span className="hidden sm:inline">Escanear Código</span>
                     </button>
                   </div>
 
@@ -800,6 +826,7 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
                                   {tx.type === 'CUSTOMER_RETURN' && <UiText {...{"size":"1","weight":"bold","color":"green","className":"px-2 py-0.5"}}>Devolución Cliente</UiText>}
                                   {tx.type === 'POSITIVE_ADJUSTMENT' && <UiText {...{"size":"1","weight":"bold","color":"teal","className":"px-2 py-0.5"}}>Ajuste Positivo</UiText>}
                                   {tx.type === 'SALE' && <UiText {...{"size":"1","weight":"bold","color":"red","className":"px-2 py-0.5"}}>Egreso / Venta</UiText>}
+                                  {tx.type === 'TRANSFER_IN' && <UiText {...{"size":"1","weight":"bold","color":"blue","className":"px-2 py-0.5"}}>Ingreso por Traslado</UiText>}
                                   {tx.type === 'TRANSFER_OUT' && <UiText {...{"size":"1","weight":"bold","color":"purple","className":"px-2 py-0.5"}}>Salida por Traslado</UiText>}
                                   {tx.type === 'NEGATIVE_ADJUSTMENT' && <UiText {...{"size":"1","weight":"bold","color":"amber","className":"px-2 py-0.5"}}>Ajuste Negativo</UiText>}
                                   {tx.type === 'SHRINKAGE' && <UiText {...{"size":"1","weight":"bold","color":"orange","className":"px-2 py-0.5"}}>Mermas / Pérdida</UiText>}
@@ -1129,6 +1156,64 @@ export default function InventoryModule({ initialSubTab, showToast }: InventoryM
           }}
         />
       )}
+
+      {/* --- TAB: CONTROL DE BODEGAS --- */}
+      {activeTab === 'bodegas' && (
+        <div className="py-2">
+          <WarehousesView
+            warehouses={warehouses}
+            products={products as any[]}
+            onRefreshWarehouses={async () => {
+              const refreshed = await fetchUnifiedWarehouses({ firestore: db, tenantId: appId, products: products as any[] });
+              setWarehouses(refreshed);
+            }}
+            showToast={showToast}
+          />
+        </div>
+      )}
+
+      {/* --- TAB: DISEÑO DE ETIQUETAS Y CÓDIGOS DE BARRA --- */}
+      {activeTab === 'etiquetas' && (
+        <div className="py-2">
+          <LabelDesignerView
+            products={products as any[]}
+            companyName={companyProfile?.nombreComercial || companyProfile?.razonSocial || ''}
+            showToast={showToast}
+            onOpenScanner={() => setIsBarcodeScannerOpen(true)}
+          />
+        </div>
+      )}
+
+      {/* --- TAB: DESPACHOS POSTERIORES DE BODEGA --- */}
+      {activeTab === 'despachos' && (
+        <div className="py-2">
+          <WarehouseDispatchView
+            transactions={transactions}
+            warehouses={warehouses}
+            companyName={companyProfile?.nombreComercial || companyProfile?.razonSocial || ''}
+            showToast={showToast}
+          />
+        </div>
+      )}
+
+      <BarcodeScannerModal
+        isOpen={isBarcodeScannerOpen}
+        onClose={() => setIsBarcodeScannerOpen(false)}
+        onScan={(code) => {
+          const clean = String(code || '').trim().toLowerCase();
+          const found = (products as any[]).find(
+            (p) =>
+              String(p.codigoBarras || '').trim().toLowerCase() === clean ||
+              String(p.sku || '').trim().toLowerCase() === clean
+          );
+          setSearchQuery(code);
+          if (found) {
+            showToast?.(`Producto localizado: ${found.name} (SKU: ${found.sku || '—'})`, 'success');
+          } else {
+            showToast?.(`Código escaneado: ${code}. Filtrado en catálogo.`, 'info');
+          }
+        }}
+      />
     </UiBox>
   );
 }

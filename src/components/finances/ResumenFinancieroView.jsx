@@ -121,9 +121,13 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
                 type="month"
                 value={periodo.fechaDesde.slice(0, 7)}
                 onChange={e => {
-                  const d = e.target.value + '-01';
-                  const lastDay = new Date(new Date(d).getFullYear(), new Date(d).getMonth() + 1, 0).toISOString().slice(0, 10);
-                  setPeriodo({ fechaDesde: d, fechaHasta: lastDay });
+                  const val = e.target.value;
+                  if (!/^\d{4}-\d{2}$/.test(val)) return;
+                  const [y, m] = val.split('-').map(Number);
+                  const lastDayNum = new Date(y, m, 0).getDate();
+                  const fechaDesde = `${y}-${String(m).padStart(2, '0')}-01`;
+                  const fechaHasta = `${y}-${String(m).padStart(2, '0')}-${String(lastDayNum).padStart(2, '0')}`;
+                  setPeriodo({ fechaDesde, fechaHasta });
                 }}
                 className="bg-transparent text-xs font-semibold text-slate-800 outline-none cursor-pointer"
               />

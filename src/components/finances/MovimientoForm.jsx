@@ -3,7 +3,8 @@ import { UiBox, UiCard, UiHeading, UiLabel, UiText } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
 import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Minus, Save } from 'lucide-react';
-import { crearMovimiento, editarMovimiento } from '../../services/movimientoService';
+import { crearMovimiento, editarMovimiento, registrarAbono } from '../../services/movimientoService';
+import { getCuentas as getCuentasBancarias } from '../../services/bancosService';
 
 const TIPOS_DOCUMENTO = [
   { id: 'factura', label: 'Factura' },
@@ -63,6 +64,16 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
   
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [marcarPagado, setMarcarPagado] = useState(false);
+  const [cuentaBancariaId, setCuentaBancariaId] = useState('');
+  const [cuentasBancarias, setCuentasBancarias] = useState([]);
+
+  useEffect(() => {
+    if (!db || esEdicion) return;
+    getCuentasBancarias(db, { estado: 'activo' })
+      .then((list) => setCuentasBancarias(Array.isArray(list) ? list : []))
+      .catch(() => setCuentasBancarias([]));
+  }, [db, esEdicion]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -84,7 +95,7 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
     if (['baseImponible', 'iva', 'ice', 'irbpnr', 'retencionFuente', 'retencionIva'].includes(field)) {
       const p = partidas[index];
       p.total = (Number(p.baseImponible) || 0) + (Number(p.iva) || 0) + (Number(p.ice) || 0)
-        - (Number(p.retencionFuente) || 0) - (Number(p.retencionIva) || 0) - (Number(p.irbpnr) || 0);
+        + (Number(p.irbpnr) || 0) - (Number(p.retencionFuente) || 0) - (Number(p.retencionIva) || 0);
     }
     
     setFormData(prev => ({ ...prev, partidas }));
@@ -106,7 +117,7 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
 
   const validate = () => {
     const errs = {};
-    if (!formData.tercero.nombre && formData.tipo !== 'ingreso_vario') errs.tercero = 'Requerido';
+    if (!formData.tercero.nombre && formData.documento?.tipo !== 'ingreso_vario') errs.tercero = 'Requerido';
     if (formData.partidas.some(p => !p.descripcion)) errs.partidas = 'Todas las partidas necesitan descripción';
     if (formData.monto <= 0) errs.monto = 'El total debe ser mayor a 0';
     setErrors(errs);
@@ -122,9 +133,25 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
       if (esEdicion) {
         await editarMovimiento(db, movimiento.id, formData, usuario);
       } else {
-        await crearMovimiento(db, { ...formData, id: stableId.current }, usuario);
+        const payloadToSave = {
+          ...formData,
+          id: stableId.current,
+          tercero: formData.tercero?.nombre
+            ? formData.tercero
+            : { id: 'consumidor_final', nombre: 'VARIOS / CONSUMIDOR FINAL', ruc: formData.tercero?.ruc || '9999999999999' },
+        };
+        const created = await crearMovimiento(db, payloadToSave, usuario);
+        if (marcarPagado && created?.id && Number(formData.monto) > 0) {
+          await registrarAbono(db, created.id, {
+            monto: Number(formData.monto),
+            metodoPago: formData.metodoPago || 'efectivo',
+            cuentaId: cuentaBancariaId || null,
+            referencia: formData.documento?.numero || '',
+            fecha: formData.fecha || new Date().toISOString(),
+          }, usuario);
+        }
       }
-      showToast(esEdicion ? 'Movimiento actualizado' : 'Movimiento creado', 'success');
+      showToast(esEdicion ? 'Movimiento actualizado' : (marcarPagado ? 'Movimiento creado y marcado como pagado' : 'Movimiento creado'), 'success');
       onSave();
     } catch (err) {
       showToast('Error: ' + err.message, 'error');
@@ -295,6 +322,34 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
             </UiBox>
             {errors.monto && <UiText {...{"size":"1","color":"red"}}>{errors.monto}</UiText>}
           </UiBox>
+
+          {!esEdicion && (
+            <UiBox style={{ border: '1px solid var(--gray-a6)', borderRadius: 'var(--radius-3)' }} className="p-3 space-y-2">
+              <UiLabel size="2" color="gray" highContrast className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={marcarPagado}
+                  onChange={e => setMarcarPagado(e.target.checked)}
+                />
+                {formData.tipo === 'ingreso'
+                  ? 'Registrar como ya cobrado (no dejar pendiente en CxC)'
+                  : 'Registrar como ya pagado (no dejar pendiente en CxP)'}
+              </UiLabel>
+              {marcarPagado && cuentasBancarias.length > 0 && (
+                <UiBox>
+                  <UiLabel size="1" weight="medium" color="gray" className="mb-1 block">Cuenta bancaria / Caja que recibe o paga</UiLabel>
+                  <UiSelect value={cuentaBancariaId} onChange={e => setCuentaBancariaId(e.target.value)} size="2" color="gray" className="w-full">
+                    <option value="">Sin afectar cuenta bancaria</option>
+                    {cuentasBancarias.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.nombre} {c.banco ? `(${c.banco})` : ''} — ${(Number(c.saldoActual) || 0).toFixed(2)}
+                      </option>
+                    ))}
+                  </UiSelect>
+                </UiBox>
+              )}
+            </UiBox>
+          )}
 
           <UiBox>
             <UiLabel {...{"size":"1","weight":"medium","color":"gray","className":"mb-1 block"}}>Notas (opcional)</UiLabel>

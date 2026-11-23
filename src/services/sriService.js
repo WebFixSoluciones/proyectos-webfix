@@ -185,15 +185,17 @@ export function generarClaveAcceso({
   const partes = fechaEmision.split('-');
   const fechaFormateada = `${partes[2]}${partes[1]}${partes[0]}`;
 
-  // Rellenar secuencial con 9 ceros si es necesario
-  const secFormateado = String(secuencial).padStart(9, '0');
+  // Rellenar secuencial con 9 ceros y establecimiento/puntoEmision con 3 dígitos estrictos
+  const secFormateado = String(secuencial).replace(/\D/g, '').padStart(9, '0').slice(-9);
+  const estabFormateado = String(establecimiento || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+  const ptoEmiFormateado = String(puntoEmision || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
   
   // Limpiar RUC
-  const rucLimpio = String(ruc).trim();
+  const rucLimpio = limpiarIdentificacion(ruc);
 
   // Armar clave de 48 dígitos (sin verificador)
   // DDMMYYYY + TipoComprobante(2) + RucEmisor(13) + Ambiente(1) + Serie(6) + Secuencial(9) + CodigoNumerico(8) + TipoEmision(1)
-  const clave48 = `${fechaFormateada}${tipoComprobante}${rucLimpio}${ambiente}${establecimiento}${puntoEmision}${secFormateado}${codigoNumerico}${tipoEmision}`;
+  const clave48 = `${fechaFormateada}${tipoComprobante}${rucLimpio}${ambiente}${estabFormateado}${ptoEmiFormateado}${secFormateado}${codigoNumerico}${tipoEmision}`;
   
   const verificador = calcularModulo11(clave48);
   
@@ -211,11 +213,16 @@ export function escaparXml(valor) {
     .replace(/'/g, '&apos;');
 }
 
-// Mapea la tarifa de IVA (%) al codigoPorcentaje oficial del SRI
-export function codigoPorcentajeIva(tarifa) {
-  switch (Number(tarifa)) {
+// Mapea la tarifa de IVA (%) al codigoPorcentaje oficial del SRI (corrige float 14% y soporta No Objeto/Exento)
+export function codigoPorcentajeIva(tarifa, ivaCategory = '') {
+  const cat = String(ivaCategory || '').toLowerCase().trim();
+  if (cat === 'no_objeto' || cat === 'no objeto') return '6';
+  if (cat === 'exento') return '7';
+  const pct = Math.round(Number(tarifa));
+  switch (pct) {
     case 0: return '0';   // 0%
     case 5: return '5';   // 5%
+    case 8: return '8';   // 8% (feriado turístico)
     case 12: return '2';  // 12%
     case 13: return '10'; // 13%
     case 14: return '3';  // 14%
@@ -289,10 +296,15 @@ export function normalizarPagosFactura(facturaData, importeTotal) {
       if (items.length === 1) {
         items[0].monto = total;
       } else {
-        const suma = items.reduce((acc, p) => acc + p.monto, 0);
+        const suma = round2(items.reduce((acc, p) => acc + p.monto, 0));
         const diff = round2(total - suma);
-        if (Math.abs(diff) > 0 && Math.abs(diff) <= 0.05) {
+        if (total > 0 && Math.abs(diff) > 0 && Math.abs(diff) <= 0.05) {
           items[items.length - 1].monto = round2(items[items.length - 1].monto + diff);
+        } else if (total > 0 && Math.abs(diff) > 0.05) {
+          const adjusted = round2(items[items.length - 1].monto + diff);
+          if (adjusted > 0) {
+            items[items.length - 1].monto = adjusted;
+          }
         }
       }
       return items;
@@ -333,11 +345,11 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
   calculatedItems.forEach((item, idx) => {
     const cantidad = Number(item.quantity);
     const precio = item.precio_base_unitario;
-    const tarifa = item.tarifa_iva * 100;
-    const codPorc = codigoPorcentajeIva(tarifa);
+    const tarifa = Math.round(item.tarifa_iva * 100);
+    const codPorc = codigoPorcentajeIva(tarifa, item.ivaCategory || item.iva_category);
     const lineGross = round2(precio * cantidad);
     const lineDiscount = round2(
-      item.monto_descuento_linea + item.descuento_prorrateado
+      Math.min(lineGross, Math.max(0, item.monto_descuento_linea + item.descuento_prorrateado))
     );
     const lineSub = round2(Math.max(0, lineGross - lineDiscount));
     const lineIva = round2(lineSub * (tarifa / 100));
@@ -345,9 +357,8 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     totalSinImpuestos = round2(totalSinImpuestos + lineSub);
     totalDescuento = round2(totalDescuento + lineDiscount);
 
-    if (!gruposIva[codPorc]) gruposIva[codPorc] = { base: 0, valor: 0 };
+    if (!gruposIva[codPorc]) gruposIva[codPorc] = { base: 0, tarifa, valor: 0 };
     gruposIva[codPorc].base = round2(gruposIva[codPorc].base + lineSub);
-    gruposIva[codPorc].valor = round2(gruposIva[codPorc].valor + lineIva);
 
     detallesXml += `
     <detalle>
@@ -369,6 +380,11 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     </detalle>`;
   });
 
+  // Calcular IVA por grupo directamente sobre la base imponible acumulada (estándar XSD SRI sin desfase de centavos)
+  Object.values(gruposIva).forEach((g) => {
+    g.valor = round2(g.base * (g.tarifa / 100));
+  });
+
   const totalIva = round2(Object.values(gruposIva).reduce((s, g) => s + g.valor, 0));
   const importeTotal = round2(totalSinImpuestos + totalIva);
 
@@ -383,6 +399,27 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
       </totalImpuesto>`;
   });
 
+  const estabPadded = String(emisorConfig.establecimiento || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+  const ptoEmiPadded = String(emisorConfig.puntoEmision || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+  const buyerRucClean = limpiarIdentificacion(terceroData.ruc) || '9999999999999';
+  const buyerTipoId = obtenerTipoIdentificacionSRI({ ...terceroData, ruc: buyerRucClean });
+  const rimpeTag = emisorConfig.contribuyenteRimpe || (
+    String(emisorConfig.rucRegimen || emisorConfig.contribuyenteTipo || '').toLowerCase().includes('rimpe')
+      ? (String(emisorConfig.rucRegimen || emisorConfig.contribuyenteTipo || '').toLowerCase().includes('popular')
+          ? 'CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE'
+          : 'CONTRIBUYENTE RÉGIMEN RIMPE')
+      : ''
+  );
+  const agenteRetencionTag = emisorConfig.agenteRetencion && String(emisorConfig.agenteRetencion).replace(/\D/g, '')
+    ? `\n    <agenteRetencion>${escaparXml(String(emisorConfig.agenteRetencion).replace(/\D/g, '').slice(0, 8))}</agenteRetencion>`
+    : '';
+  const contribuyenteRimpeTag = rimpeTag
+    ? `\n    <contribuyenteRimpe>${escaparXml(rimpeTag)}</contribuyenteRimpe>`
+    : '';
+  const contribuyenteEspecialTag = emisorConfig.contribuyenteEspecial && String(emisorConfig.contribuyenteEspecial).trim()
+    ? `\n    <contribuyenteEspecial>${escaparXml(String(emisorConfig.contribuyenteEspecial).trim())}</contribuyenteEspecial>`
+    : '';
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <factura id="comprobante" version="1.1.0">
   <infoTributaria>
@@ -393,18 +430,18 @@ export function generarFacturaXML(emisorConfig, facturaData, terceroData, items 
     <ruc>${escaparXml(limpiarIdentificacion(emisorConfig.ruc))}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>01</codDoc>
-    <estab>${emisorConfig.establecimiento}</estab>
-    <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
+    <estab>${estabPadded}</estab>
+    <ptoEmi>${ptoEmiPadded}</ptoEmi>
     <secuencial>${String(facturaData.secuencial || '1').padStart(9, '0')}</secuencial>
-    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirMatriz>
+    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || emisorConfig.dirMatriz || 'Ecuador')}</dirMatriz>${agenteRetencionTag}${contribuyenteRimpeTag}
   </infoTributaria>
   <infoFactura>
-    <fechaEmision>${facturaData.date.split('-').reverse().join('/')}</fechaEmision>
-    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
+    <fechaEmision>${fechaSRI(facturaData.date)}</fechaEmision>
+    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || emisorConfig.dirMatriz || 'Ecuador')}</dirEstablecimiento>${contribuyenteEspecialTag}
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
-    <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI({ ...terceroData, ruc: limpiarIdentificacion(terceroData.ruc) })}</tipoIdentificacionComprador>
-    <razonSocialComprador>${escaparXml(terceroData.name || terceroData.razonSocial || 'Cliente')}</razonSocialComprador>
-    <identificacionComprador>${escaparXml(limpiarIdentificacion(terceroData.ruc))}</identificacionComprador>
+    <tipoIdentificacionComprador>${buyerTipoId}</tipoIdentificacionComprador>
+    <razonSocialComprador>${escaparXml(terceroData.name || terceroData.razonSocial || 'CONSUMIDOR FINAL')}</razonSocialComprador>
+    <identificacionComprador>${escaparXml(buyerRucClean)}</identificacionComprador>
     <totalSinImpuestos>${totalSinImpuestos.toFixed(2)}</totalSinImpuestos>
     <totalDescuento>${totalDescuento.toFixed(2)}</totalDescuento>
     <totalConImpuestos>${totalImpuestosXml}
@@ -516,25 +553,37 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
   });
 
   const activeItems = items.length > 0 ? items : (ncData.items || []);
+  const calculatedItems = calculateTransactionTotals(activeItems, ncData.generalDiscount).items;
+  const gruposIva = {};
+  let totalSinImpuestos = 0;
   let detallesXml = '';
-  activeItems.forEach((item, idx) => {
-    const cantidad = parseFloat(item.quantity) || 1;
-    const precio = parseFloat(item.price) || 0;
-    const tarifa = Number(item.ivaCategory ?? 15);
-    const lineSub = round2(precio * cantidad);
+
+  calculatedItems.forEach((item, idx) => {
+    const cantidad = Number(item.quantity) || 1;
+    const precio = item.precio_base_unitario;
+    const tarifa = Math.round(item.tarifa_iva * 100);
+    const codPorc = codigoPorcentajeIva(tarifa, item.ivaCategory || item.iva_category);
+    const lineGross = round2(precio * cantidad);
+    const lineDiscount = round2(Math.min(lineGross, Math.max(0, item.monto_descuento_linea + item.descuento_prorrateado)));
+    const lineSub = round2(Math.max(0, lineGross - lineDiscount));
     const lineIva = round2(lineSub * (tarifa / 100));
+
+    totalSinImpuestos = round2(totalSinImpuestos + lineSub);
+    if (!gruposIva[codPorc]) gruposIva[codPorc] = { base: 0, tarifa, valor: 0 };
+    gruposIva[codPorc].base = round2(gruposIva[codPorc].base + lineSub);
+
     detallesXml += `
     <detalle>
       <codigoInterno>${escaparXml(item.code || `P${idx + 1}`)}</codigoInterno>
       <descripcion>${escaparXml(invoiceDescription(item))}</descripcion>
       <cantidad>${cantidad.toFixed(2)}</cantidad>
-      <precioUnitario>${precio.toFixed(2)}</precioUnitario>
-      <descuento>0.00</descuento>
+      <precioUnitario>${precio.toFixed(6)}</precioUnitario>
+      <descuento>${lineDiscount.toFixed(2)}</descuento>
       <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
       <impuestos>
         <impuesto>
           <codigo>2</codigo>
-          <codigoPorcentaje>${codigoPorcentajeIva(tarifa)}</codigoPorcentaje>
+          <codigoPorcentaje>${codPorc}</codigoPorcentaje>
           <tarifa>${tarifa}</tarifa>
           <baseImponible>${lineSub.toFixed(2)}</baseImponible>
           <valor>${lineIva.toFixed(2)}</valor>
@@ -542,6 +591,22 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
       </impuestos>
     </detalle>`;
   });
+
+  Object.values(gruposIva).forEach((g) => {
+    g.valor = round2(g.base * (g.tarifa / 100));
+  });
+  const totalIva = round2(Object.values(gruposIva).reduce((s, g) => s + g.valor, 0));
+  const valorModificacion = round2(totalSinImpuestos + totalIva);
+  const totalImpuestosXml = Object.entries(gruposIva).map(([codPorc, g]) => `
+      <totalImpuesto>
+        <codigo>2</codigo>
+        <codigoPorcentaje>${codPorc}</codigoPorcentaje>
+        <baseImponible>${g.base.toFixed(2)}</baseImponible>
+        <valor>${g.valor.toFixed(2)}</valor>
+      </totalImpuesto>`).join('');
+
+  const estabPadded = String(emisorConfig.establecimiento || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+  const ptoEmiPadded = String(emisorConfig.puntoEmision || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <notaCredito id="comprobante" version="1.1.0">
@@ -553,14 +618,14 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
     <ruc>${escaparXml(limpiarIdentificacion(emisorConfig.ruc))}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>04</codDoc>
-    <estab>${emisorConfig.establecimiento}</estab>
-    <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
+    <estab>${estabPadded}</estab>
+    <ptoEmi>${ptoEmiPadded}</ptoEmi>
     <secuencial>${String(ncData.secuencial || '1').padStart(9, '0')}</secuencial>
-    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirMatriz>
+    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || emisorConfig.dirMatriz || 'Ecuador')}</dirMatriz>
   </infoTributaria>
   <infoNotaCredito>
-    <fechaEmision>${ncData.date.split('-').reverse().join('/')}</fechaEmision>
-    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
+    <fechaEmision>${fechaSRI(ncData.date)}</fechaEmision>
+    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || emisorConfig.dirMatriz || 'Ecuador')}</dirEstablecimiento>
     <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI({ ...terceroData, ruc: limpiarIdentificacion(terceroData.ruc) })}</tipoIdentificacionComprador>
     <razonSocialComprador>${escaparXml(terceroData.name || terceroData.razonSocial || '')}</razonSocialComprador>
     <identificacionComprador>${escaparXml(limpiarIdentificacion(terceroData.ruc))}</identificacionComprador>
@@ -568,16 +633,10 @@ export function generarNotaCreditoXML(emisorConfig, ncData, terceroData, items =
     <codDocModificado>${ncData.codDocModificado || '01'}</codDocModificado>
     <numDocModificado>${ncData.numDocModificado || '001-001-000000000'}</numDocModificado>
     <fechaEmisionDocSustento>${fechaSRI(ncData.fechaEmisionDocSustento || ncData.date)}</fechaEmisionDocSustento>
-    <totalSinImpuestos>${Number(ncData.baseImponible).toFixed(2)}</totalSinImpuestos>
-    <valorModificacion>${Number(ncData.total).toFixed(2)}</valorModificacion>
+    <totalSinImpuestos>${totalSinImpuestos.toFixed(2)}</totalSinImpuestos>
+    <valorModificacion>${valorModificacion.toFixed(2)}</valorModificacion>
     <moneda>DOLAR</moneda>
-    <totalConImpuestos>
-      <totalImpuesto>
-        <codigo>2</codigo>
-        <codigoPorcentaje>${codigoPorcentajeIva(ncData.ivaPorcentaje ?? 15)}</codigoPorcentaje>
-        <baseImponible>${Number(ncData.baseImponible).toFixed(2)}</baseImponible>
-        <valor>${Number(ncData.ivaValor).toFixed(2)}</valor>
-      </totalImpuesto>
+    <totalConImpuestos>${totalImpuestosXml}
     </totalConImpuestos>
     <motivo>${escaparXml(ncData.motivo || 'Devolución de mercadería')}</motivo>
   </infoNotaCredito>
@@ -606,25 +665,39 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
   });
 
   const activeItems = items.length > 0 ? items : (liqData.items || []);
+  const calculatedItems = calculateTransactionTotals(activeItems, liqData.generalDiscount).items;
+  const gruposIva = {};
+  let totalSinImpuestos = 0;
+  let totalDescuento = 0;
   let detallesXml = '';
-  activeItems.forEach((item, idx) => {
-    const cantidad = parseFloat(item.quantity) || 1;
-    const precio = parseFloat(item.price) || 0;
-    const tarifa = Number(item.ivaCategory ?? 15);
-    const lineSub = round2(precio * cantidad);
+
+  calculatedItems.forEach((item, idx) => {
+    const cantidad = Number(item.quantity) || 1;
+    const precio = item.precio_base_unitario;
+    const tarifa = Math.round(item.tarifa_iva * 100);
+    const codPorc = codigoPorcentajeIva(tarifa, item.ivaCategory || item.iva_category);
+    const lineGross = round2(precio * cantidad);
+    const lineDiscount = round2(Math.min(lineGross, Math.max(0, item.monto_descuento_linea + item.descuento_prorrateado)));
+    const lineSub = round2(Math.max(0, lineGross - lineDiscount));
     const lineIva = round2(lineSub * (tarifa / 100));
+
+    totalSinImpuestos = round2(totalSinImpuestos + lineSub);
+    totalDescuento = round2(totalDescuento + lineDiscount);
+    if (!gruposIva[codPorc]) gruposIva[codPorc] = { base: 0, tarifa, valor: 0 };
+    gruposIva[codPorc].base = round2(gruposIva[codPorc].base + lineSub);
+
     detallesXml += `
     <detalle>
       <codigoPrincipal>${escaparXml(item.code || `P${idx + 1}`)}</codigoPrincipal>
       <descripcion>${escaparXml(invoiceDescription(item))}</descripcion>
       <cantidad>${cantidad.toFixed(2)}</cantidad>
-      <precioUnitario>${precio.toFixed(2)}</precioUnitario>
-      <descuento>0.00</descuento>
+      <precioUnitario>${precio.toFixed(6)}</precioUnitario>
+      <descuento>${lineDiscount.toFixed(2)}</descuento>
       <precioTotalSinImpuesto>${lineSub.toFixed(2)}</precioTotalSinImpuesto>
       <impuestos>
         <impuesto>
           <codigo>2</codigo>
-          <codigoPorcentaje>${codigoPorcentajeIva(tarifa)}</codigoPorcentaje>
+          <codigoPorcentaje>${codPorc}</codigoPorcentaje>
           <tarifa>${tarifa}</tarifa>
           <baseImponible>${lineSub.toFixed(2)}</baseImponible>
           <valor>${lineIva.toFixed(2)}</valor>
@@ -632,6 +705,22 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
       </impuestos>
     </detalle>`;
   });
+
+  Object.values(gruposIva).forEach((g) => {
+    g.valor = round2(g.base * (g.tarifa / 100));
+  });
+  const totalIva = round2(Object.values(gruposIva).reduce((s, g) => s + g.valor, 0));
+  const importeTotal = round2(totalSinImpuestos + totalIva);
+  const totalImpuestosXml = Object.entries(gruposIva).map(([codPorc, g]) => `
+      <totalImpuesto>
+        <codigo>2</codigo>
+        <codigoPorcentaje>${codPorc}</codigoPorcentaje>
+        <baseImponible>${g.base.toFixed(2)}</baseImponible>
+        <valor>${g.valor.toFixed(2)}</valor>
+      </totalImpuesto>`).join('');
+
+  const estabPadded = String(emisorConfig.establecimiento || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+  const ptoEmiPadded = String(emisorConfig.puntoEmision || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <liquidacionCompra id="comprobante" version="1.1.0">
@@ -643,40 +732,142 @@ export function generarLiquidacionXML(emisorConfig, liqData, terceroData, items 
     <ruc>${escaparXml(limpiarIdentificacion(emisorConfig.ruc))}</ruc>
     <claveAcceso>${claveAcceso}</claveAcceso>
     <codDoc>03</codDoc>
-    <estab>${emisorConfig.establecimiento}</estab>
-    <ptoEmi>${emisorConfig.puntoEmision}</ptoEmi>
+    <estab>${estabPadded}</estab>
+    <ptoEmi>${ptoEmiPadded}</ptoEmi>
     <secuencial>${String(liqData.secuencial || '1').padStart(9, '0')}</secuencial>
-    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirMatriz>
+    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || emisorConfig.dirMatriz || 'Ecuador')}</dirMatriz>
   </infoTributaria>
   <infoLiquidacionCompra>
-    <fechaEmision>${liqData.date.split('-').reverse().join('/')}</fechaEmision>
-    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || 'Ecuador')}</dirEstablecimiento>
+    <fechaEmision>${fechaSRI(liqData.date)}</fechaEmision>
+    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || emisorConfig.dirMatriz || 'Ecuador')}</dirEstablecimiento>
     <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
     <tipoIdentificacionProveedor>${obtenerTipoIdentificacionSRI({ ...terceroData, ruc: limpiarIdentificacion(terceroData.ruc) })}</tipoIdentificacionProveedor>
     <razonSocialProveedor>${escaparXml(terceroData.name || terceroData.razonSocial || '')}</razonSocialProveedor>
     <identificacionProveedor>${escaparXml(limpiarIdentificacion(terceroData.ruc))}</identificacionProveedor>
-    <totalSinImpuestos>${Number(liqData.baseImponible).toFixed(2)}</totalSinImpuestos>
-    <totalDescuento>0.00</totalDescuento>
-    <totalConImpuestos>
-      <totalImpuesto>
-        <codigo>2</codigo>
-        <codigoPorcentaje>${codigoPorcentajeIva(liqData.ivaPorcentaje ?? 15)}</codigoPorcentaje>
-        <baseImponible>${Number(liqData.baseImponible).toFixed(2)}</baseImponible>
-        <valor>${Number(liqData.ivaValor).toFixed(2)}</valor>
-      </totalImpuesto>
+    <totalSinImpuestos>${totalSinImpuestos.toFixed(2)}</totalSinImpuestos>
+    <totalDescuento>${totalDescuento.toFixed(2)}</totalDescuento>
+    <totalConImpuestos>${totalImpuestosXml}
     </totalConImpuestos>
-    <importeTotal>${Number(liqData.total).toFixed(2)}</importeTotal>
+    <importeTotal>${importeTotal.toFixed(2)}</importeTotal>
     <moneda>DOLAR</moneda>
     <pagos>
       <pago>
         <formaPago>${mapearFormaPagoSRI(liqData.paymentMethod)}</formaPago>
-        <total>${Number(liqData.total).toFixed(2)}</total>
+        <total>${importeTotal.toFixed(2)}</total>
       </pago>
     </pagos>
   </infoLiquidacionCompra>
   <detalles>${detallesXml}
   </detalles>
 </liquidacionCompra>`;
+
+  return { xml, claveAcceso };
+}
+
+// Generar estructura XML para Nota de Débito (05)
+export function generarNotaDebitoXML(emisorConfig, ndData, terceroData, items = []) {
+  const codigoNumerico = ndData.codigoNumerico ||
+    (ndData.claveAcceso && ndData.claveAcceso.length === 49 ? ndData.claveAcceso.substring(39, 47) : null) ||
+    '12345678';
+
+  const claveAcceso = generarClaveAcceso({
+    fechaEmision: ndData.date,
+    tipoComprobante: '05',
+    ruc: emisorConfig.ruc,
+    ambiente: emisorConfig.ambiente,
+    establecimiento: emisorConfig.establecimiento,
+    puntoEmision: emisorConfig.puntoEmision,
+    secuencial: ndData.secuencial || '000000001',
+    codigoNumerico
+  });
+
+  const activeItems = items.length > 0 ? items : (ndData.items || []);
+  const calculatedItems = calculateTransactionTotals(activeItems, ndData.generalDiscount).items;
+  const gruposIva = {};
+  let totalSinImpuestos = 0;
+  let motivosXml = '';
+
+  calculatedItems.forEach((item) => {
+    const cantidad = Number(item.quantity) || 1;
+    const precio = item.precio_base_unitario;
+    const tarifa = Math.round(item.tarifa_iva * 100);
+    const codPorc = codigoPorcentajeIva(tarifa, item.ivaCategory || item.iva_category);
+    const lineGross = round2(precio * cantidad);
+    const lineDiscount = round2(Math.min(lineGross, Math.max(0, item.monto_descuento_linea + item.descuento_prorrateado)));
+    const lineSub = round2(Math.max(0, lineGross - lineDiscount));
+
+    totalSinImpuestos = round2(totalSinImpuestos + lineSub);
+    if (!gruposIva[codPorc]) gruposIva[codPorc] = { base: 0, tarifa, valor: 0 };
+    gruposIva[codPorc].base = round2(gruposIva[codPorc].base + lineSub);
+
+    motivosXml += `
+    <motivo>
+      <razon>${escaparXml(invoiceDescription(item) || ndData.motivo || 'Cargo adicional')}</razon>
+      <valor>${lineSub.toFixed(2)}</valor>
+    </motivo>`;
+  });
+
+  Object.values(gruposIva).forEach((g) => {
+    g.valor = round2(g.base * (g.tarifa / 100));
+  });
+  const totalIva = round2(Object.values(gruposIva).reduce((s, g) => s + g.valor, 0));
+  const valorTotal = round2(totalSinImpuestos + totalIva);
+
+  const impuestosXml = Object.entries(gruposIva).map(([codPorc, g]) => `
+      <impuesto>
+        <codigo>2</codigo>
+        <codigoPorcentaje>${codPorc}</codigoPorcentaje>
+        <tarifa>${g.tarifa}</tarifa>
+        <baseImponible>${g.base.toFixed(2)}</baseImponible>
+        <valor>${g.valor.toFixed(2)}</valor>
+      </impuesto>`).join('');
+
+  const estabPadded = String(emisorConfig.establecimiento || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+  const ptoEmiPadded = String(emisorConfig.puntoEmision || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+  const buyerRucClean = limpiarIdentificacion(terceroData.ruc) || '9999999999999';
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<notaDebito id="comprobante" version="1.0.0">
+  <infoTributaria>
+    <ambiente>${emisorConfig.ambiente}</ambiente>
+    <tipoEmision>1</tipoEmision>
+    <razonSocial>${escaparXml(emisorConfig.razonSocial)}</razonSocial>
+    <nombreComercial>${escaparXml(emisorConfig.nombreComercial || emisorConfig.razonSocial)}</nombreComercial>
+    <ruc>${escaparXml(limpiarIdentificacion(emisorConfig.ruc))}</ruc>
+    <claveAcceso>${claveAcceso}</claveAcceso>
+    <codDoc>05</codDoc>
+    <estab>${estabPadded}</estab>
+    <ptoEmi>${ptoEmiPadded}</ptoEmi>
+    <secuencial>${String(ndData.secuencial || '1').padStart(9, '0')}</secuencial>
+    <dirMatriz>${escaparXml(emisorConfig.direccionMatriz || emisorConfig.dirMatriz || 'Ecuador')}</dirMatriz>
+  </infoTributaria>
+  <infoNotaDebito>
+    <fechaEmision>${fechaSRI(ndData.date)}</fechaEmision>
+    <dirEstablecimiento>${escaparXml(emisorConfig.direccionMatriz || emisorConfig.dirMatriz || 'Ecuador')}</dirEstablecimiento>
+    <tipoIdentificacionComprador>${obtenerTipoIdentificacionSRI({ ...terceroData, ruc: buyerRucClean })}</tipoIdentificacionComprador>
+    <razonSocialComprador>${escaparXml(terceroData.name || terceroData.razonSocial || 'Cliente')}</razonSocialComprador>
+    <identificacionComprador>${escaparXml(buyerRucClean)}</identificacionComprador>
+    <obligadoContabilidad>${emisorConfig.obligadoContabilidad ? 'SI' : 'NO'}</obligadoContabilidad>
+    <codDocModificado>${ndData.codDocModificado || '01'}</codDocModificado>
+    <numDocModificado>${ndData.numDocModificado || '001-001-000000000'}</numDocModificado>
+    <fechaEmisionDocSustento>${fechaSRI(ndData.fechaEmisionDocSustento || ndData.date)}</fechaEmisionDocSustento>
+    <totalSinImpuestos>${totalSinImpuestos.toFixed(2)}</totalSinImpuestos>
+    <impuestos>${impuestosXml}
+    </impuestos>
+    <valorTotal>${valorTotal.toFixed(2)}</valorTotal>
+    <pagos>${(() => {
+      const pagos = normalizarPagosFactura(ndData, valorTotal);
+      return pagos.map(p => `
+      <pago>
+        <formaPago>${mapearFormaPagoSRI(p.metodo)}</formaPago>
+        <total>${round2(p.monto).toFixed(2)}</total>
+      </pago>`).join('');
+    })()}
+    </pagos>
+  </infoNotaDebito>
+  <motivos>${motivosXml}
+  </motivos>
+</notaDebito>`;
 
   return { xml, claveAcceso };
 }

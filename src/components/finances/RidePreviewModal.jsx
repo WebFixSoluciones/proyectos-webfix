@@ -6,12 +6,13 @@ import { X, Printer, FileText, FileCode } from 'lucide-react';
 import { doc, getDoc } from '../../services/financeStore.js';
 import { db as defaultDb, getAppId } from '../../firebase';
 import { downloadFiscalXml } from '../../services/sriAuthorization';
+import { encodeCode128Bars } from '../../modules/warehouse/domain/barcodeUtils.js';
 
 function numeroALetras(num) {
   const unidades = ['SIN', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
   const decenas = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE', 'VEINTE'];
   const decenasGrandes = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
-  const centenas = ['', 'CIEN', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHECIENTOS', 'NOVECIENTOS'];
+  const centenas = ['', 'CIEN', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
 
   function decodificar(n) {
     if (n < 10) return unidades[n];
@@ -54,14 +55,22 @@ function numeroALetras(num) {
 }
 
 function MockBarcode({ claveAcceso }) {
+  const encoded = encodeCode128Bars(claveAcceso || '');
   return (
     <div className="flex flex-col items-center my-1 select-none print:my-0.5 w-full max-w-full overflow-hidden">
-      <div className="flex h-6 w-full max-w-[280px] bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
-        {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
-          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
-        ))}
-      </div>
-      <span className="font-mono text-black text-center mt-0.5 select-all" style={{ fontSize: '7.8px', letterSpacing: '0.01em', lineHeight: '1.1', maxWidth: '100%' }}>{claveAcceso}</span>
+      {encoded.totalModules > 0 && (
+        <svg
+          viewBox={`0 0 ${encoded.totalModules} 34`}
+          preserveAspectRatio="none"
+          className="w-full max-w-[290px] h-8 bg-white"
+          style={{ backgroundColor: '#ffffff' }}
+        >
+          {encoded.bars.map((b, idx) => (
+            <rect key={idx} x={b.x} y={0} width={b.w} height={34} fill="#000000" />
+          ))}
+        </svg>
+      )}
+      <span className="font-mono text-black text-center mt-0.5 select-all break-all" style={{ fontSize: '7.8px', letterSpacing: '0.01em', lineHeight: '1.1', maxWidth: '100%' }}>{claveAcceso}</span>
     </div>
   );
 }
@@ -198,15 +207,15 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
         case 'tarjeta': return '19 - TARJETA DE CREDITO/DEBITO';
         case 'transferencia': return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO';
         case 'cruce_cuentas': return '15 - COMPENSACION DE DEUDAS';
-        case 'credito': return '19 - TARJETA DE CREDITO/DEBITO (CRÉDITO)';
+        case 'credito': return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO (CRÉDITO)';
         default: return '20 - OTROS CON UTILIZACION DEL SISTEMA FINANCIERO';
       }
     };
     if (Number(breakdown.efectivo || 0) > 0) rows.push({ method: getMethodLabel('efectivo'), val: breakdown.efectivo });
     if (Number(breakdown.transferencia || 0) > 0) rows.push({ method: getMethodLabel('transferencia'), val: breakdown.transferencia });
     if (Number(breakdown.tarjeta || 0) > 0) rows.push({ method: getMethodLabel('tarjeta'), val: breakdown.tarjeta });
-    if (Number(breakdown.cruce_cuentas || 0) > 0) rows.push({ method: getMethodLabel('cruce_cuentas'), val: breakdown.cruce_cuentas });
-    if (Number(breakdown.credito || 0) > 0) rows.push({ method: getMethodLabel('credito'), val: breakdown.credito });
+    const creditAmount = Number(breakdown.credito ?? breakdown.cruce_cuentas ?? 0);
+    if (creditAmount > 0) rows.push({ method: getMethodLabel(breakdown.credito ? 'credito' : 'cruce_cuentas'), val: creditAmount });
 
     if (rows.length === 0) {
       rows.push({ method: getMethodLabel(tx.paymentMethod || 'efectivo'), val: tx.total || 0 });
@@ -437,7 +446,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
       <div className="w-full max-w-4xl h-[90vh] flex flex-col rounded-card overflow-hidden border print-modal-content bg-surface-bg border-border-strong">
         
         {/* Barra de Acciones del Modal */}
-        <div className="px-6 py-3 border-b flex items-center justify-between no-print shrink-0 bg-surface-muted border-gray-250">
+        <div className="px-4 sm:px-6 py-3 border-b flex flex-wrap items-center justify-between gap-2 no-print shrink-0 bg-surface-muted border-slate-200">
           <div className="flex items-center gap-2">
             <FileText size={16} className="text-primary" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-text-heading">
@@ -731,7 +740,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                     </div>
                     
                     <p className="text-xs uppercase font-bold text-text-primary bg-surface-muted p-1.5 rounded border border-border-strong text-center tracking-wide leading-none">
-                      Son: {numeroALetras(tx.total)}
+                      {numeroALetras(tx.total)}
                     </p>
                   </div>
 
@@ -873,8 +882,8 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                   <h2 className="font-bold text-sm uppercase">{emisor.nombreComercial}</h2>
                   <p className="text-xs">{emisor.razonSocial}</p>
                   <p>RUC: {emisor.ruc}</p>
-                  <p>Matriz: {emisor.direccionMatriz.slice(0, 40)}...</p>
-                  <p>Tel: {client.telefono || '02-2999000'}</p>
+                  <p>Matriz: {emisor.direccionMatriz.slice(0, 40)}{emisor.direccionMatriz.length > 40 ? '...' : ''}</p>
+                  {(emisor.telefonoContacto || emisor.telefono) && <p>Tel: {emisor.telefonoContacto || emisor.telefono}</p>}
                   {emisor.contribuyenteRimpe && emisor.contribuyenteRimpe !== 'general' && (
                     <p className="text-xs uppercase font-bold border border-black border-dashed px-1 py-0.5 inline-block">
                       Régimen: {emisor.contribuyenteRimpe.replace('_', ' ')}
@@ -937,15 +946,15 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                   </div>
                   <div className="flex justify-between">
                     <span>Descuento:</span>
-                    <span>$0.00</span>
+                    <span>${Number(taxDetails.totalDiscount || tx.totalDescuento || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>IVA (15%):</span>
-                    <span>${Number(tx.ivaValor).toFixed(2)}</span>
+                    <span>IVA:</span>
+                    <span>${Number(tx.ivaValor || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-xs border-t border-black pt-1">
                     <span>TOTAL A PAGAR:</span>
-                    <span>${Number(tx.total).toFixed(2)}</span>
+                    <span>${Number(tx.total || 0).toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -953,12 +962,12 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
 
                 {/* Pago */}
                 <div className="space-y-0.5 text-xs">
-                  <p><span className="font-bold">Pago:</span> {tx.paymentMethod.toUpperCase()}</p>
+                  <p><span className="font-bold">Pago:</span> {String(tx.paymentMethod || 'efectivo').toUpperCase()}</p>
                   {tx.paymentsBreakdown && (
-                    <p>Efectivo: ${Number(tx.paymentsBreakdown.efectivo || 0).toFixed(2)} | Tarj: ${Number(tx.paymentsBreakdown.tarjeta || 0).toFixed(2)}</p>
+                    <p>Efectivo: ${Number(tx.paymentsBreakdown.efectivo || 0).toFixed(2)} | Transf: ${Number(tx.paymentsBreakdown.transferencia || 0).toFixed(2)} | Tarj: ${Number(tx.paymentsBreakdown.tarjeta || 0).toFixed(2)}</p>
                   )}
-                  {tx.paymentsBreakdown && tx.paymentsBreakdown.efectivo > 0 && (
-                    <p>Vuelto entregado: ${(Math.max(0, (tx.paymentsBreakdown.efectivo || 0) - tx.total)).toFixed(2)}</p>
+                  {(Number(tx.changeDue || 0) > 0 || (tx.paymentsBreakdown?.efectivo > Number(tx.total || 0))) && (
+                    <p>Vuelto entregado: ${(Number(tx.changeDue || 0) > 0 ? Number(tx.changeDue) : Math.max(0, (Number(tx.paymentsBreakdown?.efectivo || 0) - Number(tx.total || 0)))).toFixed(2)}</p>
                   )}
                 </div>
 
@@ -975,14 +984,7 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
                     <>
                       <p>Autorización SRI offline.</p>
                       <p>Consulte su RIDE en su correo.</p>
-                      
-                      {/* Codigo de barras en el ticket */}
-                      <div className="flex h-5 w-full bg-white items-stretch justify-center gap-[0.5px] px-2 py-0.5" style={{ backgroundColor: '#ffffff' }}>
-                        {[1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,1].map((w, idx) => (
-                          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
-                        ))}
-                      </div>
-                      <p className="font-mono text-xs break-all">{claveAcceso.slice(0, 30)}...</p>
+                      <MockBarcode claveAcceso={claveAcceso} />
                     </>
                   )}
                 </div>

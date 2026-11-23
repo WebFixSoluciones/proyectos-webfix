@@ -22,14 +22,15 @@ export default function ErpDashboard({
   const [settings, setSettings] = useState(null);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
 
-  // Cargar accesos directos configurados o usar por defecto
+  const shortcutsStorageKey = `erp_dashboard_shortcuts_${appId || 'default'}_${usuario?.uid || 'user'}`;
+
+  // Cargar accesos directos configurados por tenant/usuario o usar por defecto
   const [selectedShortcutIds, setSelectedShortcutIds] = useState(() => {
     try {
-      const saved = localStorage.getItem('erp_dashboard_shortcuts');
+      const saved = localStorage.getItem(shortcutsStorageKey) || localStorage.getItem('erp_dashboard_shortcuts');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Migrar facturas_sri a generar_venta para ir directo a la venta administrativa
           const migrated = parsed.map(id => id === 'facturas_sri' ? 'generar_venta' : id);
           return [...new Set(migrated)];
         }
@@ -43,7 +44,7 @@ export default function ErpDashboard({
   const handleSaveShortcuts = (newIds) => {
     setSelectedShortcutIds(newIds);
     try {
-      localStorage.setItem('erp_dashboard_shortcuts', JSON.stringify(newIds));
+      localStorage.setItem(shortcutsStorageKey, JSON.stringify(newIds));
     } catch (e) {
       console.error('Error saving custom shortcuts to localStorage:', e);
     }

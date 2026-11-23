@@ -21,20 +21,32 @@ export function getPosSaleIssues({ sessionReady, cart = [], selectedClientId, cl
   return issues;
 }
 
-export function getAdministrativeSaleIssues({ clientId, client, identificationValid, items = [], total, documentType, documentNumber, paymentStatus, payments = {}, isSale = true, isDraft = false }) {
+export function getAdministrativeSaleIssues({ clientId, client, identificationValid, items = [], retenciones = [], total, documentType, documentNumber, paymentStatus, payments = {}, isSale = true, isDraft = false }) {
   const issues = [];
+  const isRetencion = documentType === 'retencion';
+  const requiresPayment = !['retencion', 'nota_credito', 'guia_remision'].includes(documentType);
+  const cleanRuc = String(client?.ruc || '').replace(/\s+/g, '');
+  const isConsumidorFinal = cleanRuc === '9999999999999' || client?.tipoIdentificacion === 'consumidor_final' || (!cleanRuc && String(client?.name || '').toUpperCase().includes('CONSUMIDOR FINAL'));
+
   if (!clientId || !client) issues.push(issue('client', 'cliente', 'Selecciona un cliente antes de facturar o registrar la venta.', 'INGRESA CLIENTE', 'Ingresar Cliente'));
   else if (!isDraft && !identificationValid) issues.push(issue('client', 'cliente', `Revisa la identificación del cliente${client.ruc ? ` (${client.ruc})` : ''}.`, 'REVISA CLIENTE', 'Revisar Cliente'));
-  else if (!isDraft && isSale && documentType === 'factura' && String(client.ruc || '').trim() === '9999999999999' && Number(total) > 50) {
+  else if (!isDraft && isSale && documentType === 'factura' && isConsumidorFinal && Number(total) > 50) {
     issues.push(issue('client', 'cliente', 'Para facturas superiores a $50, identifica al cliente con RUC o cédula.', 'IDENTIFICA CLIENTE', 'Ingresar Cliente'));
   }
-  if (!items.length) issues.push(issue('items', 'productos', 'Agrega al menos un producto o servicio al comprobante.', 'AGREGA PRODUCTO', 'Agregar Producto'));
-  else if (items.some(item => !item.productId || !invoiceDescription(item) || !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 || !Number.isFinite(Number(item.price)) || Number(item.price) < 0)) {
+
+  if (isRetencion) {
+    if (!retenciones.length && !items.length) {
+      issues.push(issue('items', 'retenciones', 'Agrega al menos un impuesto retenido (Renta o IVA).', 'AGREGA RETENCIÓN', 'Revisar Retenciones'));
+    }
+  } else if (!items.length) {
+    issues.push(issue('items', 'productos', 'Agrega al menos un producto o servicio al comprobante.', 'AGREGA PRODUCTO', 'Agregar Producto'));
+  } else if (items.some(item => !item.productId || !invoiceDescription(item) || !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 || !Number.isFinite(Number(item.price)) || Number(item.price) < 0)) {
     issues.push(issue('items', 'productos', 'Revisa la descripción, cantidad y precio de cada línea.', 'REVISA PRODUCTO', 'Revisar Producto'));
   }
+
   if (!Number.isFinite(Number(total)) || Number(total) < 0) issues.push(issue('payment', 'pago', 'El total del comprobante no puede ser negativo.', 'REVISA TOTAL', 'Revisar Pago'));
   if (!isDraft && documentNumber && !/^\d{3}-\d{3}-\d{9}$/.test(documentNumber)) issues.push(issue('document', 'comprobante', 'El número debe tener el formato 000-000-000000000.', 'REVISA COMPROBANTE', 'Revisar Comprobante'));
-  if (!isDraft && items.length && Number(total) > 0 && paymentStatus && !paymentStatus.isValid) {
+  if (!isDraft && requiresPayment && items.length && Number(total) > 0 && paymentStatus && !paymentStatus.isValid) {
     const paid = ['efectivo', 'transferencia', 'tarjeta', 'cruce_cuentas'].reduce((sum, key) => sum + (Number(payments[key]) || 0), 0);
     issues.push(issue('payment', 'pago', paid === 0 ? 'Ingresa un valor en al menos un medio de pago.' : paymentStatus.error || 'Completa el medio de pago.', paid === 0 ? 'INGRESA PAGO' : 'COMPLETA PAGO', 'Ingresar Pago'));
   }

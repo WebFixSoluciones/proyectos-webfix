@@ -76,51 +76,57 @@ function calcularForecast(cxcItems, cxpItems) {
   const en60Dias = new Date(hoy.getTime() + 60 * 24 * 60 * 60 * 1000);
   const en90Dias = new Date(hoy.getTime() + 90 * 24 * 60 * 60 * 1000);
 
+  const parseValidDue = (raw) => {
+    if (!raw) return null;
+    const d = raw?.toDate ? raw.toDate() : new Date(raw);
+    return d && !Number.isNaN(d.getTime()) && d.getFullYear() > 1990 ? d : null;
+  };
+
   const entradas30 = cxcItems
     .filter(i => i.estado !== 'pagado' && i.estado !== 'anulado')
     .filter(i => {
-      const fv = i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento);
-      return fv <= en30Dias;
+      const fv = parseValidDue(i.factura?.fechaVencimiento);
+      return fv && fv <= en30Dias;
     })
     .reduce((s, i) => s + (Number(i.saldoPendiente) || 0), 0);
 
   const salidas30 = cxpItems
     .filter(i => i.estado !== 'pagado' && i.estado !== 'anulado')
     .filter(i => {
-      const fv = i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento);
-      return fv <= en30Dias;
+      const fv = parseValidDue(i.factura?.fechaVencimiento);
+      return fv && fv <= en30Dias;
     })
     .reduce((s, i) => s + (Number(i.saldoPendiente) || 0), 0);
 
   const entradas60 = cxcItems
     .filter(i => i.estado !== 'pagado' && i.estado !== 'anulado')
     .filter(i => {
-      const fv = i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento);
-      return fv <= en60Dias;
+      const fv = parseValidDue(i.factura?.fechaVencimiento);
+      return fv && fv <= en60Dias;
     })
     .reduce((s, i) => s + (Number(i.saldoPendiente) || 0), 0);
 
   const salidas60 = cxpItems
     .filter(i => i.estado !== 'pagado' && i.estado !== 'anulado')
     .filter(i => {
-      const fv = i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento);
-      return fv <= en60Dias;
+      const fv = parseValidDue(i.factura?.fechaVencimiento);
+      return fv && fv <= en60Dias;
     })
     .reduce((s, i) => s + (Number(i.saldoPendiente) || 0), 0);
 
   const entradas90 = cxcItems
     .filter(i => i.estado !== 'pagado' && i.estado !== 'anulado')
     .filter(i => {
-      const fv = i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento);
-      return fv <= en90Dias;
+      const fv = parseValidDue(i.factura?.fechaVencimiento);
+      return fv && fv <= en90Dias;
     })
     .reduce((s, i) => s + (Number(i.saldoPendiente) || 0), 0);
 
   const salidas90 = cxpItems
     .filter(i => i.estado !== 'pagado' && i.estado !== 'anulado')
     .filter(i => {
-      const fv = i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento);
-      return fv <= en90Dias;
+      const fv = parseValidDue(i.factura?.fechaVencimiento);
+      return fv && fv <= en90Dias;
     })
     .reduce((s, i) => s + (Number(i.saldoPendiente) || 0), 0);
 
@@ -140,9 +146,15 @@ function calcularForecast(cxcItems, cxpItems) {
 function generarAlertas(cxcItems, cxpItems, tarjetas, prestamos) {
   const alertas = [];
   const hoy = new Date();
+  const parseValidDue = (raw) => {
+    if (!raw) return null;
+    const d = raw?.toDate ? raw.toDate() : new Date(raw);
+    return d && !Number.isNaN(d.getTime()) && d.getFullYear() > 1990 ? d : null;
+  };
 
   cxcItems.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado').forEach(i => {
-    const fv = i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento);
+    const fv = parseValidDue(i.factura?.fechaVencimiento);
+    if (!fv) return;
     const diasVencido = Math.floor((hoy - fv) / 86400000);
     if (diasVencido > 0) {
       alertas.push({
@@ -156,7 +168,8 @@ function generarAlertas(cxcItems, cxpItems, tarjetas, prestamos) {
   });
 
   cxpItems.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado').forEach(i => {
-    const fv = i.factura?.fechaVencimiento?.toDate?.() || new Date(i.factura?.fechaVencimiento);
+    const fv = parseValidDue(i.factura?.fechaVencimiento);
+    if (!fv) return;
     const diasVencido = Math.floor((hoy - fv) / 86400000);
     if (diasVencido > 0) {
       alertas.push({

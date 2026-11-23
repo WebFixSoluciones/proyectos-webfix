@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UiInput } from '../components/ui/controls';
 import confirmAction from '../services/confirmDialog';
@@ -33,9 +33,13 @@ import { query, where, runTransaction } from 'firebase/firestore';
 import { reconcileSriDocument, batchReconcileSriDocuments, scanAllTenantsPendingSri, getDocumentTypeName } from '../services/sriReconciliation';
 import { notifyAuthorizedInvoice } from '../services/invoiceNotification';
 import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc, Timestamp } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, deleteUser, inMemoryPersistence, setPersistence } from 'firebase/auth';
+import { collection, doc, getDocs, getDoc, setDoc, onSnapshot, deleteDoc, Timestamp, writeBatch, serverTimestamp, getCountFromServer } from 'firebase/firestore';
 import { db, auth, firebaseConfig } from '../firebase';
+import RegistrationAdminView from '../components/admin/RegistrationAdminView';
+import TenantAdminPanel from '../components/admin/TenantAdminPanel';
+import { getSubscriptionExpiry, isSubscriptionBlocked } from '../services/subscriptionAccess';
+import { tenantDateInput, tenantStatus, subscriptionUpdate } from '../services/tenantAdminModel';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function SuperAdminPage({ showToast }) {
@@ -44,7 +48,7 @@ export default function SuperAdminPage({ showToast }) {
   
   // Navigation & UI state
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'tenants' | 'transfers' | 'plans'
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'edit' | 'create'
   
   // Firestore collections state
@@ -52,7 +56,11 @@ export default function SuperAdminPage({ showToast }) {
   const [transfers, setTransfers] = useState([]);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [registrationSummary, setRegistrationSummary] = useState({ loading: true, incomplete: 0 });
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [savingTenant, setSavingTenant] = useState(false);
+  const tenantRequest = useRef(0);
   
   // Selected Tenant Details State (for inline editing)
   const [selectedTenantDetails, setSelectedTenantDetails] = useState(null);
@@ -108,23 +116,28 @@ export default function SuperAdminPage({ showToast }) {
 
   // Load Tenants, Transfers, and Plans
   useEffect(() => {
+    if (!isSuperAdmin) return;
     setLoading(true);
-    
+    setLoadError('');
     // 1. Listen to Tenants
     const unsubTenants = onSnapshot(collection(db, 'tenants'), (snap) => {
       const list = [];
-      snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-      setTenants(list);
+      snap.forEach(doc => list.push({ ...doc.data(), id: doc.id }));
+      setTenants(list.sort((a, b) => (getSubscriptionExpiry(b)?.getTime() || 0) - (getSubscriptionExpiry(a)?.getTime() || 0)));
+      setLoading(false);
     }, (error) => {
+      setLoadError("No se pudieron cargar las empresas. Comprueba los permisos de superadministrador.");
+      setLoading(false);
       console.warn("Superadmin tenants subscription blocked by security rules:", error);
     });
 
     // 2. Listen to Transfers
     const unsubTransfers = onSnapshot(collection(db, 'transfers'), (snap) => {
       const list = [];
-      snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+      snap.forEach(doc => list.push({ ...doc.data(), id: doc.id }));
       setTransfers(list);
     }, (error) => {
+      setLoadError("No se pudieron cargar los pagos. Revisa tu conexión y permisos.");
       console.warn("Superadmin transfers subscription blocked by security rules:", error);
     });
 
@@ -133,7 +146,7 @@ export default function SuperAdminPage({ showToast }) {
       try {
         const snap = await getDocs(collection(db, 'plans'));
         const list = [];
-        snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+        snap.forEach(doc => list.push({ ...doc.data(), id: doc.id }));
         
         if (list.length === 0) {
           // Initialize default plans if not created yet
@@ -154,7 +167,7 @@ export default function SuperAdminPage({ showToast }) {
               priceYearly: 63,
               maxUsers: 10,
               maxProducts: 1000,
-              modules: ['dashboard', 'ventas', 'personas', 'inventario', 'team', 'calendar', 'general_settings']
+              modules: ['dashboard', 'ventas', 'personas', 'inventario', 'general_settings']
             },
             {
               id: 'enterprise',
@@ -163,7 +176,7 @@ export default function SuperAdminPage({ showToast }) {
               priceYearly: 119,
               maxUsers: 9999, // Ilimitado
               maxProducts: 99999, // Ilimitado
-              modules: ['dashboard', 'ventas', 'personas', 'inventario', 'team', 'calendar', 'finances', 'compras', 'gastos_creditos', 'general_settings']
+              modules: ['dashboard', 'ventas', 'personas', 'inventario', 'finances', 'compras', 'gastos_creditos', 'general_settings']
             }
           ];
           for (const p of defaultPlans) {
@@ -179,52 +192,40 @@ export default function SuperAdminPage({ showToast }) {
     };
 
     loadPlans();
-    setLoading(false);
 
     return () => {
       unsubTenants();
       unsubTransfers();
     };
-  }, []);
+  }, [isSuperAdmin]);
 
   // Set default initial password on form setup
   useEffect(() => {
     if (viewMode === 'create') {
-      const randPassword = Math.random().toString(36).slice(-8) + 'A1!';
+      const randPassword = Array.from(crypto.getRandomValues(new Uint8Array(18)), value => value.toString(16).padStart(2, '0')).join('') + 'A1!';
       setNewTenantForm(prev => ({ ...prev, initialPassword: randPassword }));
     }
   }, [viewMode]);
 
   // Fetch tenant details under Approach A (accounts list and consumptions metrics)
   const handleSelectTenant = async (tenant) => {
-    setSelectedTenantDetails(tenant);
+    const request = ++tenantRequest.current;
+    setSelectedTenantDetails({ ...tenant, expiresAt: tenantDateInput(tenant), billingPeriod: tenant.billingPeriod || 'monthly' });
     setLoadingTenantDetails(true);
     setTenantUsers([]);
     setTenantStats({ transactionsCount: 0, productsCount: 0 });
     setViewMode('edit');
-    
     try {
-      // Firebase Auth profiles are the source of truth for team membership.
-      const usersSnap = await getDocs(query(collection(db, 'users'), where('tenantId', '==', tenant.id)));
-      setTenantUsers(usersSnap.docs.map(userDoc => ({ id: userDoc.id, ...userDoc.data() })));
-      
-      // 2. Fetch counts of invoices/transactions
-      const txColRef = collection(db, 'artifacts', tenant.id, 'public', 'data', 'finances_transactions');
-      const txSnap = await getDocs(txColRef);
-      
-      // 3. Fetch count of inventory products
-      const prodColRef = collection(db, 'artifacts', tenant.id, 'public', 'data', 'inventory_products');
-      const prodSnap = await getDocs(prodColRef);
-      
-      setTenantStats({
-        transactionsCount: txSnap.size,
-        productsCount: prodSnap.size
-      });
+      const [txSnap, prodSnap] = await Promise.all([
+        getCountFromServer(collection(db, 'artifacts', tenant.id, 'public', 'data', 'finances_transactions')),
+        getCountFromServer(collection(db, 'artifacts', tenant.id, 'public', 'data', 'inventory_products'))
+      ]);
+      if (request === tenantRequest.current) setTenantStats({ transactionsCount: txSnap.data().count, productsCount: prodSnap.data().count });
     } catch (error) {
-      console.error("Error cargando detalles del inquilino:", error);
-      showToast("Error al cargar detalles de consumo de la empresa", "error");
+      console.error('Error cargando consumo:', error);
+      showToast?.('No se pudo cargar el consumo de la empresa.', 'error');
     } finally {
-      setLoadingTenantDetails(false);
+      if (request === tenantRequest.current) setLoadingTenantDetails(false);
     }
   };
 
@@ -242,7 +243,8 @@ export default function SuperAdminPage({ showToast }) {
         const tenantSnap = await transaction.get(tenantRef);
         if (!tenantSnap.exists()) throw new Error('No se encontró la empresa del pago.');
 
-        const currentExpiry = new Date(tenantSnap.data().expiresAt || 0);
+        const currentExpiry = getSubscriptionExpiry(tenantSnap.data()) || new Date(0);
+        if (tenantSnap.data().planStatus === 'suspended') throw new Error('La empresa está suspendida. Revisa y reactiva su acceso antes de aprobar el pago.');
         const newExpiresAt = currentExpiry > new Date() ? currentExpiry : new Date();
         newExpiresAt.setMonth(newExpiresAt.getMonth() + (payment.billingPeriod === 'yearly' ? 12 : 1));
         transaction.update(tenantRef, {
@@ -252,6 +254,7 @@ export default function SuperAdminPage({ showToast }) {
           planId: payment.planId,
           billingPeriod: payment.billingPeriod
         });
+        transaction.set(doc(collection(db, 'tenants', payment.tenantId, 'admin_events')), { action: 'Pago aprobado', actorUid: currentUser.uid, createdAt: serverTimestamp(), changes: { planId: payment.planId, expiresAt: newExpiresAt.toISOString(), transferId: transfer.id } });
         transaction.update(transferRef, {
           status: 'approved',
           approvedAt: new Date().toISOString(),
@@ -289,19 +292,25 @@ export default function SuperAdminPage({ showToast }) {
 
   const handleUpdateSubscription = async (e) => {
     e.preventDefault();
+    if (savingTenant) return;
+    setSavingTenant(true);
     try {
-      await updateDoc(doc(db, 'tenants', selectedTenantDetails.id), {
-        planId: selectedTenantDetails.planId,
-        planStatus: selectedTenantDetails.planStatus,
-        expiresAt: new Date(selectedTenantDetails.expiresAt).toISOString(),
-        ...(selectedTenantDetails.planStatus === 'active' ? { subscriptionExpiresAt: Timestamp.fromDate(new Date(selectedTenantDetails.expiresAt)) } : {})
+      const changes = subscriptionUpdate(selectedTenantDetails);
+      const expiry = changes.expiresAt ? Timestamp.fromDate(new Date(changes.expiresAt)) : null;
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'tenants', selectedTenantDetails.id), {
+        ...changes, updatedAt: serverTimestamp(), updatedBy: currentUser.uid,
+        ...(changes.planStatus === 'trial' ? { trialExpiresAt: expiry } : {}),
+        ...(changes.planStatus === 'active' ? { subscriptionExpiresAt: expiry } : {})
       });
-      showToast("Suscripción de inquilino actualizada correctamente", "success");
-      setViewMode('list');
-      setSelectedTenantDetails(null);
-    } catch {
-      showToast("Error al actualizar la suscripción", "error");
-    }
+      batch.set(doc(collection(db, 'tenants', selectedTenantDetails.id, 'admin_events')), {
+        action: 'Empresa y suscripción actualizadas', actorUid: currentUser.uid,
+        createdAt: serverTimestamp(), changes
+      });
+      await batch.commit();
+      showToast?.('Empresa y suscripción actualizadas.', 'success');
+    } catch (err) { showToast?.(err.message || 'No se pudo actualizar la empresa.', 'error'); }
+    finally { setSavingTenant(false); }
   };
 
   const handleSavePlanEdit = async (e) => {
@@ -382,7 +391,7 @@ export default function SuperAdminPage({ showToast }) {
       loadGodModeData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, selectedTenantDetails, godModeCollection]);
+  }, [viewMode, selectedTenantDetails?.id, godModeCollection]);
 
   const handleDeleteGodModeDoc = async (docId) => {
     if (!await confirmAction(`PELIGRO (God Mode): Estás a punto de borrar permanentemente el documento ${docId}. Esta acción saltará todas las reglas del ERP y no se puede deshacer. ¿Continuar?`)) {
@@ -472,31 +481,39 @@ export default function SuperAdminPage({ showToast }) {
       return;
     }
 
+    if (isCreatingTenant) return;
     setIsCreatingTenant(true);
-
     let tempApp = null;
+    let createdUser = null;
+    let workspaceCreated = false;
     try {
+      const documents = [];
+      if ((await getDoc(doc(db, 'tenants', cleanTenantId))).exists()) throw new Error('El ID ya está registrado.');
       // 1. Create User in Firebase Auth using a secondary temporary Firebase app instance
       const tempAppName = `TempApp_${Date.now()}`;
       tempApp = initializeApp(firebaseConfig, tempAppName);
       const tempAuth = getAuth(tempApp);
+      await setPersistence(tempAuth, inMemoryPersistence);
       
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
       const user = userCredential.user;
       const uid = user.uid;
+      createdUser = user;
 
-      // Clean up the temporary app instance immediately
-      await deleteApp(tempApp);
-      tempApp = null;
+
 
       // 2. Set expiration date (default to +14 days for trial, +30 days for active starter/prof)
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + (newTenantForm.planStatus === 'trial' ? 14 : 30));
+      if (newTenantForm.planStatus === 'trial') expiresAt.setDate(expiresAt.getDate() + 14);
+      else expiresAt.setMonth(expiresAt.getMonth() + (newTenantForm.billingPeriod === 'yearly' ? 12 : 1));
 
       // 3. Write Tenant doc in Firestore
       const tenantData = {
         id: cleanTenantId,
         ownerUid: uid,
+        ownerEmail: email,
+        registrationSource: 'admin',
+        requireEmailVerification: true,
         companyName: companyName,
         planId: newTenantForm.planId,
         planStatus: newTenantForm.planStatus,
@@ -507,7 +524,7 @@ export default function SuperAdminPage({ showToast }) {
           ? { trialExpiresAt: Timestamp.fromDate(expiresAt) }
           : { subscriptionExpiresAt: Timestamp.fromDate(expiresAt) })
       };
-      await setDoc(doc(db, 'tenants', cleanTenantId), tenantData);
+      documents.push([doc(db, 'tenants', cleanTenantId), tenantData]);
 
       // 4. Write User doc in Firestore
       const userData = {
@@ -519,11 +536,11 @@ export default function SuperAdminPage({ showToast }) {
         status: 'active',
         createdAt: new Date().toISOString()
       };
-      await setDoc(doc(db, 'users', uid), userData);
+      documents.push([doc(db, 'users', uid), userData]);
 
       // 5. Initialize Workspace configurations for billing settings
       const configRef = doc(db, 'artifacts', cleanTenantId, 'public', 'data', 'finances_settings', 'config');
-      await setDoc(configRef, {
+      documents.push([configRef, {
         razonSocial: companyName,
         nombreComercial: companyName,
         ruc: '',
@@ -543,20 +560,30 @@ export default function SuperAdminPage({ showToast }) {
         firmaUrl: '',
         firmaPass: '',
         geminiApiKey: ''
-      });
+      }]);
 
       // 6. Initialize Workspace metadata info (Admin account link)
       const metaRef = doc(db, 'artifacts', cleanTenantId, 'public', 'data', 'meta', 'info');
-      await setDoc(metaRef, {
+      documents.push([metaRef, {
         users: [{ email: email, role: 'admin', name: `Admin ${companyName}`, active: true }],
         trash: [],
         googleClientId: ''
+      }]);
+
+      documents.push([doc(collection(db, 'tenants', cleanTenantId, 'admin_events')), { action: 'Empresa creada', actorUid: currentUser.uid, createdAt: serverTimestamp(), changes: { planId: tenantData.planId, planStatus: tenantData.planStatus } }]);
+      await runTransaction(db, async tx => {
+        const existing = await tx.get(doc(db, 'tenants', cleanTenantId));
+        if (existing.exists()) throw new Error('El ID ya está registrado.');
+        documents.forEach(([ref, data]) => tx.set(ref, data));
       });
+      workspaceCreated = true;
 
       // 7. Trigger Password Reset email for security (so they can reset/confirm login details)
       if (newTenantForm.sendResetEmail) {
-        await sendPasswordResetEmail(auth, email);
-        showToast("Empresa creada y correo de restablecimiento enviado.", "success");
+        try {
+          await sendPasswordResetEmail(auth, email);
+          showToast("Empresa creada y correo de restablecimiento enviado.", "success");
+        } catch { showToast("Empresa creada; no se pudo enviar el correo de restablecimiento.", "warning"); }
       } else {
         showToast("Empresa creada manualmente con éxito.", "success");
       }
@@ -578,32 +605,29 @@ export default function SuperAdminPage({ showToast }) {
       console.error("Error creating manual tenant:", err);
       showToast(`Error al crear empresa: ${err.message}`, "error");
       
-      // Clean up temp app if it failed midway
-      if (tempApp) {
-        try {
-          await deleteApp(tempApp);
-        } catch (cleanupErr) {
-          console.warn("Error al limpiar app temporal después de error de creación:", cleanupErr);
-        }
+      if (createdUser && !workspaceCreated) {
+        try { await deleteUser(createdUser); }
+        catch { showToast('Quedó una cuenta de acceso sin empresa. Requiere recuperación en Authentication.', 'warning'); }
       }
     } finally {
+      if (tempApp) await deleteApp(tempApp).catch(() => {});
       setIsCreatingTenant(false);
     }
   };
 
   const filteredTenants = tenants.filter(t => 
     t.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.id?.toLowerCase().includes(searchTerm.toLowerCase())
+    t.id?.toLowerCase().includes(searchTerm.toLowerCase()) || t.ownerEmail?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Dashboard Stats
-  const activeTenantsCount = tenants.filter(t => t.planStatus === 'active').length;
+  const activeTenantsCount = tenants.filter(t => t.planStatus === 'active' && !isSubscriptionBlocked(t)).length;
   const pendingTransfers = transfers.filter(t => t.status === 'pending');
   const mrr = tenants
-    .filter(t => t.planStatus === 'active')
+    .filter(t => t.planStatus === 'active' && !isSubscriptionBlocked(t))
     .reduce((sum, t) => {
-      const planPrice = plans.find(p => p.id === t.planId)?.priceMonthly || 0;
-      return sum + (t.billingPeriod === 'yearly' ? planPrice * 0.8 : planPrice);
+      const plan = plans.find(p => p.id === t.planId);
+      return sum + Number((t.billingPeriod === 'yearly' ? plan?.priceYearly : plan?.priceMonthly) || 0);
     }, 0);
 
   // Monitor SRI Global Handlers
@@ -721,6 +745,7 @@ export default function SuperAdminPage({ showToast }) {
 
   const sidebarLinks = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'users', label: 'Usuarios y altas', icon: ShieldAlert, count: registrationSummary.incomplete },
     { id: 'tenants', label: 'Empresas (Tenants)', icon: Building },
     { id: 'sri_monitor', label: 'Monitor SRI Global', icon: ShieldAlert, count: pendingSriDocs.length },
     { id: 'transfers', label: 'Aprobaciones', icon: CreditCard, count: pendingTransfers.length },
@@ -761,6 +786,7 @@ export default function SuperAdminPage({ showToast }) {
         </div>
 
         {/* Links Area */}
+        <button type="button" aria-label="Cerrar menú" onClick={() => setIsSidebarOpen(false)} className="md:hidden self-end m-2 p-2 rounded-md text-[var(--gray-12)]"><X size={18} /></button>
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 custom-scrollbar">
           {sidebarLinks.map(link => {
             const Icon = link.icon;
@@ -775,13 +801,13 @@ export default function SuperAdminPage({ showToast }) {
                 }}
                 className={`w-full flex items-center ${isSidebarOpen ? 'justify-between px-3' : 'justify-center'} py-2.5 rounded-md text-xs transition-all ${
                   isActive 
-                    ? 'bg-surface-card text-white font-bold' 
+                    ? 'bg-[var(--accent-3)] text-[var(--accent-11)] font-bold'
                     : ('text-text-primary hover:bg-surface-muted hover:text-black')
                 }`}
                 title={link.label}
               >
                 <div className="flex items-center gap-3">
-                  <Icon size={16} className={isActive ? 'text-white' : 'text-text-secondary'} />
+                  <Icon size={16} className={isActive ? 'text-[var(--accent-11)]' : 'text-text-secondary'} />
                   {isSidebarOpen && <span>{link.label}</span>}
                 </div>
                 {isSidebarOpen && link.count > 0 && (
@@ -830,13 +856,13 @@ export default function SuperAdminPage({ showToast }) {
             >
               <Menu size={18} />
             </button>
-            <span className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Consola SaaS Master Admin</span>
+            <span className="hidden sm:inline text-xs font-semibold uppercase tracking-widest text-text-secondary">Consola SaaS Master Admin</span>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Sistemas OK
+              {loadError ? 'Revisar conexión' : loading ? 'Cargando' : 'Empresas cargadas'}
             </div>
           </div>
         </header>
@@ -844,6 +870,15 @@ export default function SuperAdminPage({ showToast }) {
         {/* SCROLLABLE MAIN CONTENT */}
         <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
           
+          {isSuperAdmin && <div className={activeTab === 'users' ? '' : 'hidden'}><RegistrationAdminView onSummary={setRegistrationSummary} showToast={showToast} onOpenTenant={id => {
+            const tenant = tenants.find(item => item.id === id);
+            if (!tenant) { showToast?.('La empresa no está disponible. Actualiza el listado.', 'error'); return; }
+            setActiveTab('tenants'); handleSelectTenant(tenant);
+          }} /></div>}
+          {activeTab === 'dashboard' && <button type="button" onClick={() => setActiveTab('users')} className="w-full mb-4 rounded-md border border-[var(--amber-6)] bg-[var(--amber-2)] p-4 text-left text-sm">
+            <strong>{registrationSummary.loading ? 'Comprobando registros…' : registrationSummary.error ? 'No se pudieron comprobar las altas' : `${registrationSummary.incomplete} registros incompletos${registrationSummary.hasMore ? ' en las páginas consultadas' : ''}`}</strong>
+            <span className="block mt-1">Revisar contactos, datos faltantes y habilitación de empresas →</span>
+          </button>}
           {/* TAB 0: DASHBOARD DEDICADO */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
@@ -932,6 +967,7 @@ export default function SuperAdminPage({ showToast }) {
           )}
 
           {/* TAB 1: TENANTS TAB */}
+          {loadError && <p role="alert" className="p-4 text-sm text-[var(--red-11)]">{loadError}</p>}
           {activeTab === 'tenants' && (
             <div>
               {/* VIEW MODE: LIST */}
@@ -943,7 +979,7 @@ export default function SuperAdminPage({ showToast }) {
                         type="text" 
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        placeholder="Buscar empresa por Razón Social o ID..."
+                        placeholder="Buscar empresa, ID o correo del propietario..."
                         iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
                         size="2"
                         className="w-full"
@@ -952,7 +988,7 @@ export default function SuperAdminPage({ showToast }) {
                     
                     <button 
                       onClick={() => setViewMode('create')}
-                      className="px-4 py-2.5 bg-primary hover:bg-surface-card text-white text-xs font-bold rounded-md flex items-center gap-1.5 transition-colors self-end sm:self-auto"
+                      className="px-4 py-2.5 bg-primary hover:opacity-90 text-white text-xs font-bold rounded-md flex items-center gap-1.5 transition-colors self-end sm:self-auto"
                     >
                       <Plus size={14} /> Agregar Empresa
                     </button>
@@ -988,12 +1024,10 @@ export default function SuperAdminPage({ showToast }) {
                                   tenant.planStatus === 'pending_approval' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
                                   'bg-red-500/15 text-red-500'
                                 }`}>
-                                  {tenant.planStatus === 'active' ? 'Activo' :
-                                   tenant.planStatus === 'trial' ? 'Prueba' :
-                                   tenant.planStatus === 'pending_approval' ? 'Por Aprobar' : 'Suspendido'}
+                                  {tenantStatus(tenant)}
                                 </span>
                               </td>
-                              <td className="px-6 py-4">{new Date(tenant.expiresAt).toLocaleDateString('es-EC')}</td>
+                              <td className="px-6 py-4">{getSubscriptionExpiry(tenant)?.toLocaleDateString('es-EC') || 'Sin fecha'}</td>
                               <td className="px-6 py-4 text-right">
                                 <button 
                                   onClick={() => handleSelectTenant(tenant)} 
@@ -1031,13 +1065,15 @@ export default function SuperAdminPage({ showToast }) {
                     </div>
                   </div>
 
-                  <div className="grid lg:grid-cols-12 gap-8 items-start">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
                     {/* Left Column: Edit subscription form */}
                     <div className={`lg:col-span-5 p-6 rounded-card border ${'bg-white border-border-default'} space-y-4`}>
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">Configuración de Suscripción</h3>
                       
                       <form onSubmit={handleUpdateSubscription} className="space-y-4 text-xs">
+                        <label className="block font-bold">Nombre de la empresa<UiInput required value={selectedTenantDetails.companyName || ''} onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, companyName: e.target.value })} className="w-full mt-1" /></label>
+                        <label className="block font-bold">Ciclo de facturación<select value={selectedTenantDetails.billingPeriod} onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, billingPeriod: e.target.value })} className="w-full p-2 rounded-md border border-[var(--gray-a6)] mt-1"><option value="monthly">Mensual</option><option value="yearly">Anual</option></select></label>
                         <div>
                           <label className="block font-bold mb-1 text-text-secondary">Plan SaaS</label>
                           <select 
@@ -1058,9 +1094,11 @@ export default function SuperAdminPage({ showToast }) {
                             onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, planStatus: e.target.value })}
                             className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
                           >
+                            <option value="pending_approval">Pendiente de aprobación</option>
                             <option value="trial">Prueba (Trial)</option>
                             <option value="active">Activo</option>
                             <option value="suspended">Suspendido</option>
+                            <option value="expired">Vencido</option>
                           </select>
                         </div>
 
@@ -1068,7 +1106,8 @@ export default function SuperAdminPage({ showToast }) {
                           <label className="block font-bold mb-1 text-text-secondary">Fecha de Expiración</label>
                           <input 
                             type="date" 
-                            value={selectedTenantDetails.expiresAt ? new Date(selectedTenantDetails.expiresAt).toISOString().split('T')[0] : ''}
+                            required={selectedTenantDetails.planStatus !== 'pending_approval'}
+                            value={selectedTenantDetails.expiresAt || ''}
                             onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, expiresAt: e.target.value })}
                             className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
                           />
@@ -1083,17 +1122,17 @@ export default function SuperAdminPage({ showToast }) {
                             Cancelar
                           </button>
                           <button 
-                            type="submit" 
-                            className="px-4 py-2.5 rounded-md bg-primary hover:bg-surface-card text-white font-bold transition-colors"
+                            type="submit" disabled={savingTenant}
+                            className="px-4 py-2.5 rounded-md bg-primary hover:opacity-90 text-white font-bold transition-colors"
                           >
-                            Guardar Cambios
+                            {savingTenant ? 'Guardando…' : 'Guardar Cambios'}
                           </button>
                         </div>
                       </form>
                     </div>
 
                     {/* Right Column: Consumption metrics and team accounts table */}
-                    <div className="lg:col-span-7 space-y-6">
+                    <div className="lg:col-span-7 min-w-0 space-y-6">
                       
                       {/* Consumption stats */}
                       <div className={`p-6 rounded-card border ${'bg-white border-border-default'} space-y-4`}>
@@ -1148,46 +1187,7 @@ export default function SuperAdminPage({ showToast }) {
                         )}
                       </div>
 
-                      {/* Accounts table ("Cuentas de cada cliente") */}
-                      <div className={`p-6 rounded-card border ${'bg-white border-border-default'} space-y-4`}>
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Cuentas de Usuarios Registradas</h3>
-                        
-                        {loadingTenantDetails ? (
-                          <div className="text-center py-4 text-text-secondary font-semibold">Cargando cuentas...</div>
-                        ) : tenantUsers.length === 0 ? (
-                          <p className="text-xs text-text-secondary italic">No hay cuentas de usuario asociadas.</p>
-                        ) : (
-                          <div className="border border-border-default/50  rounded-card overflow-hidden text-xs">
-                            <table className="w-full text-left border-collapse">
-                              <thead>
-                                <tr className="bg-surface-muted  border-b border-border-default/50  text-xs font-bold uppercase tracking-wider text-text-secondary">
-                                  <th className="px-4 py-3">Nombre / Email</th>
-                                  <th className="px-4 py-3">Rol</th>
-                                  <th className="px-4 py-3">Acceso</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-200/50 ">
-                                {tenantUsers.map((user, idx) => (
-                                  <tr key={idx} className="hover:bg-surface-sidebar/5 transition-colors">
-                                    <td className="px-4 py-3">
-                                      <div className="font-bold">{user.name}</div>
-                                      <div className="text-xs text-text-secondary font-mono">{user.email}</div>
-                                    </td>
-                                    <td className="px-4 py-3 capitalize font-semibold text-text-primary ">
-                                      {user.role || 'Colaborador'}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                      <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${user.active !== false ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                                        {user.active !== false ? 'Activo' : 'Inactivo'}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </div>
+                      <TenantAdminPanel key={selectedTenantDetails.id} tenant={selectedTenantDetails} currentUser={currentUser} onUsersChange={setTenantUsers} showToast={showToast} />
 
                     </div>
 
@@ -1314,7 +1314,7 @@ export default function SuperAdminPage({ showToast }) {
                   <div className={`max-w-2xl p-6 rounded-card border ${'bg-white border-border-default'}`}>
                     <form onSubmit={handleCreateTenant} className="space-y-4 text-xs text-left">
                       
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block font-bold mb-1 text-text-secondary">Razón Social *</label>
                           <input 
@@ -1339,9 +1339,9 @@ export default function SuperAdminPage({ showToast }) {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Email del Super Administrador *</label>
+                          <label className="block font-bold mb-1 text-text-secondary">Email del administrador propietario *</label>
                           <input 
                             type="email" 
                             required
@@ -1364,7 +1364,7 @@ export default function SuperAdminPage({ showToast }) {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="block font-bold mb-1 text-text-secondary">Plan SaaS</label>
                           <select 
@@ -1426,7 +1426,7 @@ export default function SuperAdminPage({ showToast }) {
                         <button 
                           type="submit" 
                           disabled={isCreatingTenant}
-                          className="px-5 py-2.5 rounded-md bg-primary hover:bg-surface-card text-white font-bold flex items-center gap-2"
+                          className="px-5 py-2.5 rounded-md bg-primary hover:opacity-90 text-white font-bold flex items-center gap-2"
                         >
                           {isCreatingTenant ? 'Creando Empresa...' : 'Crear Inquilino y Enviar Correo'}
                         </button>
@@ -1855,14 +1855,14 @@ export default function SuperAdminPage({ showToast }) {
 
       {/* EDIT PLAN CONFIG MODAL */}
       {editingPlan && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className={`w-full max-w-lg p-6 rounded-card border ${'bg-white border-border-default text-black'}`}>
+        <div className="fixed inset-0 z-[260] bg-black/60 flex items-center justify-center p-3 sm:p-4">
+          <div className="w-full max-w-lg max-h-[90dvh] overflow-y-auto p-6 rounded-card border bg-white border-border-default text-black">
             <div className="flex justify-between items-center mb-6">
               <h4 className="text-sm font-bold">Personalizar: Plan {editingPlan.name}</h4>
-              <button onClick={() => setEditingPlan(null)} className="text-text-secondary hover:text-white"><X size={16}/></button>
+              <button onClick={() => setEditingPlan(null)} className="text-slate-500 hover:text-slate-900 cursor-pointer"><X size={16}/></button>
             </div>
             <form onSubmit={handleSavePlanEdit} className="space-y-4 text-left text-xs">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold mb-1">Precio Mensual ($ USD)</label>
                   <input 
@@ -1883,7 +1883,7 @@ export default function SuperAdminPage({ showToast }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold mb-1">Límite de Usuarios</label>
                   <input 
@@ -1906,7 +1906,7 @@ export default function SuperAdminPage({ showToast }) {
 
               <div>
                 <label className="block font-bold mb-2">Módulos Habilitados</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 rounded-card border border-white/5 bg-white/2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 rounded-card border border-slate-200 bg-slate-50">
                   {(() => {
                     const moduleLabels = {
                       dashboard: 'Dashboard',
@@ -1944,8 +1944,8 @@ export default function SuperAdminPage({ showToast }) {
               </div>
 
               <div className="flex gap-3 justify-end pt-4">
-                <button type="button" onClick={() => setEditingPlan(null)} className="px-4 py-2.5 rounded-card border border-white/10 hover:bg-white/5 font-semibold">Cancelar</button>
-                <button type="submit" className="px-4 py-2.5 rounded-card bg-surface-card text-white font-bold">Guardar Cambios</button>
+                <button type="button" onClick={() => setEditingPlan(null)} className="px-4 py-2.5 rounded-card border border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold cursor-pointer">Cancelar</button>
+                <button type="submit" className="px-4 py-2.5 rounded-card bg-[#1b1b1b] hover:bg-black text-white font-bold cursor-pointer">Guardar Cambios</button>
               </div>
             </form>
           </div>
@@ -1954,8 +1954,8 @@ export default function SuperAdminPage({ showToast }) {
 
       {/* VIEW TRANSFER DETAILS MODAL */}
       {selectedTransfer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
-          <div className="bg-surface-card rounded-card border border-border-default w-full max-w-lg p-6 space-y-4 shadow-xl">
+        <div className="fixed inset-0 z-[260] flex items-center justify-center p-3 sm:p-4 bg-black/60">
+          <div className="bg-surface-card rounded-card border border-border-default w-full max-w-lg max-h-[90dvh] overflow-y-auto p-6 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-border-default">
               <div className="flex items-center gap-2">
                 <CreditCard size={18} className="text-primary" />

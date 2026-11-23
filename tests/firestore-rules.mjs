@@ -22,6 +22,7 @@ function client(uid, verified = false) {
 try {
   await env.withSecurityRulesDisabled(async context => {
     const db = context.firestore();
+    await setDoc(doc(db, 'plans', 'starter'), { priceMonthly: 10, priceYearly: 8, category: 'facturacion' });
     await setDoc(doc(db, 'users', 'owner-a'), { uid: 'owner-a', tenantId: 'tenant-a', email: 'a@example.test', role: 'admin', status: 'active' });
     await setDoc(doc(db, 'tenants', 'tenant-a'), { id: 'tenant-a', ownerUid: 'owner-a', planId: 'starter', planStatus: 'active', expiresAt: '2027-01-01T00:00:00Z', subscriptionExpiresAt: Timestamp.fromMillis(Date.now() + 30 * 86400000) });
     await setDoc(doc(db, 'users', 'owner-b'), { uid: 'owner-b', tenantId: 'tenant-b', email: 'b@example.test', role: 'admin', status: 'active' });
@@ -50,7 +51,7 @@ try {
     billingPeriod: 'monthly', referenceNumber: 'FAKE'
   }));
   await assertSucceeds(setDoc(doc(a, 'transfers', 'pending-a'), {
-    tenantId: 'tenant-a', status: 'pending', amount: 10, planId: 'starter',
+    id: 'pending-a', category: 'facturacion', tenantId: 'tenant-a', status: 'pending', amount: 10, planId: 'starter',
     billingPeriod: 'monthly', referenceNumber: 'BANK-123'
   }));
   await assertSucceeds(getDocs(query(collection(a, 'transfers'), where('tenantId', '==', 'tenant-a'))));
@@ -71,6 +72,19 @@ try {
     uid: 'staff-a', tenantId: 'tenant-a', email: 'staff@example.test', role: 'staff', status: 'active'
   }));
   await assertSucceeds(updateDoc(doc(a, 'users', 'staff-a'), { status: 'inactive' }));
+  const inactive = client('staff-a', true);
+  await assertSucceeds(getDoc(doc(inactive, 'users', 'staff-a')));
+  await assertFails(getDoc(doc(inactive, 'tenants', 'tenant-a')));
+  await assertFails(getDocs(collection(inactive, 'artifacts', 'tenant-a', 'public', 'data', 'inventory_products')));
+  await assertFails(setDoc(doc(inactive, 'fin_movimientos', 'inactive-write'), { tenantId: 'tenant-a', amount: 15 }));
+  await assertSucceeds(updateDoc(doc(root, 'users', 'staff-a'), { status: 'active' }));
+  await assertSucceeds(setDoc(doc(inactive, 'artifacts', 'tenant-a', 'public', 'data', 'inventory_products', 'reactivated'), { name: 'Reactivado' }));
+  await assertSucceeds(setDoc(doc(root, 'tenants', 'tenant-a', 'admin_events', 'change-1'), { action: 'Test' }));
+  await assertFails(getDoc(doc(a, 'tenants', 'tenant-a', 'admin_events', 'change-1')));
+  await assertFails(setDoc(doc(a, 'tenants', 'tenant-a', 'admin_events', 'fake'), { action: 'Test' }));
+  await assertFails(updateDoc(doc(root, 'tenants', 'tenant-a', 'admin_events', 'change-1'), { action: 'Edit' }));
+  await assertSucceeds(updateDoc(doc(root, 'tenants', 'expired-tenant'), { trialExpiresAt: Timestamp.fromMillis(Date.now() + 86400000) }));
+  await assertSucceeds(setDoc(doc(expired, 'artifacts', 'expired-tenant', 'public', 'data', 'meta', 'info'), { ready: true }));
   await assertFails(updateDoc(doc(a, 'users', 'owner-b'), { status: 'inactive' }));
 
   const fresh = client('new-owner');
@@ -78,9 +92,8 @@ try {
   const tenantId = 'new-tenant';
   batch.set(doc(fresh, 'tenants', tenantId), {
     id: tenantId, ownerUid: 'new-owner', companyName: 'Nueva empresa',
-    planId: 'starter', planStatus: 'trial', requireEmailVerification: true,
-    createdAt: serverTimestamp(),
-    trialExpiresAt: Timestamp.fromMillis(Date.now() + 14 * 86400000)
+    planId: 'starter', planStatus: 'pending_approval', requireEmailVerification: true,
+    billingPeriod: 'monthly', ownerEmail: 'new-owner@example.test', createdAt: serverTimestamp()
   });
   batch.set(doc(fresh, 'users', 'new-owner'), {
     uid: 'new-owner', tenantId, email: 'new-owner@example.test', role: 'admin', status: 'active'
@@ -89,6 +102,14 @@ try {
   await assertSucceeds(batch.commit());
   await assertFails(getDoc(doc(fresh, 'artifacts', tenantId, 'public', 'data', 'meta', 'info')));
   await assertSucceeds(getDoc(doc(client('new-owner', true), 'artifacts', tenantId, 'public', 'data', 'meta', 'info')));
+  await assertFails(setDoc(doc(client('new-owner', true), 'artifacts', tenantId, 'public', 'data', 'meta', 'write-pending'), { ready: true }));
+  await assertSucceeds(updateDoc(doc(root, 'tenants', tenantId), { planStatus: 'trial', trialExpiresAt: Timestamp.fromMillis(Date.now() + 14 * 86400000) }));
+  await assertSucceeds(setDoc(doc(client('new-owner', true), 'artifacts', tenantId, 'public', 'data', 'meta', 'write-enabled'), { ready: true }));
+  const oldFlow = client('old-signup');
+  const oldBatch = writeBatch(oldFlow);
+  oldBatch.set(doc(oldFlow, 'tenants', 'old-trial'), { id: 'old-trial', ownerUid: 'old-signup', ownerEmail: 'old-signup@example.test', planStatus: 'trial', planId: 'starter', billingPeriod: 'monthly', requireEmailVerification: true, createdAt: serverTimestamp(), trialExpiresAt: Timestamp.fromMillis(Date.now() + 14 * 86400000) });
+  oldBatch.set(doc(oldFlow, 'users', 'old-signup'), { uid: 'old-signup', tenantId: 'old-trial', role: 'admin', status: 'active' });
+  await assertFails(oldBatch.commit());
   console.log('Firestore rules: tenant, payment, user, isolation and registration checks passed.');
 } finally {
   await env.cleanup();

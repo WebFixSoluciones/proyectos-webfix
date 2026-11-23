@@ -145,7 +145,16 @@ export default function TarjetasCreditosView({ db, usuario, showToast }) {
                   <UiBox {...{"className":"flex justify-between"}}><UiText {...{"color":"gray"}}>Cupo</UiText><UiText {...{"weight":"medium","color":"gray","highContrast":true}}>{formatCurrency(t.cupoTotal)}</UiText></UiBox>
                   <UiBox {...{"className":"flex justify-between"}}><UiText {...{"color":"gray"}}>Utilizado</UiText><UiText {...{"weight":"medium","color":"amber"}}>{formatCurrency(t.saldoUtilizado)}</UiText></UiBox>
                   <UiBox {...{"className":"flex justify-between"}}><UiText {...{"color":"gray"}}>Disponible</UiText><UiText {...{"weight":"medium","color":"green"}}>{formatCurrency(t.cupoDisponible)}</UiText></UiBox>
-                  <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)"},"className":"w-full h-1.5 mt-1"}}><UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"h-1.5"}, {}, (uso > 80 ? {"style":{"backgroundColor":"var(--red-9)"}} : (uso > 50 ? {"style":{"backgroundColor":"var(--amber-9)"}} : {"style":{"backgroundColor":"var(--blue-9)"}})))} style={{ width: `${Math.min(uso, 100)}%` }} /></UiBox>
+                  <UiBox style={{ backgroundColor: 'var(--gray-4)', borderRadius: 'var(--radius-3)' }} className="w-full h-2 mt-1 overflow-hidden">
+                    <UiBox
+                      className="h-2 transition-all"
+                      style={{
+                        borderRadius: 'var(--radius-3)',
+                        backgroundColor: uso > 80 ? 'var(--red-9)' : (uso > 50 ? 'var(--amber-9)' : 'var(--blue-9)'),
+                        width: `${Math.min(Math.max(uso, 0), 100)}%`
+                      }}
+                    />
+                  </UiBox>
                   <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex justify-between"}}>
                     <UiText>Corte: {t.fechaCorte}</UiText><UiText>Pago: {t.fechaPago}</UiText>
                   </UiBox>
@@ -375,11 +384,15 @@ function Modal({ children, onClose, title }) {
   );
 }
 
-function Input({ label, ...props }) {
+function Input({ label, onChange, ...props }) {
   return (
     <UiBox {...{"className":"space-y-1"}}>
       {label && <UiLabel {...{"size":"1","weight":"medium","color":"gray"}}>{label}</UiLabel>}
-      <UiInput {...props} {...{"size":"2","color":"gray","className":"w-full"}} />
+      <UiInput
+        {...props}
+        onChange={(e) => onChange?.(e && e.target ? e.target.value : e)}
+        {...{"size":"2","color":"gray","className":"w-full"}}
+      />
     </UiBox>
   );
 }

@@ -5,8 +5,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   Package, DollarSign, Tag, Save, X, Box, 
   Percent, FileText, AlertCircle, Image, Edit2, 
-  Plus, Layers, FolderPlus, HelpCircle, Loader2
+  Plus, Layers, FolderPlus, HelpCircle, Loader2, ScanBarcode, Sparkles
 } from 'lucide-react';
+import { generateInternalEan13 } from '../../modules/warehouse/domain/barcodeUtils';
+import BarcodeScannerModal from '../../modules/warehouse/ui/BarcodeScannerModal';
 import { collection, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, appId, storage } from '../../firebase';
@@ -82,6 +84,7 @@ export default function ProductCreationForm({
   productToEdit = null,
   showToast
 }: ProductCreationFormProps) {
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   // Main form state
   const [formData, setFormData] = useState({
     sku: productToEdit?.sku || '',
@@ -836,9 +839,9 @@ export default function ProductCreationForm({
                 <div className="flex-1 w-full space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                     {/* SKU / Código */}
-                    <div className="sm:col-span-5">
+                    <div className="sm:col-span-4">
                       <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
-                        Código / SKU / Barras *
+                        Código / SKU *
                       </UiLabel>
                       <UiInput
                         type="text"
@@ -846,7 +849,7 @@ export default function ProductCreationForm({
                         required
                         value={formData.sku}
                         onChange={handleInputChange}
-                        placeholder="Ej. PROD-001 o 7861..."
+                        placeholder="Ej. PROD-001"
                         iconPrefix={<Tag size={13} className="text-[var(--gray-10)]" />}
                         size="2"
                         color="gray"
@@ -854,8 +857,44 @@ export default function ProductCreationForm({
                       />
                     </div>
 
+                    {/* Código de Barras (EAN / Code128) */}
+                    <div className="sm:col-span-4">
+                      <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
+                        Código de Barras (EAN / Code128)
+                      </UiLabel>
+                      <div className="flex items-center gap-1">
+                        <UiInput
+                          type="text"
+                          name="codigoBarras"
+                          value={formData.codigoBarras || ''}
+                          onChange={handleInputChange}
+                          placeholder="Escanea o genera EAN-13"
+                          iconPrefix={<ScanBarcode size={13} className="text-[var(--gray-10)]" />}
+                          size="2"
+                          color="gray"
+                          className="flex-1 font-mono text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev: any) => ({ ...prev, codigoBarras: generateInternalEan13(prev.sku || prev.name) }))}
+                          className="h-8 px-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 cursor-pointer"
+                          title="Generar código EAN-13 automático"
+                        >
+                          <Sparkles size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowBarcodeScanner(true)}
+                          className="h-8 px-2 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 cursor-pointer"
+                          title="Escanear código con lector USB o cámara"
+                        >
+                          <ScanBarcode size={13} />
+                        </button>
+                      </div>
+                    </div>
+
                     {/* Nombre */}
-                    <div className="sm:col-span-7">
+                    <div className="sm:col-span-4">
                       <UiLabel size="1" weight="bold" color="gray" className="block mb-1">
                         Nombre del Producto *
                       </UiLabel>
@@ -1976,6 +2015,17 @@ export default function ProductCreationForm({
           </form>
         </UiBox>
       )}
+
+      <BarcodeScannerModal
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onScan={(code) => {
+          setFormData((prev: any) => ({ ...prev, codigoBarras: code }));
+          showToast?.(`Código de barras asignado: ${code}`, 'success');
+        }}
+        title="Asignar Código de Barras al Producto"
+        subtitle="Escanea la etiqueta con lector USB o cámara para registrarlo en el catálogo."
+      />
     </UiBox>
   );
 

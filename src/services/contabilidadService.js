@@ -1,5 +1,5 @@
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, serverTimestamp } from './financeStore.js';
-import { registrarAuditoria } from './auditService';
+import { registrarAuditoria } from './auditService.js';
 
 const CTAS = 'fin_cuentas';
 const CC = 'fin_centros_costo';
@@ -20,11 +20,23 @@ function validarCentroCosto(data) {
   if (Number(data.presupuestoAnual) < 0) throw new Error('El presupuesto no puede ser negativo');
 }
 
-function validarAsiento(data) {
+export function validarAsiento(data) {
   if (!data.descripcion?.trim()) throw new Error('La descripción es obligatoria');
   if (!Array.isArray(data.lineas) || data.lineas.length < 2) throw new Error('Un asiento requiere al menos 2 líneas');
-  const totalDebe = data.lineas.reduce((s, l) => s + (Number(l.debe) || 0), 0);
-  const totalHaber = data.lineas.reduce((s, l) => s + (Number(l.haber) || 0), 0);
+  let totalDebe = 0;
+  let totalHaber = 0;
+  for (let i = 0; i < data.lineas.length; i++) {
+    const l = data.lineas[i];
+    if (!l?.cuentaId) throw new Error(`La línea ${i + 1} debe tener una cuenta contable`);
+    const debe = Number(l.debe) || 0;
+    const haber = Number(l.haber) || 0;
+    if (debe < 0 || haber < 0) throw new Error(`La línea ${i + 1} no puede tener montos negativos`);
+    if (debe > 0 && haber > 0) throw new Error(`La línea ${i + 1} no puede tener débito y crédito simultáneamente`);
+    if (debe === 0 && haber === 0) throw new Error(`La línea ${i + 1} debe tener un valor mayor a 0 en Débito o Crédito`);
+    totalDebe += debe;
+    totalHaber += haber;
+  }
+  if (totalDebe <= 0) throw new Error('El total del asiento debe ser mayor a 0');
   if (Math.abs(totalDebe - totalHaber) > 0.01) throw new Error('El asiento no cuadra: Débitos ≠ Créditos');
 }
 
@@ -129,24 +141,24 @@ export async function getCentrosCosto(db, filtros = {}) {
     const s = filtros.search.toLowerCase();
     items = items.filter(i => i.codigo?.toLowerCase().includes(s) || i.nombre?.toLowerCase().includes(s) || i.responsable?.toLowerCase().includes(s));
   }
-  items = await Promise.all(items.map(async (i) => {
-    const ejec = await calcularEjecutadoCC(db, i.id);
-    return { ...i, ejecutado: ejec };
-  }));
-  return items;
+  // Cargar ejecutado en una sola lectura en lugar de N+1
+  const ejecutadoPorCC = await calcularEjecutadoTodosCC(db);
+  return items.map((i) => ({ ...i, ejecutado: ejecutadoPorCC.get(i.id) || 0 }));
 }
 
-async function calcularEjecutadoCC(db, ccId) {
+async function calcularEjecutadoTodosCC(db) {
   const q = query(collection(db, ASIENTOS), where('estado', '==', 'confirmado'));
   const snap = await getDocs(q);
-  let total = 0;
+  const totals = new Map();
   snap.docs.forEach(d => {
     const data = d.data();
     (data.lineas || []).forEach(l => {
-      if (l.centroCostoId === ccId) total += Number(l.debe) || 0;
+      if (l.centroCostoId) {
+        totals.set(l.centroCostoId, (totals.get(l.centroCostoId) || 0) + (Number(l.debe) || 0));
+      }
     });
   });
-  return total;
+  return totals;
 }
 
 export async function addCentroCosto(db, data, usuario) {
@@ -190,7 +202,7 @@ export async function getAsientos(db, filtros = {}) {
   try {
     const constraints = [orderBy('fecha', 'desc')];
     if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-    if (filtros.tipo) constraints.push(where('tipo', '==', filtros.tipo));
+    if (filtros.tipo && filtros.tipo !== 'all') constraints.push(where('tipo', '==', filtros.tipo));
     const q = query(collection(db, ASIENTOS), ...constraints);
     const snap = await getDocs(q);
     items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -260,27 +272,31 @@ export async function deleteAsiento(db, id, usuario) {
 }
 
 export async function generarAsientoDesdeMovimiento(db, movimiento, usuario) {
-  if (!movimiento?.type || !movimiento?.total) throw new Error('Movimiento inválido');
+  const tipo = movimiento?.tipo || movimiento?.type;
+  const total = Number(movimiento?.monto ?? movimiento?.total ?? 0);
+  if (!tipo || total <= 0) throw new Error('Movimiento inválido para asiento contable.');
   const cuentas = await getCuentas(db, { estado: 'activo' });
   const aceptan = cuentas.filter(c => c.aceptaMovimientos);
-  const caja = aceptan.find(c => /caja/i.test(c.nombre)) || aceptan.find(c => c.tipo === movimiento.type);
-  const contrapartida = aceptan.find(c => c.tipo === (movimiento.type === 'ingreso' ? 'ingreso' : 'gasto') && c.id !== caja?.id);
-  if (!caja || !contrapartida) throw new Error('No hay cuentas configuradas para generar asiento automático. Configure cuentas con aceptaMovimientos=true.');
-  const total = Number(movimiento.total) || 0;
-  const lineas = movimiento.type === 'ingreso'
+  const caja = aceptan.find(c => /caja|banco|efectivo/i.test(c.nombre) && c.tipo === 'activo') || aceptan.find(c => c.tipo === 'activo');
+  const contrapartida = aceptan.find(c => c.tipo === (tipo === 'ingreso' ? 'ingreso' : 'gasto') && c.id !== caja?.id);
+  if (!caja || !contrapartida) throw new Error('No hay cuentas configuradas (Activo + Ingreso/Gasto) con aceptaMovimientos=true para generar el asiento automático.');
+  const desc = movimiento.descripcion || movimiento.description || movimiento.category || tipo;
+  const docNum = movimiento.documento?.numero || movimiento.documentNumber || '';
+  const fecha = movimiento.fecha?.toDate ? movimiento.fecha.toDate().toISOString() : (movimiento.fecha || movimiento.date || new Date().toISOString());
+  const lineas = tipo === 'ingreso'
     ? [
-      { cuentaId: caja.id, debe: total, haber: 0, descripcion: movimiento.description || movimiento.category || '' },
-      { cuentaId: contrapartida.id, debe: 0, haber: total, descripcion: movimiento.description || movimiento.category || '' },
+      { cuentaId: caja.id, debe: total, haber: 0, descripcion: desc },
+      { cuentaId: contrapartida.id, debe: 0, haber: total, descripcion: desc },
     ]
     : [
-      { cuentaId: contrapartida.id, debe: total, haber: 0, descripcion: movimiento.description || movimiento.category || '' },
-      { cuentaId: caja.id, debe: 0, haber: total, descripcion: movimiento.description || movimiento.category || '' },
+      { cuentaId: contrapartida.id, debe: total, haber: 0, descripcion: desc },
+      { cuentaId: caja.id, debe: 0, haber: total, descripcion: desc },
     ];
   return await addAsiento(db, {
-    fecha: movimiento.date || new Date().toISOString(),
-    descripcion: `Asiento automático - ${movimiento.description || movimiento.type} ${movimiento.documentNumber || ''}`.trim(),
+    fecha,
+    descripcion: `Asiento automático - ${desc} ${docNum}`.trim(),
     tipo: 'automatico',
-    movimientoId: movimiento.id,
+    movimientoId: movimiento.id || null,
     lineas,
     estado: 'confirmado',
   }, usuario);

@@ -11,6 +11,8 @@ import {
 import {
   getResumenImpuestos, generarAtsCompleto, descargarAtsXml, validarRuc
 } from '../../services/impuestosService';
+import { doc, getDoc } from '../../services/financeStore.js';
+import { getAppId } from '../../firebase';
 import FinancialPageHeader from './FinancialPageHeader';
 
 const TABS = [
@@ -30,7 +32,7 @@ const URGENCIA_BADGES = {
   ok: {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}},
 };
 
-export default function ImpuestosSriView({ db, usuario, showToast, transactions = [] }) {
+export default function ImpuestosSriView({ db, appId, usuario, showToast, transactions = [] }) {
   const now = new Date();
   const [tab, setTab] = useState('iva');
   const [year, setYear] = useState(now.getFullYear());
@@ -43,6 +45,15 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
   const [atsData, setAtsData] = useState(null);
   const [rucValidate, setRucValidate] = useState('');
   const [rucResult, setRucResult] = useState(null);
+  const [emitterConfig, setEmitterConfig] = useState(null);
+
+  useEffect(() => {
+    const tid = appId || getAppId();
+    if (!db || !tid) return;
+    getDoc(doc(db, 'artifacts', tid, 'public', 'data', 'finances_settings', 'config'))
+      .then((snap) => { if (snap.exists()) setEmitterConfig(snap.data()); })
+      .catch(() => {});
+  }, [db, appId]);
 
   const fmt = (v) => `$${(Number(v) || 0).toFixed(2)}`;
 
@@ -58,14 +69,16 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
     cargar();
   }, [cargar]);
 
+  const resolveCompanyProfile = () => ({
+    ruc: emitterConfig?.ruc || usuario?.ruc || usuario?.empresa?.ruc || '1790000000001',
+    razonSocial: emitterConfig?.razonSocial || usuario?.empresa?.razonSocial || usuario?.displayName || 'EMPRESA REGISTRADA',
+    establecimiento: emitterConfig?.establecimiento || usuario?.empresa?.establecimiento || '001',
+  });
+
   const handleGenerarAts = async () => {
     setAtsGenerating(true);
     try {
-      const companyProfile = {
-        ruc: usuario?.ruc || usuario?.empresa?.ruc || '1790000000001',
-        razonSocial: usuario?.empresa?.razonSocial || usuario?.nombre || 'EMPRESA REGISTRADA',
-        establecimiento: usuario?.empresa?.establecimiento || '001',
-      };
+      const companyProfile = resolveCompanyProfile();
       const result = await generarAtsCompleto(db, companyProfile, year, month, transactions);
       setAtsPreview(result.xml);
       setAtsData(result);
@@ -81,16 +94,12 @@ export default function ImpuestosSriView({ db, usuario, showToast, transactions 
   const handleDescargarAts = () => {
     if (!atsData) return;
     try {
-      const companyProfile = {
-        ruc: usuario?.ruc || usuario?.empresa?.ruc || '1790000000001',
-        razonSocial: usuario?.empresa?.razonSocial || usuario?.nombre || 'EMPRESA REGISTRADA',
-        establecimiento: usuario?.empresa?.establecimiento || '001',
-      };
+      const companyProfile = resolveCompanyProfile();
       descargarAtsXml({
         companyProfile,
         year: String(year),
         month: String(month),
-        transactions: [],
+        transactions,
       });
       showToast?.('ATS descargado', 'success');
     } catch (e) {

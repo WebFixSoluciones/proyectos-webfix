@@ -303,10 +303,19 @@ export function exportarCSV(headers, rows, nombreArchivo) {
   URL.revokeObjectURL(url);
 }
 
+function escapeHtmlSimple(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 export function exportarPDF(titulo, contenido, nombreArchivo) {
   const w = window.open('', '_blank');
   if (!w) return;
-  const docTitle = nombreArchivo || titulo;
+  const docTitle = escapeHtmlSimple(nombreArchivo || titulo);
+  const safeTitulo = escapeHtmlSimple(titulo);
   w.document.write(`<!DOCTYPE html><html><head><title>${docTitle}</title><style>
     body{font-family:Arial,sans-serif;padding:24px;color:#1a1a1a;font-size:12px}
     h1{font-size:18px;margin-bottom:4px}
@@ -318,7 +327,7 @@ export function exportarPDF(titulo, contenido, nombreArchivo) {
     .kpi-label{font-size:10px;color:#888}.kpi-value{font-size:16px;font-weight:bold}
     @media print{body{padding:12px}}
   </style></head><body>`);
-  w.document.write(`<h1>${titulo}</h1><div class="subtitle">Generado: ${new Date().toLocaleString('es-EC')}</div>`);
+  w.document.write(`<h1>${safeTitulo}</h1><div class="subtitle">Generado: ${new Date().toLocaleString('es-EC')}</div>`);
   w.document.write(contenido);
   w.document.write('</body></html>');
   w.document.close();

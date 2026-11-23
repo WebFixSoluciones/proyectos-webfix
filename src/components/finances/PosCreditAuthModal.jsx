@@ -4,8 +4,11 @@ import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput } from '../ui/controls';
 import { mergeThemeProps } from '../ui/themeProps';
 import {  ShieldAlert, KeyRound, CheckCircle2, X } from 'lucide-react';
+import { verifySupervisorPin } from '../../modules/rbac/application/rbacService.js';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 
-export default function PosCreditAuthModal({ isOpen, onClose, client, totalAmount, onApprove, showToast }) {
+export default function PosCreditAuthModal({ isOpen, onClose, client, totalAmount, onApprove, showToast, tenantUsers = [], fiscalConfig = null }) {
+  const { userProfile } = useAuth();
   const [pin, setPin] = useState('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
@@ -14,29 +17,36 @@ export default function PosCreditAuthModal({ isOpen, onClose, client, totalAmoun
 
   const handleAuthorize = (e) => {
     e.preventDefault();
-    // Default PIN or supervisor check: default PIN is 1234 or 9999 or admin credentials
     if (!pin.trim()) {
-      setError('Por favor ingresa el PIN de autorización');
+      setError('Por favor ingresa el PIN de autorización de supervisor.');
       return;
     }
-    // Accept 1234, 9999, 0000, or admin PIN
-    if (pin === '1234' || pin === '9999' || pin === '0000' || pin.length >= 4) {
+    const result = verifySupervisorPin({
+      pin,
+      tenantUsers,
+      fiscalConfig,
+      currentUserProfile: userProfile
+    });
+    if (result.ok) {
       onApprove({
-        authorizedBy: 'Supervisor POS',
+        authorizedBy: result.authorizedBy || 'Supervisor Autorizado',
+        authorizedUid: result.authorizedUid || '',
         authorizedAt: new Date().toISOString(),
         authReason: reason.trim() || 'Autorización en caja POS'
       });
-      showToast?.('Crédito autorizado por administración.', 'success');
+      setPin('');
+      setReason('');
+      showToast?.(`Crédito autorizado por ${result.authorizedBy}.`, 'success');
       onClose();
     } else {
-      setError('PIN de autorización incorrecto.');
+      setError(result.error || 'PIN de autorización incorrecto.');
     }
   };
 
   return createPortal(
     <UiBox
       {...mergeThemeProps(
-        { "style": { "backgroundColor": "var(--black-a7)" }, "className": "fixed inset-0 z-[220] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200" }
+        { "style": { "backgroundColor": "var(--black-a7)" }, "className": "fixed inset-0 z-[260] flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200" }
       )}
       onClick={onClose}
     >
@@ -44,7 +54,7 @@ export default function PosCreditAuthModal({ isOpen, onClose, client, totalAmoun
         {...mergeThemeProps(
           {
             "style": { "backgroundColor": "var(--color-panel-solid)", "borderRadius": "var(--radius-4)", "border": "1px solid var(--gray-a6)" },
-            "className": "w-full max-w-md shadow-2xl overflow-hidden"
+            "className": "w-full max-w-md max-h-[90dvh] overflow-y-auto"
           }
         )}
         onClick={e => e.stopPropagation()}

@@ -1,0 +1,14 @@
+import { createRoot } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
+import WebFixTheme from '../../src/components/ui/WebFixTheme';
+import RegisterPage from '../../src/pages/RegisterPage';
+import SuperAdminPage from '../../src/pages/SuperAdminPage';
+import '../../src/index.css';
+import { setDoc, doc } from './firebase-fixture';
+const db = {};
+await setDoc(doc(db, 'tenants', 'tenant-test'), { id: 'tenant-test', ownerUid: 'owner', companyName: 'Empresa de prueba', ownerEmail: 'owner@example.test', registrationSource: 'public', planId: 'starter', planStatus: 'trial', billingPeriod: 'monthly', expiresAt: '2099-01-01', trialExpiresAt: new Date('2020-01-01') });
+await setDoc(doc(db, 'users', 'owner'), { uid: 'owner', tenantId: 'tenant-test', email: 'owner@example.test', name: 'Propietario', role: 'admin', status: 'active' });
+await setDoc(doc(db, 'users', 'staff'), { uid: 'staff', tenantId: 'tenant-test', email: 'staff@example.test', name: 'Colaborador', role: 'staff', status: 'inactive' });
+await setDoc(doc(db, 'artifacts', 'tenant-test', 'public', 'data', 'finances_settings', 'config'), { razonSocial: 'Empresa de prueba', ruc: '1790012345001', direccionMatriz: 'Quito' });
+const showToast = (message, type) => { globalThis.__lastToast = { message, type }; };
+createRoot(document.getElementById('root')).render(<MemoryRouter><WebFixTheme>{location.search.includes('register') ? <RegisterPage showToast={showToast} /> : <SuperAdminPage showToast={showToast} />}</WebFixTheme></MemoryRouter>);

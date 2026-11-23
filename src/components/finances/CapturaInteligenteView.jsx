@@ -35,7 +35,26 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
   const formatCurrency = (v) => `$${(Number(v) || 0).toFixed(2)}`;
   const formatDate = (d) => d?.toDate ? d.toDate().toLocaleDateString('es-EC') : d ? new Date(d).toLocaleDateString('es-EC') : '-';
 
-  const resumen = getResumenCapturas(capturas);
+  const resumen = (() => {
+    const ahora = new Date();
+    const mesActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+    const capturasMes = capturas.filter(c => {
+      const f = c.createdAt?.toDate ? c.createdAt.toDate() : (c.createdAt ? new Date(c.createdAt) : null);
+      return f && !Number.isNaN(f.getTime()) && `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}` === mesActual;
+    }).length;
+    const confirmadas = capturas.filter(c => c.estado === 'confirmado').length;
+    const duplicadosDetectados = capturas.filter(c => c.duplicado?.esDuplicado).length;
+    const totalProcesado = capturas.reduce((s, c) => s + (Number(c.datosExtraidos?.montoTotal) || 0), 0);
+    const tasaExito = capturas.length > 0 ? Math.round((confirmadas / capturas.length) * 100) : 0;
+    return {
+      total: capturas.length,
+      capturasMes,
+      confirmadas,
+      duplicadosDetectados,
+      tasaExito,
+      totalProcesado
+    };
+  })();
 
   const handleArchivo = async (file) => {
     if (!file) return;
@@ -51,7 +70,7 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
     }
     setProcesando(true);
     try {
-      const resultado = await procesarArchivoCaptura(db, file, storage, appId, usuario);
+      const resultado = await procesarArchivoCaptura(db, storage, appId, file, usuario);
       showToast?.('Documento procesado correctamente', 'success');
       await cargar();
       setSeleccionada(resultado);
@@ -168,7 +187,7 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
       >
         {procesando ? (
           <UiBox {...{"className":"flex flex-col items-center gap-3"}}>
-            <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-10 w-10"}}></UiBox>
+            <UiBox className="animate-spin h-10 w-10 rounded-full border-2 border-[var(--gray-5)] border-t-[var(--blue-9)]"></UiBox>
             <UiText as="p" {...{"size":"2","color":"gray","weight":"medium"}}>Procesando documento con IA...</UiText>
           </UiBox>
         ) : (

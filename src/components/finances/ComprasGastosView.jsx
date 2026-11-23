@@ -63,6 +63,9 @@ Gracias por su compra`;
 
     try {
       const txId = `tx_${new Date().getTime()}_gasto`;
+      const baseImponible = Number(parsedData.baseImponible) || 0;
+      const ivaValor = Number(parsedData.ivaValor) || 0;
+      const computedTotal = Math.round((baseImponible + ivaValor) * 100) / 100 || Number(parsedData.total) || 0;
       const payload = {
         id: txId,
         type: 'egreso',
@@ -70,20 +73,22 @@ Gracias por su compra`;
         date: parsedData.date || getEcuadorDateString(),
         documentNumber: parsedData.documentNumber || `REC-${new Date().getTime().toString().slice(-6)}`,
         thirdPartyId: '', // Proveedor externo
+        thirdPartyName: parsedData.razonSocial || '',
+        thirdPartyRuc: parsedData.ruc || '',
         category: parsedData.category || 'gastos_administrativos',
         description: `${parsedData.razonSocial} - Gasto clasificado con IA`,
         currency: 'USD',
-        baseImponible: Number(parsedData.baseImponible) || Number(parsedData.total) || 0,
-        ivaPorcentaje: parsedData.ivaValor > 0 ? 15 : 0,
-        ivaValor: Number(parsedData.ivaValor) || 0,
-        total: Number(parsedData.total) || 0,
+        baseImponible: baseImponible || computedTotal,
+        ivaPorcentaje: ivaValor > 0 ? 15 : 0,
+        ivaValor,
+        total: computedTotal,
         paymentMethod: parsedData.paymentMethod || 'transferencia',
         paymentStatus: 'pagado',
         sriStatus: 'no_aplica',
         paymentsBreakdown: {
-          efectivo: parsedData.paymentMethod === 'efectivo' ? Number(parsedData.total) : 0,
-          transferencia: parsedData.paymentMethod === 'transferencia' ? Number(parsedData.total) : 0,
-          tarjeta: parsedData.paymentMethod === 'tarjeta' ? Number(parsedData.total) : 0,
+          efectivo: parsedData.paymentMethod === 'efectivo' ? computedTotal : 0,
+          transferencia: parsedData.paymentMethod === 'transferencia' ? computedTotal : 0,
+          tarjeta: parsedData.paymentMethod === 'tarjeta' ? computedTotal : 0,
           cruce_cuentas: 0
         },
         createdAt: new Date().toISOString()
@@ -98,11 +103,11 @@ Gracias por su compra`;
           documentType: 'nota_venta',
           documentNumber: payload.documentNumber || '',
           claveAcceso: '',
-          total: Number(payload.total) || 0,
+          total: computedTotal,
           baseImponible: Number(payload.baseImponible) || 0,
-          ivaValor: Number(payload.ivaValor) || 0,
+          ivaValor,
           proveedorNombre: parsedData.razonSocial || '',
-          proveedorRuc: '',
+          proveedorRuc: parsedData.ruc || '',
           thirdPartyId: '',
           date: payload.date || new Date().toISOString(),
           paymentMethod: payload.paymentMethod || 'transferencia',
@@ -132,6 +137,11 @@ Gracias por su compra`;
     }
     try {
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', id));
+      // Anular registros sincronizados en Finanzas/CxP si existen (sin fallar si no existen)
+      await Promise.allSettled([
+        setDoc(doc(db, 'fin_movimientos', `compra_${id}`), { estado: 'anulado', saldoPendiente: 0, actualizadoEn: new Date().toISOString() }, { merge: true }),
+        setDoc(doc(db, 'fin_cxp', id), { estado: 'anulado', saldoPendiente: 0, actualizadoEn: new Date().toISOString() }, { merge: true }),
+      ]);
       showToast("Gasto eliminado con éxito", "success");
     } catch (err) {
       console.error(err);
@@ -268,7 +278,11 @@ Gracias por su compra`;
                       step="0.01"
                       required
                       value={parsedData.baseImponible || 0}
-                      onChange={e => setParsedData({ ...parsedData, baseImponible: parseFloat(e.target.value) || 0 })}
+                      onChange={e => {
+                        const base = parseFloat(e.target.value) || 0;
+                        const iva = Number(parsedData.ivaValor) || 0;
+                        setParsedData({ ...parsedData, baseImponible: base, total: Math.round((base + iva) * 100) / 100 });
+                      }}
                       {...{"size":"2","color":"gray","className":"w-full"}}
                     />
                   </UiBox>
@@ -279,7 +293,11 @@ Gracias por su compra`;
                       step="0.01"
                       required
                       value={parsedData.ivaValor || 0}
-                      onChange={e => setParsedData({ ...parsedData, ivaValor: parseFloat(e.target.value) || 0 })}
+                      onChange={e => {
+                        const iva = parseFloat(e.target.value) || 0;
+                        const base = Number(parsedData.baseImponible) || 0;
+                        setParsedData({ ...parsedData, ivaValor: iva, total: Math.round((base + iva) * 100) / 100 });
+                      }}
                       {...{"size":"2","color":"gray","className":"w-full"}}
                     />
                   </UiBox>

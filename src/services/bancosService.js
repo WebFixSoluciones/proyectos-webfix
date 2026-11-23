@@ -1,6 +1,7 @@
 import { reconcileBankMovement, positiveMoney } from './financialTransactions.js';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, serverTimestamp, Timestamp } from './financeStore.js';
-import { registrarAuditoria } from './auditService';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, serverTimestamp, Timestamp, runTransaction } from './financeStore.js';
+import { registrarAuditoria } from './auditService.js';
+import { getAppId } from '../firebase.js';
 
 const COLLECTION_BANCOS = 'fin_bancos';
 const COLLECTION_MOV_BANCARIOS = 'fin_movimientos_bancarios';
@@ -44,6 +45,8 @@ export async function getCuentaById(db, id) {
 export async function crearCuenta(db, data, usuario) {
   const payload = {
     nombre: data.nombre,
+    banco: data.banco?.trim() || '',
+    numeroCuenta: data.numeroCuenta?.trim() || '',
     tipo: data.tipo || 'banco',
     saldoInicial: Number(data.saldoInicial) || 0,
     moneda: data.moneda || 'USD',
@@ -53,13 +56,15 @@ export async function crearCuenta(db, data, usuario) {
     updatedAt: serverTimestamp(),
   };
   const ref = await addDoc(collection(db, COLLECTION_BANCOS), payload);
-  registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: ref.id, accion: 'crear', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { nuevo: payload }, modulo: 'finanzas' });
+  registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: ref.id, accion: 'crear', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { nuevo: payload }, modulo: 'finanzas' });
   return ref.id;
 }
 
 export async function actualizarCuenta(db, id, data, usuario) {
   const payload = {
     nombre: data.nombre,
+    banco: data.banco?.trim() || '',
+    numeroCuenta: data.numeroCuenta?.trim() || '',
     tipo: data.tipo,
     saldoInicial: Number(data.saldoInicial),
     moneda: data.moneda || 'USD',
@@ -67,7 +72,7 @@ export async function actualizarCuenta(db, id, data, usuario) {
     updatedAt: serverTimestamp(),
   };
   await updateDoc(doc(db, COLLECTION_BANCOS, id), payload);
-  registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: id, accion: 'actualizar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { nuevo: payload }, modulo: 'finanzas' });
+  registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: id, accion: 'actualizar', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { nuevo: payload }, modulo: 'finanzas' });
 }
 
 export async function eliminarCuenta(db, id, usuario) {
@@ -99,26 +104,186 @@ export async function getMovimientosBancarios(db, cuentaId, filtros = {}) {
   return items;
 }
 
-export async function registrarMovimientoBancario(db, data, usuario) {
-  positiveMoney(data.monto);
+export async function registrarMovimientoBancario(db, data, usuario = {}) {
+  const monto = positiveMoney(data.monto);
   if (!['credito', 'debito'].includes(data.tipo)) throw new Error('Tipo de movimiento bancario inválido.');
   const account = await getCuentaById(db, data.cuentaId);
   if (account.estado !== 'activo') throw new Error('La cuenta bancaria no está activa.');
+  const fechaDate = data.fecha ? new Date(data.fecha.length === 10 ? `${data.fecha}T12:00:00` : data.fecha) : new Date();
+  const fechaTs = Timestamp.fromDate(isNaN(fechaDate.getTime()) ? new Date() : fechaDate);
+  const crearEnFinanzas = Boolean(data.crearEnFinanzas);
+
+  if (crearEnFinanzas) {
+    const movFinId = `banco_fin_${crypto.randomUUID()}`;
+    const movBancId = `banco_mov_${crypto.randomUUID()}`;
+    const tipoFin = data.tipo === 'credito' ? 'ingreso' : 'egreso';
+    const terceroNombre = (data.terceroNombre || '').trim() || (tipoFin === 'ingreso' ? 'INGRESO BANCARIO' : 'EGRESO BANCARIO');
+    const categoria = data.categoria || (tipoFin === 'ingreso' ? 'otros_ingresos' : 'gastos_administrativos');
+    await runTransaction(db, async (tx) => {
+      const bankRef = doc(db, COLLECTION_BANCOS, data.cuentaId);
+      const bankSnap = await tx.get(bankRef);
+      if (!bankSnap.exists() || bankSnap.data()?.estado !== 'activo') {
+        throw new Error('La cuenta bancaria no está activa.');
+      }
+      const pagoId = `pago_${movBancId}`;
+      tx.set(doc(db, 'fin_movimientos', movFinId), {
+        tenantId: getAppId(),
+        tipo: tipoFin,
+        fecha: fechaTs,
+        fechaVencimiento: null,
+        monto,
+        saldoPendiente: 0,
+        metodoPago: account.tipo === 'caja' ? 'efectivo' : 'transferencia',
+        documento: {
+          tipo: tipoFin === 'ingreso' ? 'ingreso_vario' : 'gasto',
+          numero: data.referencia || '',
+          claveAcceso: null,
+          urlXml: null,
+          urlPdf: null,
+        },
+        tercero: {
+          id: '',
+          nombre: terceroNombre,
+          ruc: data.terceroRuc || '9999999999999',
+        },
+        partidas: [{
+          cuenta: '',
+          centroCosto: null,
+          proyecto: null,
+          categoria,
+          descripcion: data.descripcion || `${tipoFin === 'ingreso' ? 'Ingreso' : 'Egreso'} en ${account.nombre}`,
+          baseImponible: monto,
+          iva: 0,
+          ice: 0,
+          irbpnr: 0,
+          retencionFuente: 0,
+          retencionIva: 0,
+          total: monto,
+          deducible: tipoFin === 'egreso',
+        }],
+        pagos: [{
+          id: pagoId,
+          fecha: fechaDate.toISOString(),
+          monto,
+          metodoPago: account.tipo === 'caja' ? 'efectivo' : 'transferencia',
+          referencia: data.referencia || '',
+          cuentaId: data.cuentaId,
+        }],
+        estado: 'pagado',
+        sriStatus: 'no_aplica',
+        origen: 'bancos',
+        origenId: movBancId,
+        conciliacionBancariaId: movBancId,
+        notas: data.descripcion || '',
+        creadoPor: usuario?.uid || '',
+        creadoEn: serverTimestamp(),
+        actualizadoEn: serverTimestamp(),
+      });
+      tx.set(doc(db, COLLECTION_MOV_BANCARIOS, movBancId), {
+        cuentaId: data.cuentaId,
+        tipo: data.tipo,
+        monto,
+        descripcion: data.descripcion || '',
+        terceroNombre,
+        origen: 'bancos',
+        fecha: fechaTs,
+        referencia: data.referencia || '',
+        conciliado: true,
+        movimientoId: movFinId,
+        estado: 'activo',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      tx.update(bankRef, { updatedAt: serverTimestamp() });
+    });
+    registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: movBancId, accion: 'crear_con_finanzas', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { monto, tipo: data.tipo, movFinId }, modulo: 'finanzas' });
+    return movBancId;
+  }
+
   const payload = {
     cuentaId: data.cuentaId,
     tipo: data.tipo,
-    monto: Number(data.monto),
+    monto,
     descripcion: data.descripcion || '',
-    fecha: data.fecha ? Timestamp.fromDate(new Date(data.fecha)) : Timestamp.now(),
+    terceroNombre: (data.terceroNombre || '').trim(),
+    origen: 'manual',
+    fecha: fechaTs,
     referencia: data.referencia || '',
     conciliado: false,
     movimientoId: null,
+    estado: 'activo',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
   const ref = await addDoc(collection(db, COLLECTION_MOV_BANCARIOS), payload);
-  registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: ref.id, accion: 'crear', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { nuevo: payload }, modulo: 'finanzas' });
+  registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: ref.id, accion: 'crear', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { nuevo: payload }, modulo: 'finanzas' });
   return ref.id;
+}
+
+export async function transferirEntreCuentas(db, { origenId, destinoId, monto, fecha, descripcion = '', referencia = '' }, usuario = {}) {
+  const amount = positiveMoney(monto);
+  if (!origenId || !destinoId) throw new Error('Selecciona la cuenta de origen y la cuenta de destino.');
+  if (origenId === destinoId) throw new Error('La cuenta de origen y destino deben ser diferentes.');
+  const transferId = `trf_${crypto.randomUUID()}`;
+  const fechaDate = fecha ? new Date(fecha.length === 10 ? `${fecha}T12:00:00` : fecha) : new Date();
+  const fechaTs = Timestamp.fromDate(isNaN(fechaDate.getTime()) ? new Date() : fechaDate);
+
+  await runTransaction(db, async (tx) => {
+    const origenRef = doc(db, COLLECTION_BANCOS, origenId);
+    const destinoRef = doc(db, COLLECTION_BANCOS, destinoId);
+    const [origenSnap, destinoSnap] = await Promise.all([tx.get(origenRef), tx.get(destinoRef)]);
+    if (!origenSnap.exists() || origenSnap.data()?.estado !== 'activo') throw new Error('La cuenta de origen no está activa.');
+    if (!destinoSnap.exists() || destinoSnap.data()?.estado !== 'activo') throw new Error('La cuenta de destino no está activa.');
+    const origenNombre = origenSnap.data().nombre || 'Origen';
+    const destinoNombre = destinoSnap.data().nombre || 'Destino';
+    const descBase = descripcion.trim() || `Transferencia ${origenNombre} → ${destinoNombre}`;
+
+    tx.set(doc(db, COLLECTION_MOV_BANCARIOS, `${transferId}_out`), {
+      cuentaId: origenId,
+      tipo: 'debito',
+      monto: amount,
+      descripcion: `${descBase} (Salida a ${destinoNombre})`,
+      referencia: referencia || transferId,
+      origen: 'transferencia',
+      transferenciaId: transferId,
+      cuentaContraparteId: destinoId,
+      conciliado: true,
+      movimientoId: null,
+      estado: 'activo',
+      fecha: fechaTs,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    tx.set(doc(db, COLLECTION_MOV_BANCARIOS, `${transferId}_in`), {
+      cuentaId: destinoId,
+      tipo: 'credito',
+      monto: amount,
+      descripcion: `${descBase} (Ingreso desde ${origenNombre})`,
+      referencia: referencia || transferId,
+      origen: 'transferencia',
+      transferenciaId: transferId,
+      cuentaContraparteId: origenId,
+      conciliado: true,
+      movimientoId: null,
+      estado: 'activo',
+      fecha: fechaTs,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    tx.update(origenRef, { updatedAt: serverTimestamp() });
+    tx.update(destinoRef, { updatedAt: serverTimestamp() });
+  });
+
+  registrarAuditoria(db, {
+    coleccion: COLLECTION_MOV_BANCARIOS,
+    documentoId: transferId,
+    accion: 'transferir_entre_cuentas',
+    usuario: usuario?.uid || '',
+    usuarioEmail: usuario?.email || '',
+    cambios: { origenId, destinoId, monto: amount, referencia },
+    modulo: 'finanzas'
+  });
+  return transferId;
 }
 
 export async function registrarOperacionBancariaDirecta(db, data, usuario = {}) {
@@ -170,14 +335,19 @@ export async function desconciliarMovimiento(db, movBancarioId, usuario) {
   registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: movBancarioId, accion: 'desconciliar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: {}, modulo: 'finanzas' });
 }
 
+export function calcularSaldoDesdeMovimientos(saldoInicial, movimientos = []) {
+  return movimientos.reduce((saldo, m) => {
+    if (!m || m.estado === 'anulado') return saldo;
+    const monto = Number(m.monto) || 0;
+    return m.tipo === 'credito' ? saldo + monto : saldo - monto;
+  }, Number(saldoInicial) || 0);
+}
+
 async function calcularSaldoCuenta(db, cuentaId, saldoInicial) {
   const q = query(collection(db, COLLECTION_MOV_BANCARIOS), where('cuentaId', '==', cuentaId));
   const snap = await getDocs(q);
   const movs = snap.docs.map(d => d.data());
-  return movs.reduce((saldo, m) => {
-    const monto = Number(m.monto) || 0;
-    return m.tipo === 'credito' ? saldo + monto : saldo - monto;
-  }, Number(saldoInicial) || 0);
+  return calcularSaldoDesdeMovimientos(saldoInicial, movs);
 }
 
 export function getResumenBancos(cuentas) {

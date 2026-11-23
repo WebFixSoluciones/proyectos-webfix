@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { doc, setDoc, getDoc, updateDoc, collection, query, where, onSnapshot } from'firebase/firestore';
 import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, deleteUser as deleteAuthUser } from 'firebase/auth';
+import { getAuth, setPersistence, inMemoryPersistence, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, deleteUser as deleteAuthUser } from 'firebase/auth';
 import { firebaseConfig } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { ref, uploadBytesResumable, getDownloadURL } from'firebase/storage';
@@ -18,14 +18,28 @@ import { consultarRucSri } from'../../services/sriService';
 import confirmAction from'../../services/confirmDialog';
 import FinanceSettings from'../finances/FinanceSettings';
 import SriRecoveryPanel from '../finances/SriRecoveryPanel';
+import PermissionsManagerView from '../../modules/rbac/ui/PermissionsManagerView';
+import { createPermissionsFromPreset } from '../../modules/rbac/domain/permissions';
+import { fetchUnifiedWarehouses } from '../../modules/warehouse/infrastructure/WarehouseRepository';
+import { normalizeEmissionPoints } from '../../modules/sri/domain/emissionPoints';
 
 export default function GeneralSettings({ 
  showToast, db, appId, storage, handleDownloadBackup,
  activeModules = {}, setActiveModules
 }) {
- const { currentUser, userProfile, role, planId } = useAuth();
+ const { currentUser, userProfile, tenantInfo, role, planId } = useAuth();
  const canManageUsers = role === 'admin' || role === 'superadmin';
  const [activeSubTab, setActiveSubTab] = useState('profile');
+ const [rbacWarehouses, setRbacWarehouses] = useState([]);
+ const [rbacEmissionPoints, setRbacEmissionPoints] = useState([]);
+
+ useEffect(() => {
+   if (!db || !appId) return;
+   fetchUnifiedWarehouses({ firestore: db, tenantId: appId }).then(setRbacWarehouses).catch(() => {});
+   getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'))
+     .then((snap) => setRbacEmissionPoints(normalizeEmissionPoints(snap.exists() ? snap.data() : {})))
+     .catch(() => {});
+ }, [db, appId, activeSubTab]);
  
  // States for Company Profile
  const [companyProfile, setCompanyProfile] = useState({
@@ -907,6 +921,10 @@ export default function GeneralSettings({
  // Save Gemini Key
  // Handle module activation toggles
  const handleToggleModule = async (moduleId) => {
+ if (!canManageUsers) {
+   showToast("Solo un administrador puede modificar los módulos activos.", "error");
+   return;
+ }
  const updatedModules = {
  ...activeModules,
  [moduleId]: !activeModules[moduleId]
@@ -954,8 +972,10 @@ export default function GeneralSettings({
    }
    tempApp = initializeApp(firebaseConfig, `invite-${Date.now()}-${crypto.randomUUID()}`);
    const tempAuth = getAuth(tempApp);
+   await setPersistence(tempAuth, inMemoryPersistence);
    const credential = await createUserWithEmailAndPassword(tempAuth, email, `${crypto.randomUUID()}Aa1!`);
    invitedUser = credential.user;
+   const presetId = newUser.role === 'admin' ? 'admin' : (newUser.preset || 'vendedor');
    try {
      await setDoc(doc(db, 'users', invitedUser.uid), {
        uid: invitedUser.uid,
@@ -964,6 +984,7 @@ export default function GeneralSettings({
        name,
        job: newUser.job.trim(),
        role: newUser.role === 'admin' ? 'admin' : 'staff',
+       permissions: createPermissionsFromPreset(presetId),
        status: 'active',
        createdAt: new Date().toISOString(),
        invitedBy: currentUser.uid
@@ -996,6 +1017,10 @@ export default function GeneralSettings({
       showToast('No puedes desactivar tu propia cuenta', 'warning');
       return;
     }
+    if (tenantInfo?.ownerUid && userId === tenantInfo.ownerUid) {
+      showToast('No se puede desactivar al propietario principal de la empresa', 'warning');
+      return;
+    }
     if (await confirmAction('¿Desactivar el acceso de este usuario?')) {
       try {
         await updateDoc(doc(db, 'users', userId), { status: 'inactive' });
@@ -1009,6 +1034,12 @@ export default function GeneralSettings({
  const handleReactivateUser = async (userId) => {
    if (!canManageUsers) return;
    try {
+     const planSnap = await getDoc(doc(db, 'plans', planId));
+     const maxUsers = Number(planSnap.data()?.maxUsers);
+     if (Number.isFinite(maxUsers) && maxUsers > 0 && localUsers.filter(user => user.status === 'active').length >= maxUsers) {
+       showToast('Tu plan alcanzó el límite de usuarios activos. Desactiva otro usuario o amplía tu plan.', 'warning');
+       return;
+     }
      await updateDoc(doc(db, 'users', userId), { status: 'active' });
      showToast('Acceso reactivado', 'success');
    } catch {
@@ -1032,8 +1063,8 @@ export default function GeneralSettings({
  return (
  <div className="flex flex-col md:flex-row gap-6 h-full w-full animate-in fade-in duration-300">
  
- {/* MENU LATERAL DE PESTAÑAS (ESTILO BREVO) */}
-  <div className="md:w-64 shrink-0 flex flex-col gap-1.5">
+ {/* MENU LATERAL DE PESTAÑAS (HORIZONTAL SCROLL EN MÓVIL, VERTICAL EN DESKTOP) */}
+  <div className="md:w-64 shrink-0 flex flex-row md:flex-col gap-1.5 overflow-x-auto pb-1 md:pb-0">
     {tabs.map(tab => {
       const Icon = tab.icon;
       const isActive = activeSubTab === tab.id;
@@ -2025,41 +2056,43 @@ export default function GeneralSettings({
  <p className="text-xs text-text-secondary mt-1">Cuentas reales con acceso a esta empresa.</p>
  </div>
 
- {/* LISTA DE USUARIOS */}
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
- {displayUsers.map(user => (
- <div key={user.id} className={`p-4 rounded-card border flex items-center justify-between bg-surface-bg border-border-default`}>
- <div className="flex items-center gap-3">
- <div className="w-9 h-9 rounded-full bg-[var(--accent-9)] flex items-center justify-center text-xs font-bold text-white shrink-0">
- {user.name?.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'U'}
- </div>
- <div>
- <p className="text-xs font-bold">{user.name}</p>
- <p className="text-xs text-text-secondary">{user.job || 'Colaborador'} — <span className="font-semibold uppercase tracking-wider text-xs">{user.role === 'admin' ? 'Administrador' : 'Miembro'}</span> · {user.status === 'inactive' ? 'Sin acceso' : 'Activo'}</p>
- {user.email && <p className="text-xs font-mono text-text-secondary truncate max-w-[160px]">{user.email}</p>}
- </div>
- </div>
- {canManageUsers && user.id !== currentUser?.uid && (
- <button
- type="button"
- onClick={() => user.status === 'inactive' ? handleReactivateUser(user.id) : handleDeleteUser(user.id)}
- className="p-2 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10 transition-colors"
- title={user.status === 'inactive' ? 'Reactivar acceso' : 'Desactivar acceso'}
- >
- {user.status === 'inactive' ? <CheckCircle size={13} /> : <Trash2 size={13} />}
- </button>
+ {/* LISTA DE USUARIOS Y PERMISOS GRANULARES (RBAC) */}
+ {canManageUsers ? (
+   <PermissionsManagerView
+     db={db}
+     users={displayUsers}
+     tenantInfo={tenantInfo}
+     warehouses={rbacWarehouses}
+     emissionPoints={rbacEmissionPoints}
+     showToast={showToast}
+     onToggleUserStatus={(u) => u.status === 'inactive' ? handleReactivateUser(u.id || u.uid) : handleDeleteUser(u.id || u.uid)}
+   />
+ ) : (
+   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+     {displayUsers.map(user => (
+       <div key={user.id} className="p-4 rounded-card border flex items-center justify-between bg-surface-bg border-border-default">
+         <div className="flex items-center gap-3">
+           <div className="w-9 h-9 rounded-full bg-[var(--accent-9)] flex items-center justify-center text-xs font-bold text-white shrink-0">
+             {user.name?.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'U'}
+           </div>
+           <div>
+             <p className="text-xs font-bold">{user.name}</p>
+             <p className="text-xs text-text-secondary">{user.job || 'Colaborador'} — <span className="font-semibold uppercase tracking-wider text-xs">{user.role === 'admin' ? 'Administrador' : 'Miembro'}</span> · {user.status === 'inactive' ? 'Sin acceso' : 'Activo'}</p>
+             {user.email && <p className="text-xs font-mono text-text-secondary truncate max-w-[160px]">{user.email}</p>}
+           </div>
+         </div>
+       </div>
+     ))}
+   </div>
  )}
- </div>
- ))}
- </div>
 
  {/* FORMULARIO AGREGAR USUARIO */}
  {canManageUsers && (
- <form onSubmit={handleAddUser} className={`p-5 rounded-card border space-y-4 bg-surface-muted/50 border-gray-250`}>
- <h4 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Registrar Nuevo Colaborador</h4>
+ <form onSubmit={handleAddUser} className="p-5 rounded-card border space-y-4 bg-slate-50 border-slate-200">
+ <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600">Registrar Nuevo Colaborador</h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
  <div>
- <label className="label-field label-field-dark">Nombre Completo</label>
+ <label className="block text-xs font-semibold text-slate-700 mb-1">Nombre Completo</label>
  <input 
  type="text" 
  required 
@@ -2070,7 +2103,7 @@ export default function GeneralSettings({
  />
  </div>
  <div>
- <label className="label-field label-field-dark">Correo Electrónico</label>
+ <label className="block text-xs font-semibold text-slate-700 mb-1">Correo Electrónico</label>
  <input 
  type="email" 
  required
@@ -2081,7 +2114,7 @@ export default function GeneralSettings({
  />
  </div>
  <div>
- <label className="label-field label-field-dark">Cargo / Ocupación</label>
+ <label className="block text-xs font-semibold text-slate-700 mb-1">Cargo / Ocupación</label>
  <input 
  type="text" 
  value={newUser.job} 
@@ -2091,14 +2124,14 @@ export default function GeneralSettings({
  />
  </div>
  <div>
- <label className="label-field label-field-dark">Rol de Acceso</label>
+ <label className="block text-xs font-semibold text-slate-700 mb-1">Rol Inicial</label>
  <select 
  value={newUser.role} 
  onChange={e => setNewUser({...newUser, role: e.target.value})} 
  className={inputClass}
  >
- <option value="admin" className="text-black">Administrador</option>
- <option value="staff" className="text-black">Miembro</option>
+ <option value="admin" className="text-black">Administrador (Acceso Total)</option>
+ <option value="staff" className="text-black">Colaborador (Permisos Granulares)</option>
  </select>
  </div>
  </div>
@@ -2149,8 +2182,8 @@ export default function GeneralSettings({
 
  {/* MODAL CONFIGURACIÓN FIRMA ELECTRÓNICA */}
   {isFirmaOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
-  <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl animate-in zoom-in-95 duration-200">
+  <div className="fixed inset-0 z-[260] flex items-center justify-center p-3 sm:p-4 bg-black/60 animate-in fade-in duration-200">
+  <div className="relative w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 animate-in zoom-in-95 duration-200">
   
   {/* Cabecera */}
   <div className="flex justify-between items-start pb-4 border-b border-slate-100 mb-4">

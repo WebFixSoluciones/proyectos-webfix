@@ -252,7 +252,7 @@ export default function FinancialPaymentModal({
               <option value="">-- Sin asignar a cuenta bancaria --</option>
               {bankAccounts.map(b => (
                 <option key={b.id} value={b.id}>
-                  {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                  {b.nombre || b.banco || 'Cuenta'} ({b.tipo || b.tipoCuenta || 'Banco'}{b.numeroCuenta ? ` ${b.numeroCuenta}` : ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
                 </option>
               ))}
             </UiSelect>

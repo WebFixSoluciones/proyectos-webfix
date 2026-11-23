@@ -17,24 +17,42 @@ import { sincronizarCompra } from '../../services/integracionFinanzasService';
 import { getCuentas } from '../../services/bancosService';
 import { auth } from '../../firebase';
 
+import { fetchUnifiedWarehouses } from '../../modules/warehouse/infrastructure/WarehouseRepository';
+
 export default function PurchaseForm({ tx, onClose, thirdParties = [], products = [], showToast, db, appId, purchaseMethod }) {
   const [step, setStep] = useState(1);
-  const maxStep = purchaseMethod === 'sin_inventario' ? 2 : 3;
   const [saving, setSaving] = useState(false);
-  const [branches, setBranches] = useState([{ id: 'sucursal-central-uuid', name: 'Bodega Central' }, { id: 'sucursal-sur-uuid', name: 'Bodega Sur' }, { id: 'sucursal-norte-uuid', name: 'Bodega Norte' }]);
+  const [branches, setBranches] = useState([{ id: 'sucursal-central-uuid', name: 'Bodega Central' }]);
   const [bankAccounts, setBankAccounts] = useState([]);
 
-  // Form data
-  const [form, setForm] = useState({
-    type: 'egreso', purchaseType: purchaseMethod || 'con_inventario',
-    documentType: 'factura', documentNumber: '', claveAcceso: '',
-    date: getEcuadorDateString(), bodega: 'Bodega Central',
-    supplierId: '', supplierName: '', supplierRuc: '',
-    items: [], baseImponible: 0, ivaValor: 0, descuento: 0, total: 0,
-    paymentMethod: 'transferencia', paymentStatus: 'pagado',
-    cuentaBancariaId: '', fechaVencimiento: '',
-    category: 'compras', description: '', reference: ''
-  });
+  // Form data (inicializado desde tx cuando se edita una compra existente para evitar borrar datos)
+  const [form, setForm] = useState(() => ({
+    type: 'egreso',
+    purchaseType: tx?.purchaseType || tx?.purchaseMethod || purchaseMethod || 'con_inventario',
+    documentType: tx?.documentType || 'factura',
+    documentNumber: tx?.documentNumber || '',
+    claveAcceso: tx?.claveAcceso || '',
+    date: tx?.date || getEcuadorDateString(),
+    bodega: tx?.bodega || 'Bodega Central',
+    supplierId: tx?.thirdPartyId || tx?.supplierId || '',
+    supplierName: tx?.thirdPartyName || tx?.supplierName || '',
+    supplierRuc: tx?.thirdPartyRuc || tx?.supplierRuc || '',
+    items: Array.isArray(tx?.items) ? tx.items : [],
+    baseImponible: Number(tx?.baseImponible || 0),
+    ivaValor: Number(tx?.ivaValor || 0),
+    descuento: Number(tx?.descuento || 0),
+    retencionFuente: Number(tx?.retencionFuente || 0),
+    retencionIva: Number(tx?.retencionIva || 0),
+    total: Number(tx?.total || 0),
+    paymentMethod: tx?.paymentMethod || 'transferencia',
+    paymentStatus: tx?.paymentStatus || 'pagado',
+    cuentaBancariaId: tx?.cuentaBancariaId || '',
+    fechaVencimiento: tx?.fechaVencimiento || tx?.creditDueDate || '',
+    category: tx?.category || 'compras',
+    description: tx?.description || '',
+    reference: tx?.reference || tx?.transactionRef || ''
+  }));
+  const maxStep = form.purchaseType === 'sin_inventario' ? 2 : 3;
 
   // Supplier search
   const [supplierSearch, setSupplierSearch] = useState('');
@@ -51,14 +69,13 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   // Cost impact calculation
   const [costImpacts, setCostImpacts] = useState({}); // productId -> { currentCost, newAvg, delta }
 
-  // Load branches
+  // Load unified warehouses (preservando bodegas existentes de config y stockByBranch)
   useEffect(() => {
     if (!db || !appId) return;
-    (async () => {
-      const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_branches'));
-      if (!snap.empty) { const list = []; snap.forEach(d => list.push({ id: d.id, ...d.data() })); setBranches(list); }
-    })();
-  }, [db, appId]);
+    fetchUnifiedWarehouses({ firestore: db, tenantId: appId, products })
+      .then((list) => { if (list.length > 0) setBranches(list); })
+      .catch(() => {});
+  }, [db, appId, products]);
 
   // Load bank accounts
   useEffect(() => {
@@ -71,27 +88,30 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     return () => { isMounted = false; };
   }, [db]);
 
-  // Recalculate totals with per-product IVA
+  // Recalculate totals with per-product IVA (redondeo exacto a 2 decimales)
   const recalcTotals = (items) => {
+    const r2 = (v) => Math.round((Number(v) + Number.EPSILON) * 100) / 100;
     let iva5 = 0, iva12 = 0, iva15 = 0;
-    const base = items.reduce((s, i) => {
-      const subtotal = Number(i.quantity) * Number(i.price) - Number(i.discount || 0);
+    const base = r2(items.reduce((s, i) => {
+      const subtotal = r2(Math.max(0, Number(i.quantity) * Number(i.price) - Number(i.discount || 0)));
       const ivaRate = Number(i.ivaCategory ?? 15);
-      if (ivaRate === 5) iva5 += subtotal * 0.05;
-      else if (ivaRate === 12) iva12 += subtotal * 0.12;
-      else if (ivaRate === 15 || ivaRate !== 0) iva15 += subtotal * 0.15;
+      if (ivaRate === 5) iva5 = r2(iva5 + subtotal * 0.05);
+      else if (ivaRate === 12) iva12 = r2(iva12 + subtotal * 0.12);
+      else if (ivaRate === 15 || ivaRate !== 0) iva15 = r2(iva15 + subtotal * 0.15);
       return s + subtotal;
-    }, 0);
-    const ivaValor = iva5 + iva12 + iva15;
-    return { baseImponible: base, ivaValor, iva5, iva12, iva15, total: base + ivaValor };
+    }, 0));
+    const ivaValor = r2(iva5 + iva12 + iva15);
+    return { baseImponible: base, ivaValor, iva5, iva12, iva15, total: r2(base + ivaValor) };
   };
 
-  // Calculate cost impact for a product
+  // Calculate cost impact for a product (leer inventory_products con respaldo finances_products)
   const calcCostImpact = async (productId, newCost, newQty) => {
     if (!db || !appId || !productId) return;
     try {
-      const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', productId);
-      const snap = await getDoc(prodRef);
+      let snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_products', productId));
+      if (!snap.exists()) {
+        snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_products', productId));
+      }
       if (!snap.exists()) return;
       const prod = snap.data();
       const currentStock = Number(prod.stock) || 0;
@@ -173,26 +193,32 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     } catch { showToast?.('Error al crear proveedor', 'error'); }
   };
 
-  // XML Import
+  // XML Import (soporta XML directo y XML envuelto en <autorizacion><comprobante><![CDATA[...]]></comprobante></autorizacion>)
   const handleXmlUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(text, "text/xml");
+      let xmlDoc = parser.parseFromString(text, "text/xml");
+      const wrappedComprobante = xmlDoc.getElementsByTagName("comprobante")?.[0]?.textContent?.trim();
+      if (wrappedComprobante && wrappedComprobante.startsWith('<')) {
+        xmlDoc = parser.parseFromString(wrappedComprobante, "text/xml");
+      }
       const infoTrib = xmlDoc.getElementsByTagName("infoTributaria")?.[0];
-      if (!infoTrib) { showToast?.('XML invalido', 'error'); return; }
+      if (!infoTrib) { showToast?.('XML invalido: falta infoTributaria', 'error'); return; }
 
-      const ruc = infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '';
+      const ruc = (infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '').replace(/\s+/g, '');
       const razonSocial = infoTrib.getElementsByTagName("razonSocial")?.[0]?.textContent || '';
       const estab = infoTrib.getElementsByTagName("estab")?.[0]?.textContent || '';
       const ptoEmi = infoTrib.getElementsByTagName("ptoEmi")?.[0]?.textContent || '';
       const secuencial = infoTrib.getElementsByTagName("secuencial")?.[0]?.textContent || '';
-      const claveAcceso = infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '';
+      const claveAcceso = (infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '').replace(/\s+/g, '');
 
       const infoFact = xmlDoc.getElementsByTagName("infoFactura")?.[0];
-      const fechaEmision = infoFact?.getElementsByTagName("fechaEmision")?.[0]?.textContent || getEcuadorDateString();
+      const rawFecha = infoFact?.getElementsByTagName("fechaEmision")?.[0]?.textContent?.trim() || '';
+      const ecMatch = rawFecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      const fechaEmision = ecMatch ? `${ecMatch[3]}-${ecMatch[2]}-${ecMatch[1]}` : (rawFecha || getEcuadorDateString());
       // eslint-disable-next-line no-unused-vars
       const importeTotal = infoFact?.getElementsByTagName("importeTotal")?.[0]?.textContent || '0';
 
@@ -248,7 +274,9 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       thirdPartyId: form.supplierId, thirdPartyName: form.supplierName, thirdPartyRuc: form.supplierRuc,
         baseImponible: form.baseImponible, ivaPorcentaje: 15, ivaValor: form.ivaValor, total: form.total,
         iva5: form.iva5 || 0, iva12: form.iva12 || 0, iva15: form.iva15 || 0,
-      descuento: form.descuento, paymentMethod: form.paymentMethod, paymentStatus: form.paymentStatus,
+        retencionFuente: Number(form.retencionFuente) || 0,
+        retencionIva: Number(form.retencionIva) || 0,
+      descuento: form.descuento, paymentMethod: form.paymentMethod, paymentStatus: form.paymentMethod === 'credito' ? 'pendiente' : form.paymentStatus,
       cuentaBancariaId: form.cuentaBancariaId || '',
       fechaVencimiento: form.fechaVencimiento || null,
       sriStatus,
@@ -313,8 +341,9 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           date: form.date || new Date().toISOString(),
           fechaVencimiento: form.fechaVencimiento || null,
           cuentaBancariaId: form.cuentaBancariaId || '',
+          transactionRef: form.reference || '',
           paymentMethod: form.paymentMethod || 'transferencia',
-          paymentStatus: form.paymentStatus || 'pagado',
+          paymentStatus: form.paymentMethod === 'credito' ? 'pendiente' : (form.paymentStatus || 'pagado'),
           sriStatus,
           category: 'compras',
           descripcion: form.description || '',
@@ -371,15 +400,15 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
           <UiBox {...{"className":"flex items-center gap-1.5"}}>
             {[1, 2, 3].filter(s => s <= maxStep).map(s => (
               <Fragment key={s}>
-                <UiBox {...mergeThemeProps({"className":"flex items-center gap-1.5"}, {}, (step >= s ? {} : {"style":{"color":"var(--gray-11)"}}))}>
-                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"w-6 h-6 flex items-center justify-center"}, {}, (step === s ? {"style":{"backgroundColor":"var(--gray-2)","color":"var(--color-background)"}} : (step > s ? {"style":{"backgroundColor":"var(--gray-2)","color":"var(--color-background)"}} : {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})))}>
+                <UiBox {...mergeThemeProps({"className":"flex items-center gap-1.5"}, {}, (step >= s ? {"style":{"color":"var(--blue-11)"}} : {"style":{"color":"var(--gray-11)"}}))}>
+                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"w-6 h-6 flex items-center justify-center text-xs font-bold"}, {}, (step >= s ? {"style":{"backgroundColor":"var(--blue-9)","color":"#ffffff"}} : {"style":{"backgroundColor":"var(--gray-3)","color":"var(--gray-11)"}}))}>
                     {step > s ? <CheckCircle2 size={12} /> : s}
                   </UiBox>
                   <UiText {...{"size":"1","weight":"medium","className":"hidden sm:inline"}}>
                     {s === 1 ? 'Datos' : s === 2 ? 'Productos' : 'Confirmar'}
                   </UiText>
                 </UiBox>
-                {s < maxStep && <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"flex-1 h-0.5"}, {}, (step > s ? {"style":{"backgroundColor":"var(--gray-2)"}} : {"style":{"backgroundColor":"var(--color-panel-solid)"}}))} />}
+                {s < maxStep && <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"flex-1 h-0.5"}, {}, (step > s ? {"style":{"backgroundColor":"var(--blue-9)"}} : {"style":{"backgroundColor":"var(--gray-4)"}}))} />}
               </Fragment>
             ))}
           </UiBox>
@@ -396,16 +425,16 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                 <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Tipo de compra</UiLabel>
                 <UiBox {...{"className":"flex gap-2"}}>
                   <UiButton type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'con_inventario' }))}
-                    {...mergeThemeProps({"variant":"outline","className":"flex-1 text-left"}, {}, (form.purchaseType === 'con_inventario' ? {"variant":"solid","color":"gray"} : {}))}>
+                    {...mergeThemeProps({"variant":"outline","color":"gray","className":"flex-1 text-left h-auto py-2.5 flex-col items-start"}, {}, (form.purchaseType === 'con_inventario' ? {"variant":"soft","color":"blue"} : {}))}>
                     <Package size={16} {...{"className":"mb-1"}} />
-                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Con Inventario</UiBox>
-                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Controla stock y costos</UiBox>
+                    <UiBox className="font-semibold">Con Inventario</UiBox>
+                    <UiBox className="text-xs opacity-80">Controla stock y costos</UiBox>
                   </UiButton>
                   <UiButton type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'sin_inventario' }))}
-                    {...mergeThemeProps({"variant":"outline","className":"flex-1 text-left"}, {}, (form.purchaseType === 'sin_inventario' ? {"variant":"solid","color":"gray"} : {}))}>
-                    <FileText size={16} {...{"style":{"color":"var(--gray-12)"},"className":"mb-1"}} />
-                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Sin Inventario</UiBox>
-                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Solo registro contable</UiBox>
+                    {...mergeThemeProps({"variant":"outline","color":"gray","className":"flex-1 text-left h-auto py-2.5 flex-col items-start"}, {}, (form.purchaseType === 'sin_inventario' ? {"variant":"soft","color":"blue"} : {}))}>
+                    <FileText size={16} {...{"className":"mb-1"}} />
+                    <UiBox className="font-semibold">Sin Inventario</UiBox>
+                    <UiBox className="text-xs opacity-80">Solo registro contable</UiBox>
                   </UiButton>
                 </UiBox>
               </UiBox>
@@ -666,13 +695,72 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                     <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5"}}>Descripcion / Concepto del gasto</UiBox>
                     <UiTextarea value={form.description} onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))} rows={2}
                       {...{"size":"2","color":"gray","className":"w-full"}} placeholder="Ej: Pago de servicio de internet, compra de suministros..." />
-                    <UiBox {...{"className":"grid grid-cols-2 gap-3 mt-3"}}>
+                    <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3"}}>
                       <UiBox>
-                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5"}}>Monto total $</UiBox>
-                        <UiInput type="number" step="0.01" value={form.total || ''} onChange={e => setForm(prev => ({ ...prev, total: Number(e.target.value) }))} {...{"size":"2","color":"gray","className":"w-full"}} />
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5 text-xs font-medium"}}>Base imponible $</UiBox>
+                        <UiInput
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={form.baseImponible || ''}
+                          onChange={e => {
+                            const base = Number(e.target.value) || 0;
+                            setForm(prev => ({
+                              ...prev,
+                              baseImponible: base,
+                              total: Math.round((base + (Number(prev.ivaValor) || 0)) * 100) / 100
+                            }));
+                          }}
+                          size="2"
+                          color="gray"
+                          className="w-full"
+                        />
                       </UiBox>
                       <UiBox>
-                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5"}}>Categoria</UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5 text-xs font-medium"}}>IVA $</UiBox>
+                        <UiInput
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={form.ivaValor || ''}
+                          onChange={e => {
+                            const iva = Number(e.target.value) || 0;
+                            setForm(prev => ({
+                              ...prev,
+                              ivaValor: iva,
+                              iva15: iva,
+                              total: Math.round(((Number(prev.baseImponible) || 0) + iva) * 100) / 100
+                            }));
+                          }}
+                          size="2"
+                          color="gray"
+                          className="w-full"
+                        />
+                      </UiBox>
+                      <UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5 text-xs font-medium"}}>Monto total $</UiBox>
+                        <UiInput
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={form.total || ''}
+                          onChange={e => {
+                            const tot = Number(e.target.value) || 0;
+                            setForm(prev => ({
+                              ...prev,
+                              total: tot,
+                              baseImponible: Number(prev.ivaValor) > 0
+                                ? Math.max(0, Math.round((tot - Number(prev.ivaValor)) * 100) / 100)
+                                : tot
+                            }));
+                          }}
+                          size="2"
+                          color="gray"
+                          className="w-full"
+                        />
+                      </UiBox>
+                      <UiBox>
+                        <UiBox {...{"style":{"color":"var(--gray-12)"},"className":"block mb-1.5 text-xs font-medium"}}>Categoria</UiBox>
                         <UiSelect value={form.category} onChange={e => setForm(prev => ({ ...prev, category: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
                           <option value="compras">Compras</option><option value="gastos_administrativos">Gastos Admin</option>
                           <option value="servicios_basicos">Servicios Basicos</option><option value="arriendos">Arriendos</option>
@@ -684,12 +772,55 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                 )}
               </UiCard>
 
+              {/* Retenciones SRI (opcional) */}
+              <UiBox className="grid grid-cols-2 gap-3">
+                <UiBox>
+                  <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5">Retención en la Fuente ($)</UiLabel>
+                  <UiInput
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={form.retencionFuente || ''}
+                    onChange={e => setForm(prev => ({ ...prev, retencionFuente: Number(e.target.value) || 0 }))}
+                    placeholder="0.00"
+                    size="2"
+                    color="gray"
+                    className="w-full"
+                  />
+                </UiBox>
+                <UiBox>
+                  <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5">Retención de IVA ($)</UiLabel>
+                  <UiInput
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={form.retencionIva || ''}
+                    onChange={e => setForm(prev => ({ ...prev, retencionIva: Number(e.target.value) || 0 }))}
+                    placeholder="0.00"
+                    size="2"
+                    color="gray"
+                    className="w-full"
+                  />
+                </UiBox>
+              </UiBox>
+
               {/* Payment */}
               <UiBox {...{"className":"space-y-3"}}>
                 <UiBox {...{"className":"grid grid-cols-2 gap-3"}}>
                   <UiBox>
                     <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Método de pago</UiLabel>
-                    <UiSelect value={form.paymentMethod} onChange={e => setForm(prev => ({ ...prev, paymentMethod: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
+                    <UiSelect
+                      value={form.paymentMethod}
+                      onChange={e => {
+                        const method = e.target.value;
+                        setForm(prev => ({
+                          ...prev,
+                          paymentMethod: method,
+                          paymentStatus: method === 'credito' ? 'pendiente' : prev.paymentStatus
+                        }));
+                      }}
+                      {...{"size":"2","color":"gray","className":"w-full"}}
+                    >
                       <option value="transferencia">Transferencia</option>
                       <option value="efectivo">Efectivo</option>
                       <option value="tarjeta">Tarjeta</option>
@@ -698,7 +829,12 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                   </UiBox>
                   <UiBox>
                     <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Estado del pago</UiLabel>
-                    <UiSelect value={form.paymentStatus} onChange={e => setForm(prev => ({ ...prev, paymentStatus: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
+                    <UiSelect
+                      value={form.paymentMethod === 'credito' ? 'pendiente' : form.paymentStatus}
+                      disabled={form.paymentMethod === 'credito'}
+                      onChange={e => setForm(prev => ({ ...prev, paymentStatus: e.target.value }))}
+                      {...{"size":"2","color":"gray","className":"w-full"}}
+                    >
                       <option value="pagado">Pagado</option>
                       <option value="pendiente">Pendiente</option>
                     </UiSelect>

@@ -16,7 +16,9 @@ export function isSellable(product) {
 }
 
 export function taxRateFor(product) {
-  const value = product.tarifa_iva ?? ((product.taxRate ?? product.ivaCategory ?? 15) / 100);
+  const cat = String(product?.ivaCategory || product?.iva_category || '').toLowerCase().trim();
+  if (cat === 'no_objeto' || cat === 'no objeto' || cat === 'exento') return 0;
+  const value = product?.tarifa_iva ?? ((product?.taxRate ?? product?.ivaPorcentaje ?? product?.ivaCategory ?? 15) / 100);
   const rate = Number(value);
   return Number.isFinite(rate) && rate >= 0 ? (rate > 1 ? rate / 100 : rate) : 0;
 }

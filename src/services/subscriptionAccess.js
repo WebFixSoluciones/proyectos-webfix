@@ -10,7 +10,7 @@ export function getSubscriptionExpiry(tenantInfo) {
 
 export function isSubscriptionBlocked(tenantInfo, now = new Date()) {
   if (!tenantInfo) return false;
-  if (tenantInfo.planStatus === 'suspended' || tenantInfo.planStatus === 'expired') return true;
+  if (tenantInfo.planStatus === 'suspended' || tenantInfo.planStatus === 'expired' || tenantInfo.planStatus === 'pending_approval') return true;
   const expiry = getSubscriptionExpiry(tenantInfo);
   return expiry ? expiry.getTime() <= now.getTime() : false;
 }

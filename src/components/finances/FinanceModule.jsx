@@ -40,9 +40,11 @@ import ReportesView from './ReportesView';
 
 export default function FinanceModule({ 
   mode = 'contabilidad', 
-  initialSubTab, 
+  initialSubTab,
+  onSubTabChange,
   showToast,
   usuario = null,
+  tenantUsers = [],
   transactions = [],
   thirdParties = [],
   products = [],
@@ -99,11 +101,16 @@ export default function FinanceModule({
   };
   const transactionSaved = data => { 
     if (checkoutResolver.current) { 
+      const fromPos = Boolean(editingTx?.isPOS || editingTx?.posCheckoutOrigin || subTabVentas === 'pos');
       checkoutResolver.current(data); 
       checkoutResolver.current = null; 
       setIsModalOpen(false); 
       setEditingTx(null); 
-      setSubTabVentas('resumen_ventas'); 
+      // Mantener al cajero en POS tras cobrar; solo volver al historial si provino de venta administrativa
+      if (!fromPos) {
+        setSubTabVentas('resumen_ventas');
+        onSubTabChange?.('resumen_ventas');
+      }
       return;
     } 
   };
@@ -158,8 +165,10 @@ export default function FinanceModule({
 
   // Abrir modal de factura prellenada (desde POS o Cotizaciones)
   const handleOpenFormModal = (prefilledData = null) => {
-    // In compras mode, show method selector for NEW purchases (no existing id)
-    if (mode === 'compras' && (!prefilledData || !prefilledData.id)) {
+    // En modo compras, mostrar selector de método solo para facturas/compras nuevas en compras_resumen
+    // (NC, ND y Retenciones recibidas abren directamente TransactionForm)
+    const isPurchaseDoc = !prefilledData?.documentType || ['factura', 'nota_venta', 'liquidacion'].includes(prefilledData.documentType);
+    if (mode === 'compras' && activeTab === 'compras_resumen' && isPurchaseDoc && (!prefilledData || !prefilledData.id)) {
       setShowPurchaseMethodSelect(true);
       setEditingTx(prefilledData);
       return;
@@ -418,12 +427,12 @@ export default function FinanceModule({
         <div className={`flex-1 min-w-0 overflow-y-auto bg-white custom-scrollbar ${isFormActive ? 'pt-0 pb-6' : 'py-4'}`}>
           {isLoading ? (
             <UiBox {...{"className":"flex justify-center items-center h-64"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-8 w-8"}}></UiBox>
+              <UiBox className="animate-spin h-8 w-8 rounded-full border-2 border-[var(--gray-5)] border-t-[var(--blue-9)]"></UiBox>
             </UiBox>
           ) : (
             <>
               {activeTab === 'resumen_financiero' && (
-                <ResumenFinancieroView db={db} usuario={usuario} showToast={showToast} onNavigate={(tab) => setActiveTab(tab)} />
+                <ResumenFinancieroView db={db} usuario={usuario} showToast={showToast} onNavigate={(tab) => { setActiveTab(tab); onSubTabChange?.(tab); }} />
               )}
               {activeTab === 'movimientos' && (
                 <MovimientosView db={db} usuario={usuario} showToast={showToast} />
@@ -433,7 +442,7 @@ export default function FinanceModule({
               {/* SECCIÓN VENTAS */}
               {activeTab === 'ventas' && (
                 isModalOpen && (editingTx?.type === 'ingreso' || !editingTx?.type) && !editingTx?.posCheckoutOrigin && !editingTx?.isPOS ? (
-                  <TransactionForm onSaved={transactionSaved} usuario={usuario}
+                  <TransactionForm onSaved={transactionSaved} usuario={usuario} tenantUsers={tenantUsers}
                     tx={editingTx} 
                     onClose={closeTransactionForm}
                     thirdParties={thirdParties} 
@@ -462,8 +471,9 @@ export default function FinanceModule({
                         db={db} 
                         appId={appId} 
                         usuario={usuario}
+                        tenantUsers={tenantUsers}
                         onCheckout={handlePOSCheckout} 
-                        onClose={() => setSubTabVentas('resumen_ventas')}
+                        onClose={() => { setSubTabVentas('resumen_ventas'); onSubTabChange?.('resumen_ventas'); }}
                         isPreventaOnly={true}
                       />
                     )}
@@ -478,8 +488,9 @@ export default function FinanceModule({
                         db={db} 
                         appId={appId} 
                         usuario={usuario}
+                        tenantUsers={tenantUsers}
                         onCheckout={handlePOSCheckout} 
-                        onClose={() => setSubTabVentas('resumen_ventas')}
+                        onClose={() => { setSubTabVentas('resumen_ventas'); onSubTabChange?.('resumen_ventas'); }}
                         isPreventaOnly={false}
                       />
                     )}
@@ -526,7 +537,7 @@ export default function FinanceModule({
 
               {/* SECCIÓN INVENTARIO */}
               {activeTab === 'products' && (
-                <InventoryModule />
+                <InventoryModule showToast={showToast} transactions={transactions} />
               )}
 
               {/* SECCIÓN PERSONAS */}
@@ -583,7 +594,7 @@ export default function FinanceModule({
               )}
 
               {activeTab === 'impuestos' && (
-                <ImpuestosSriView db={db} usuario={usuario} showToast={showToast} transactions={transactions} />
+                <ImpuestosSriView db={db} appId={appId} usuario={usuario} showToast={showToast} transactions={transactions} />
               )}
 
               {/* VALIDACIONES */}
@@ -660,7 +671,7 @@ export default function FinanceModule({
         editingTx?.type === 'egreso' && 
         (editingTx?.documentType === 'factura' || editingTx?.documentType === 'nota_venta' || editingTx?.documentType === 'liquidacion' || !editingTx?.documentType)
       ) && (activeTab !== 'ventas' || editingTx?.isPOS || editingTx?.posCheckoutOrigin) && (
-        <TransactionForm onSaved={transactionSaved} usuario={usuario}
+        <TransactionForm onSaved={transactionSaved} usuario={usuario} tenantUsers={tenantUsers}
           tx={editingTx} 
           onClose={closeTransactionForm}
           thirdParties={thirdParties} 

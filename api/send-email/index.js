@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { escapeHtml, isSafeExternalUrl } from '../../server/domains/mailerGuard.js';
 
 /**
  * Normaliza y valida la configuración SMTP:
@@ -199,7 +200,7 @@ export default async function handler(req, res) {
           console.warn("No se pudo procesar data URI de PDF:", e.message);
         }
       } else if (
-        (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) &&
+        isSafeExternalUrl(pdfUrl, { restrictToStorage: true }) &&
         !pdfUrl.includes('srienlinea.sri.gob.ec') &&
         !pdfUrl.includes('/public/ride')
       ) {
@@ -245,7 +246,7 @@ export default async function handler(req, res) {
         } catch (e) {
           console.warn("No se pudo procesar data URI de XML:", e.message);
         }
-      } else if (xmlUrl.startsWith('http://') || xmlUrl.startsWith('https://')) {
+      } else if (isSafeExternalUrl(xmlUrl, { restrictToStorage: true })) {
         attachments.push({
           filename: `${documentNumber || 'Comprobante'}.xml`,
           path: xmlUrl
@@ -327,7 +328,7 @@ export default async function handler(req, res) {
                   <!-- Header / Branding -->
                   <div style="background-color: #1C40F2; padding: 32px 24px; text-align: center; border: none;">
                     <h1 style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 800; color: #ffffff; margin: 0 0 10px 0; line-height: 1.2;">
-                      ${isDirectToEmitter ? `¡Hola, ${String(cleanCompanyName || 'Emisor').toUpperCase()}!` : `¡Hola, ${String(clientName || 'Cliente').toUpperCase()}!`}
+                      ${isDirectToEmitter ? `¡Hola, ${escapeHtml(String(cleanCompanyName || 'Emisor').toUpperCase())}!` : `¡Hola, ${escapeHtml(String(clientName || 'Cliente').toUpperCase())}!`}
                     </h1>
                     <p style="font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 400; color: #ffffff; margin: 0; line-height: 1.2;">
                       ${isDirectToEmitter ? 'Copia de Respaldo - Nuevo Comprobante Emitido' : (isNotaVenta ? 'Nuevo Comprobante de Venta' : 'Nuevo Comprobante Electrónico Autorizado')}
@@ -337,7 +338,7 @@ export default async function handler(req, res) {
                   <!-- Body Content -->
                   <div style="padding: 30px 24px; background-color: #ffffff;">
                     <p style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: #000000; margin: 0 0 24px 0; line-height: 1.5; text-transform: uppercase;">
-                      ${isDirectToEmitter ? `Has emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico'} para ${String(clientName || 'Consumidor Final').toUpperCase()}.` : `${String(cleanCompanyName || 'EMISOR').toUpperCase()} ha emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico'} a su nombre.`}
+                      ${isDirectToEmitter ? `Has emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico'} para ${escapeHtml(String(clientName || 'Consumidor Final').toUpperCase())}.` : `${escapeHtml(String(cleanCompanyName || 'EMISOR').toUpperCase())} ha emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico'} a su nombre.`}
                     </p>
 
                     <table style="width: 100%; border-collapse: collapse; border: none;">
@@ -355,28 +356,28 @@ export default async function handler(req, res) {
                             ${claveAcceso ? `
                               <div style="margin-bottom: 12px;">
                                 <strong style="font-weight: 700; display: block; color: #000000;">Clave de Acceso:</strong>
-                                <span style="font-weight: 400; display: block; color: #000000; word-break: break-all; margin-top: 2px;">${claveAcceso}</span>
+                                <span style="font-weight: 400; display: block; color: #000000; word-break: break-all; margin-top: 2px;">${escapeHtml(claveAcceso)}</span>
                               </div>
                             ` : ''}
 
                             <div style="margin-bottom: 12px;">
-                              <strong style="font-weight: 700; display: block; color: #000000;">${docTypeLabel}:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${documentNumber || ''}</span>
+                              <strong style="font-weight: 700; display: block; color: #000000;">${escapeHtml(docTypeLabel)}:</strong>
+                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${escapeHtml(documentNumber || '')}</span>
                             </div>
 
                             <div style="margin-bottom: 12px;">
                               <strong style="font-weight: 700; display: block; color: #000000;">Fecha Emisión:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${date || ''}</span>
+                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${escapeHtml(date || '')}</span>
                             </div>
 
                             <div style="margin-bottom: 12px;">
                               <strong style="font-weight: 700; display: block; color: #000000;">Cliente:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${String(clientName || '').toUpperCase()}</span>
+                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${escapeHtml(String(clientName || '').toUpperCase())}</span>
                             </div>
 
                             <div style="margin-bottom: 12px;">
                               <strong style="font-weight: 700; display: block; color: #000000;">Identificación:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${clientIdentification || ''}</span>
+                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${escapeHtml(clientIdentification || '')}</span>
                             </div>
 
                             <!-- Total Block -->

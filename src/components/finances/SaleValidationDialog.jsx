@@ -20,8 +20,9 @@ export default function SaleValidationDialog({ issues = [], onClose, onNavigate 
           <Callout.Icon><AlertCircle size={18} /></Callout.Icon>
           <Callout.Text>
             {issues.map((issue, index) => (
-              <span className="block mb-1 last:mb-0" key={`${issue.target || 'general'}-${index}`}>
-                {issue.shortMessage || fallback[issue.target]?.shortMessage || issue.message}
+              <span className="block mb-1.5 last:mb-0" key={`${issue.target || 'general'}-${index}`}>
+                <strong className="block text-xs">{issue.shortMessage || fallback[issue.target]?.shortMessage}</strong>
+                {issue.message && <span className="block text-xs opacity-90">{issue.message}</span>}
               </span>
             ))}
           </Callout.Text>

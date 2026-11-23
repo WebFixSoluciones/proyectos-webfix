@@ -14,7 +14,7 @@ const data = new Map([
 const listeners = new Set();
 const snap = path => ({ id: path.split('/').at(-1), exists: () => data.has(path), data: () => structuredClone(data.get(path)) });
 export const getFirestore = () => ({});
-export const doc = (...args) => ({ path: args[0]?.path ? [args[0].path, ...args.slice(1)].join('/') : args.slice(1).join('/') });
+export const doc = (...args) => ({ path: args[0]?.path ? [args[0].path, ...(args.length === 1 ? [crypto.randomUUID()] : args.slice(1))].join('/') : args.slice(1).join('/') });
 export const collection = doc;
 export const where = (field, op, value) => ({ field, op, value });
 export const orderBy = () => null;
@@ -23,7 +23,7 @@ export const query = (ref, ...filters) => ({ ...ref, filters: filters.filter(Boo
 export const getDoc = async ref => snap(ref.path);
 export const getDocs = async ref => {
   const docs = [...data.keys()].filter(k => k.startsWith(ref.path + '/') && k.slice(ref.path.length + 1).indexOf('/') < 0).filter(k => (ref.filters || []).every(f => data.get(k)[f.field] === f.value)).map(snap);
-  return { docs, empty: docs.length === 0, forEach: callback => docs.forEach(callback) };
+  return { docs, size: docs.length, empty: docs.length === 0, forEach: callback => docs.forEach(callback) };
 };
 const emit = () => listeners.forEach(callback => callback());
 export const setDoc = async (ref, value, options) => { if (globalThis.__failWrites) throw new Error('Fallo de guardado simulado'); data.set(ref.path, { ...(options?.merge ? data.get(ref.path) : {}), ...structuredClone(value) }); emit(); };
@@ -32,7 +32,7 @@ export const deleteDoc = async ref => { data.delete(ref.path); emit(); };
 export const addDoc = async (ref, value) => { const child = doc(ref, crypto.randomUUID()); await setDoc(child, value); return child; };
 export const serverTimestamp = () => new Date();
 export const Timestamp = { fromDate: value => value, now: () => new Date() };
-export const onSnapshot = (ref, callback) => { const run = () => getDocs(ref).then(callback); listeners.add(run); run(); return () => listeners.delete(run); };
+export const onSnapshot = (ref, callback) => { const run = () => (ref.path.split('/').length % 2 === 0 ? getDoc(ref) : getDocs(ref)).then(callback); listeners.add(run); run(); return () => listeners.delete(run); };
 export const runTransaction = async (_db, body) => {
   const writes = [];
   const result = await body({ get: getDoc, set: (...args) => writes.push(() => setDoc(...args)), update: (...args) => writes.push(() => updateDoc(...args)), delete: (...args) => writes.push(() => deleteDoc(...args)) });
@@ -45,13 +45,17 @@ export const ref = () => ({});
 export const getDownloadURL = async () => '/product.svg';
 export const uploadBytes = async () => ({});
 export const uploadBytesResumable = () => ({ on: (_event, _progress, _error, complete) => complete() });
-export const getAuth = () => ({ currentUser: { uid: 'tester' } });
+export const getAuth = () => ({ currentUser: { uid: 'tester', getIdToken: async () => 'fixture-token' } });
 export const onAuthStateChanged = (_auth, callback) => { callback({ uid: 'tester' }); return () => {}; };
 export const signOut = async () => {};
 export const signInWithEmailAndPassword = async () => ({ user: { uid: 'tester' } });
-export const createUserWithEmailAndPassword = signInWithEmailAndPassword;
+export const createUserWithEmailAndPassword = async (...args) => { if (globalThis.__existingAccount) throw Object.assign(new Error('Cuenta existente'), { code: 'auth/email-already-in-use' }); return signInWithEmailAndPassword(...args); };
 export const sendPasswordResetEmail = async () => {};
 export const sendEmailVerification = async () => {};
 export const reload = async () => {};
-export const deleteUser = async () => {};
+export const deleteUser = async () => { globalThis.__deletedRegistrationUser = true; };
 globalThis.__fixtureData = data;
+
+export const getCountFromServer = async ref => ({ data: () => ({ count: [...data.keys()].filter(k => k.startsWith(ref.path + '/') && !k.slice(ref.path.length + 1).includes('/')).length }) });
+export const inMemoryPersistence = {};
+export const setPersistence = async () => {};

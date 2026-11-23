@@ -2,15 +2,15 @@ import { UiInput } from '../components/ui/controls';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { doc, writeBatch, Timestamp, serverTimestamp } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, sendEmailVerification, deleteUser, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { registrationOptions } from '../services/tenantAdminModel';
 import { auth, db, setTenantId } from '../firebase';
 
 export default function RegisterPage({ showToast }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const planParam = searchParams.get('plan') || 'starter';
-  const periodParam = searchParams.get('period') || 'monthly';
+  const { planId: planParam, billingPeriod: periodParam } = registrationOptions(searchParams.get('plan'), searchParams.get('period'));
 
   const [registerForm, setRegisterForm] = useState({
     name: '',
@@ -37,35 +37,49 @@ export default function RegisterPage({ showToast }) {
     setIsRegistering(true);
     setRegisterError('');
 
+    let createdUser = null;
+    let workspaceCreated = false;
+    let shouldDeleteUser = false;
     try {
-      const email = registerForm.email.trim();
+      const email = registerForm.email.trim().toLowerCase();
       const password = registerForm.password;
       const name = registerForm.name.trim();
       const companyName = registerForm.companyName.trim();
 
+      if (!name || !companyName) throw new Error('Completa tu nombre y el nombre de la empresa.');
+
       // 1. Crear el usuario en Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      let userCredential;
+      try {
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        shouldDeleteUser = true;
+      } catch (error) {
+        if (error.code !== 'auth/email-already-in-use') throw error;
+        // Resume only after proving ownership with the password, never delete an existing account.
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const profile = await getDoc(doc(db, 'users', userCredential.user.uid));
+        if (profile.exists()) throw Object.assign(new Error('Tu cuenta ya está registrada. Inicia sesión para continuar.'), { code: 'registration/already-complete' });
+      }
       const user = userCredential.user;
+      const ownerEmail = user.email || email;
+      createdUser = user;
 
       // 2. Generar un tenantId aleatorio y único
       const generatedTenantId = `org_${user.uid.substring(0, 10)}_${new Date().getTime().toString().substring(8)}`;
 
       // 3. Crear el documento del inquilino (Tenant) en Firestore
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 14);
-
       const batch = writeBatch(db);
       const tenantData = {
         ownerUid: user.uid,
+        ownerEmail,
+        registrationSource: 'public',
         id: generatedTenantId,
         companyName: companyName,
         planId: planParam,
-        planStatus: 'trial',
+        planStatus: 'pending_approval',
         requireEmailVerification: true,
         billingPeriod: periodParam,
-        createdAt: serverTimestamp(),
-        expiresAt: expiresAt.toISOString(),
-        trialExpiresAt: Timestamp.fromDate(expiresAt)
+        createdAt: serverTimestamp()
       };
 
       batch.set(doc(db, 'tenants', generatedTenantId), tenantData);
@@ -116,20 +130,33 @@ export default function RegisterPage({ showToast }) {
       });
 
       await batch.commit();
+      workspaceCreated = true;
 
       // 6. Establecer el tenantId de forma dinámica
       setTenantId(generatedTenantId);
+      if (user.emailVerified) {
+        showToast?.('Registro recibido. Tu empresa está pendiente de aprobación.', 'success');
+        navigate('/app');
+        return;
+      }
       try {
         await sendEmailVerification(user);
-        showToast?.('Empresa creada. Revisa tu correo para verificar la cuenta.', 'success');
+        showToast?.('Registro recibido. Verifica tu correo; el administrador revisará la habilitación de tu empresa.', 'success');
       } catch {
         showToast?.('Empresa creada. Solicita el enlace de verificación en la siguiente pantalla.', 'warning');
       }
       navigate('/verify-email');
     } catch (error) {
+      if (createdUser && shouldDeleteUser && !workspaceCreated) {
+        try { await deleteUser(createdUser); }
+        catch { showToast?.('El alta quedó incompleta. Contacta a soporte antes de volver a registrarte.', 'warning'); }
+      }
       console.error('Registration error:', error);
       const errorMessages = {
         'auth/email-already-in-use': 'Este correo ya está registrado.',
+        'registration/already-complete': 'Tu cuenta ya está registrada. Inicia sesión para continuar.',
+        'auth/invalid-credential': 'El correo ya existe. Ingresa la contraseña correcta para continuar su registro.',
+        'permission-denied': 'No se pudo completar el alta de la empresa. Contacta al administrador e indica tu correo de registro.',
         'auth/invalid-email': 'El correo electrónico no es válido.',
         'auth/operation-not-allowed': 'El registro de usuarios no está habilitado.',
         'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
@@ -174,7 +201,7 @@ export default function RegisterPage({ showToast }) {
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-slate-900 border border-[#b3f4cb] dark:border-emerald-900/50 text-[11px] font-semibold text-[#006a43] dark:text-emerald-400">
           <ShieldCheck size={13} className="text-[#006a43] dark:text-emerald-400" />
-          <span>Prueba 14 días gratis</span>
+          <span>Alta sujeta a aprobación</span>
         </div>
       </div>
 
@@ -189,6 +216,7 @@ export default function RegisterPage({ showToast }) {
           </p>
         </div>
 
+        <p className="text-sm text-slate-600 mb-4">Verifica tu correo al terminar. El administrador revisará y habilitará tu empresa.</p>
         <form onSubmit={handleRegister} className="space-y-4 text-left">
           <div>
             <label className="block mb-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
@@ -274,7 +302,7 @@ export default function RegisterPage({ showToast }) {
               </>
             ) : (
               <>
-                <span>Empezar Prueba Gratuita</span>
+                <span>Enviar registro</span>
                 <ArrowRight size={15} />
               </>
             )}

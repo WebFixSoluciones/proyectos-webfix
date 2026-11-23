@@ -169,7 +169,7 @@ export default function CuentasPorPagarView({ db, usuario, showToast }) {
                   <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right"}}>Monto</UiTableHead>
                   <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right hidden md:table-cell"}}>Ret. Fuente</UiTableHead>
                   <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right hidden md:table-cell"}}>Ret. IVA</UiTableHead>
-                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right"}}>Abonado</UiTableHead>
+                  <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right hidden md:table-cell"}}>Abonado</UiTableHead>
                   <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-right"}}>Saldo</UiTableHead>
                   <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-center hidden sm:table-cell"}}>Días</UiTableHead>
                   <UiTableHead {...{"style":{"color":"var(--gray-11)"},"className":"px-3 py-2.5 text-center"}}>Estado</UiTableHead>

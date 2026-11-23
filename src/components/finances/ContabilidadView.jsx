@@ -6,14 +6,15 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, Building2, FileText, Plus, Edit2, Trash2, Save, X,
   ChevronRight, ChevronDown, Search, Layers, Calculator, Calendar,
-  AlertCircle, CheckCircle2, XCircle, Target, FileCheck
+  AlertCircle, CheckCircle2, XCircle, Target, FileCheck, RefreshCw
 } from 'lucide-react';
 import {
   getCuentas, addCuenta, updateCuenta, deleteCuenta,
   getCentrosCosto, addCentroCosto, updateCentroCosto, deleteCentroCosto,
-  getAsientos, confirmarAsiento, anularAsiento, deleteAsiento,
-  getResumenContabilidad
+  getAsientos, addAsiento, confirmarAsiento, anularAsiento, deleteAsiento,
+  generarAsientoDesdeMovimiento, getResumenContabilidad
 } from '../../services/contabilidadService';
+import { getMovimientos } from '../../services/movimientoService';
 import FinancialPageHeader from './FinancialPageHeader';
 import confirmAction from '../../services/confirmDialog';
 
@@ -52,19 +53,22 @@ export default function ContabilidadView({ db, usuario, showToast }) {
   const [expandedIds, setExpandedIds] = useState(new Set());
   const [editingCuenta, setEditingCuenta] = useState(null);
   const [editingCC, setEditingCC] = useState(null);
-  const [filtros, setFiltros] = useState({ search: '', tipo: 'all', estado: 'all', fechaDesde: '', fechaHasta: '', centroCostoId: '' });
+  const [showNewAsiento, setShowNewAsiento] = useState(false);
+  const [syncingMovimientos, setSyncingMovimientos] = useState(false);
+  const [planFiltros, setPlanFiltros] = useState({ search: '', tipo: 'all' });
+  const [diarioFiltros, setDiarioFiltros] = useState({ estado: 'all', fechaDesde: '', fechaHasta: '', centroCostoId: '' });
 
   const cargarTodo = useCallback(async () => {
     setLoading(true); setError(null);
     try {
       const [cts, ccs, ast] = await Promise.all([
-        getCuentas(db, filtros),
+        getCuentas(db, {}),
         getCentrosCosto(db, {}),
-        getAsientos(db, filtros),
+        getAsientos(db, diarioFiltros),
       ]);
       setCuentas(cts); setCentros(ccs); setAsientos(ast);
     } catch (e) { setError(e.message); } finally { setLoading(false); }
-  }, [db, filtros]);
+  }, [db, diarioFiltros]);
 
   useEffect(() => {
     cargarTodo();
@@ -79,7 +83,14 @@ export default function ContabilidadView({ db, usuario, showToast }) {
   });
 
   const buildTree = () => {
-    const map = new Map(cuentas.map(c => [c.id, { ...c, hijos: [] }]));
+    const search = (planFiltros.search || '').trim().toLowerCase();
+    const tipo = planFiltros.tipo || 'all';
+    const filtered = cuentas.filter(c => {
+      if (tipo !== 'all' && c.tipo !== tipo) return false;
+      if (search && !c.codigo?.toLowerCase().includes(search) && !c.nombre?.toLowerCase().includes(search)) return false;
+      return true;
+    });
+    const map = new Map(filtered.map(c => [c.id, { ...c, hijos: [] }]));
     const raices = [];
     map.forEach(c => {
       if (c.padreId && map.has(c.padreId)) map.get(c.padreId).hijos.push(c);
@@ -133,6 +144,46 @@ export default function ContabilidadView({ db, usuario, showToast }) {
     if (!await confirmAction('¿Eliminar este asiento?')) return;
     try { await deleteAsiento(db, id, usuario); showToast?.('Asiento eliminado', 'success'); await cargarTodo(); }
     catch (e) { showToast?.(e.message, 'error'); }
+  };
+
+  const handleCreateAsiento = async (asientoData) => {
+    try {
+      await addAsiento(db, asientoData, usuario);
+      showToast?.('Asiento contable creado', 'success');
+      setShowNewAsiento(false);
+      await cargarTodo();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    }
+  };
+
+  const handleSyncAsientosDesdeMovimientos = async () => {
+    setSyncingMovimientos(true);
+    try {
+      const [movs, todosAsientos] = await Promise.all([
+        getMovimientos(db, {}),
+        getAsientos(db, {}),
+      ]);
+      const linkedMovIds = new Set(
+        todosAsientos.filter(a => a.movimientoId && a.estado !== 'anulado').map(a => a.movimientoId)
+      );
+      const pendientes = movs.filter(m => m.estado !== 'anulado' && Number(m.monto) > 0 && !linkedMovIds.has(m.id));
+      if (pendientes.length === 0) {
+        showToast?.('Todos los movimientos vigentes ya tienen asiento contable.', 'info');
+        return;
+      }
+      let creados = 0;
+      for (const mov of pendientes) {
+        await generarAsientoDesdeMovimiento(db, mov, usuario);
+        creados += 1;
+      }
+      showToast?.(`Se generaron ${creados} asiento(s) contable(s) desde movimientos.`, 'success');
+      await cargarTodo();
+    } catch (e) {
+      showToast?.(e.message || 'No se pudieron generar los asientos automáticos', 'error');
+    } finally {
+      setSyncingMovimientos(false);
+    }
   };
 
   if (loading) {
@@ -203,22 +254,6 @@ export default function ContabilidadView({ db, usuario, showToast }) {
         </UiCard>
       </UiBox>
 
-      {/* Tabs */}
-      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-2"}}>
-        <UiBox {...{"className":"flex gap-1.5 overflow-x-auto scrollbar-none"}}>
-          {TABS.map(t => {
-            const Icon = t.icon;
-            const active = tab === t.id;
-            return (
-              <UiButton key={t.id} onClick={() => setTab(t.id)}
-                {...mergeThemeProps({"size":"2","className":"flex items-center gap-2 whitespace-nowrap"}, {}, (active ? {"variant":"solid","color":"blue"} : {"color":"gray"}))}>
-                <Icon size={15} />{t.label}
-              </UiButton>
-            );
-          })}
-        </UiBox>
-      </UiCard>
-
       {/* PLAN DE CUENTAS */}
       {tab === 'plan' && (
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 space-y-3"}}>
@@ -226,8 +261,8 @@ export default function ContabilidadView({ db, usuario, showToast }) {
             <UiBox className="flex-1 min-w-[200px]">
               <UiInput
                 type="text"
-                value={filtros.search}
-                onChange={e => setFiltros(f => ({ ...f, search: e.target.value }))}
+                value={planFiltros.search}
+                onChange={e => setPlanFiltros(f => ({ ...f, search: e.target.value }))}
                 placeholder="Buscar código o nombre..."
                 iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
                 size="2"
@@ -235,7 +270,7 @@ export default function ContabilidadView({ db, usuario, showToast }) {
                 className="w-full"
               />
             </UiBox>
-            <UiSelect value={filtros.tipo} onChange={e => setFiltros(f => ({ ...f, tipo: e.target.value }))}
+            <UiSelect value={planFiltros.tipo} onChange={e => setPlanFiltros(f => ({ ...f, tipo: e.target.value }))}
               {...{"size":"2","color":"gray"}}>
               <option value="all">Todos los tipos</option>
               {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -246,7 +281,15 @@ export default function ContabilidadView({ db, usuario, showToast }) {
             </UiButton>
           </UiBox>
 
-          {editingCuenta && <CuentaForm cuenta={editingCuenta} cuentas={cuentas} onSave={handleSaveCuenta} onCancel={() => setEditingCuenta(null)} />}
+          {editingCuenta && (
+            <CuentaForm
+              key={editingCuenta.id || `new-${editingCuenta.padreId || 'root'}`}
+              cuenta={editingCuenta}
+              cuentas={cuentas}
+              onSave={handleSaveCuenta}
+              onCancel={() => setEditingCuenta(null)}
+            />
+          )}
 
           {cuentas.length === 0 ? (
             <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"text-center py-10"}}>
@@ -258,7 +301,7 @@ export default function ContabilidadView({ db, usuario, showToast }) {
               {buildTree().map(c => (
                 <NodoCuenta key={c.id} cuenta={c} depth={0} expandedIds={expandedIds} toggleExpand={toggleExpand}
                   onEdit={(ct) => setEditingCuenta({ ...ct })} onDelete={handleDeleteCuenta}
-                  onAddChild={() => setEditingCuenta({ ...EMPTY_CUENTA, _new: true, padreId: c.id, nivel: Math.min(4, (c.nivel || 0) + 1) })}
+                  onAddChild={(parent) => setEditingCuenta({ ...EMPTY_CUENTA, _new: true, padreId: parent.id, tipo: parent.tipo || 'activo', nivel: Math.min(4, (parent.nivel || 1) + 1) })}
                   tipoBadge={TIPO_BADGES} />
               ))}
             </UiBox>
@@ -277,7 +320,7 @@ export default function ContabilidadView({ db, usuario, showToast }) {
             </UiButton>
           </UiBox>
 
-          {editingCC && <CCForm centro={editingCC} onSave={handleSaveCC} onCancel={() => setEditingCC(null)} />}
+          {editingCC && <CCForm key={editingCC.id || 'new-cc'} centro={editingCC} onSave={handleSaveCC} onCancel={() => setEditingCC(null)} />}
 
           {centros.length === 0 ? (
             <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"text-center py-10"}}>
@@ -336,19 +379,19 @@ export default function ContabilidadView({ db, usuario, showToast }) {
         <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4 space-y-3"}}>
           <UiBox {...{"className":"flex flex-wrap items-center gap-2"}}>
             <Calendar size={14} {...{"style":{"color":"var(--gray-11)"}}} />
-            <UiInput type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
+            <UiInput type="date" value={diarioFiltros.fechaDesde} onChange={e => setDiarioFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
               {...{"size":"2","color":"gray"}} />
             <UiText {...{"color":"gray","size":"1"}}>a</UiText>
-            <UiInput type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
+            <UiInput type="date" value={diarioFiltros.fechaHasta} onChange={e => setDiarioFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
               {...{"size":"2","color":"gray"}} />
-            <UiSelect value={filtros.estado} onChange={e => setFiltros(f => ({ ...f, estado: e.target.value }))}
+            <UiSelect value={diarioFiltros.estado} onChange={e => setDiarioFiltros(f => ({ ...f, estado: e.target.value }))}
               {...{"size":"2","color":"gray"}}>
               <option value="all">Todos</option>
               <option value="borrador">Borrador</option>
               <option value="confirmado">Confirmado</option>
               <option value="anulado">Anulado</option>
             </UiSelect>
-            <UiSelect value={filtros.centroCostoId} onChange={e => setFiltros(f => ({ ...f, centroCostoId: e.target.value }))}
+            <UiSelect value={diarioFiltros.centroCostoId} onChange={e => setDiarioFiltros(f => ({ ...f, centroCostoId: e.target.value }))}
               {...{"size":"2","color":"gray"}}>
               <option value="">Todos los centros</option>
               {centros.map(c => <option key={c.id} value={c.id}>{c.codigo} - {c.nombre}</option>)}
@@ -356,7 +399,36 @@ export default function ContabilidadView({ db, usuario, showToast }) {
             <UiButton onClick={cargarTodo} {...{"size":"2","variant":"surface","color":"gray"}}>
               <Calculator size={14} {...{"className":"inline mr-1"}} />Recalcular
             </UiButton>
+            <UiButton
+              onClick={handleSyncAsientosDesdeMovimientos}
+              disabled={syncingMovimientos}
+              variant="soft"
+              color="green"
+              size="2"
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw size={14} className={syncingMovimientos ? 'animate-spin' : ''} />
+              {syncingMovimientos ? 'Generando...' : 'Generar desde Movimientos'}
+            </UiButton>
+            <UiButton
+              onClick={() => setShowNewAsiento(true)}
+              variant="solid"
+              color="blue"
+              size="2"
+              className="flex items-center gap-1.5 ml-auto"
+            >
+              <Plus size={14} /> Nuevo Asiento
+            </UiButton>
           </UiBox>
+
+          {showNewAsiento && (
+            <AsientoForm
+              cuentas={cuentas}
+              centros={centros}
+              onSave={handleCreateAsiento}
+              onCancel={() => setShowNewAsiento(false)}
+            />
+          )}
 
           {asientos.length === 0 ? (
             <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"text-center py-10"}}>
@@ -380,7 +452,6 @@ export default function ContabilidadView({ db, usuario, showToast }) {
 }
 
 function NodoCuenta({ cuenta, depth, expandedIds, toggleExpand, onEdit, onDelete, onAddChild, tipoBadge }) {
-  const [hover, setHover] = useState(false);
   const hasHijos = cuenta.hijos?.length > 0;
   const expanded = expandedIds.has(cuenta.id);
 
@@ -388,8 +459,7 @@ function NodoCuenta({ cuenta, depth, expandedIds, toggleExpand, onEdit, onDelete
     <UiBox>
       <UiBox
         {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"flex items-center gap-2 py-1.5 px-2 group"})}
-        style={{ paddingLeft: `${depth * 20 + 8}px` }}
-        onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+        style={{ paddingLeft: `${depth * 20 + 8}px` }}>
         <UiButton onClick={() => hasHijos && toggleExpand(cuenta.id)} {...{"className":"shrink-0 w-4"}}>
           {hasHijos ? (expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />) : <UiText {...{"className":"w-3.5 inline-block"}} />}
         </UiButton>
@@ -397,8 +467,8 @@ function NodoCuenta({ cuenta, depth, expandedIds, toggleExpand, onEdit, onDelete
         <UiText {...{"size":"2","color":"gray","highContrast":true,"className":"truncate flex-1"}}>{cuenta.nombre}</UiText>
         <UiText {...mergeThemeProps({"size":"1","className":"px-2 py-0.5 shrink-0"}, {}, resolveThemeProps(tipoBadge[cuenta.tipo]))}>{cuenta.tipo}</UiText>
         {cuenta.aceptaMovimientos && <UiText {...{"size":"1","color":"green","className":"shrink-0"}} title="Acepta movimientos">●</UiText>}
-        <UiBox {...mergeThemeProps({"className":"flex items-center gap-0.5"}, {"className":"transition-opacity"}, (hover ? {"className":"opacity-100"} : {"className":"opacity-0"}))}>
-          {depth < 3 && <UiButton iconOnly onClick={onAddChild} {...{"color":"green"}} title="Agregar subcuenta"><Plus size={13} /></UiButton>}
+        <UiBox className="flex items-center gap-0.5 transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+          {depth < 3 && <UiButton iconOnly onClick={() => onAddChild(cuenta)} {...{"color":"green"}} title="Agregar subcuenta"><Plus size={13} /></UiButton>}
           <UiButton iconOnly onClick={() => onEdit(cuenta)} {...{"color":"blue"}} title="Editar"><Edit2 size={13} /></UiButton>
           <UiButton iconOnly onClick={() => onDelete(cuenta)} {...{"color":"red"}} title="Eliminar"><Trash2 size={13} /></UiButton>
         </UiBox>
@@ -553,6 +623,130 @@ function AsientoCard({ asiento, cuentas, centros, onConfirmar, onAnular, onDelet
           </UiBox>
         </UiBox>
       )}
+    </UiBox>
+  );
+}
+
+function AsientoForm({ cuentas, centros, onSave, onCancel }) {
+  const cuentasMovimiento = cuentas.filter(c => c.aceptaMovimientos && c.estado !== 'inactivo');
+  const listaCuentas = cuentasMovimiento.length > 0 ? cuentasMovimiento : cuentas;
+  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  const [descripcion, setDescripcion] = useState('');
+  const [lineas, setLineas] = useState([
+    { cuentaId: '', centroCostoId: '', descripcion: '', debe: '', haber: '' },
+    { cuentaId: '', centroCostoId: '', descripcion: '', debe: '', haber: '' },
+  ]);
+
+  const totalDebe = lineas.reduce((s, l) => s + (Number(l.debe) || 0), 0);
+  const totalHaber = lineas.reduce((s, l) => s + (Number(l.haber) || 0), 0);
+  const diff = Math.abs(totalDebe - totalHaber);
+  const cuadra = totalDebe > 0 && diff <= 0.01;
+
+  const updateLinea = (idx, field, value) => {
+    setLineas(prev => prev.map((l, i) => {
+      if (i !== idx) return l;
+      const next = { ...l, [field]: value };
+      if (field === 'debe' && Number(value) > 0) next.haber = '';
+      if (field === 'haber' && Number(value) > 0) next.debe = '';
+      return next;
+    }));
+  };
+
+  const handleSubmit = () => {
+    onSave({
+      fecha,
+      descripcion,
+      tipo: 'manual',
+      estado: 'borrador',
+      lineas: lineas.map(l => ({
+        cuentaId: l.cuentaId,
+        centroCostoId: l.centroCostoId || null,
+        descripcion: l.descripcion,
+        debe: Number(l.debe) || 0,
+        haber: Number(l.haber) || 0,
+      })),
+    });
+  };
+
+  return (
+    <UiBox style={{ border: '1px solid var(--gray-a6)', borderRadius: 'var(--radius-3)', backgroundColor: 'var(--blue-2)' }} className="p-3 space-y-3">
+      <UiBox className="flex items-center justify-between">
+        <UiHeading as="h4" size="2" weight="bold" color="gray" highContrast>Nuevo Asiento Contable (Partida Doble)</UiHeading>
+        <UiButton iconOnly onClick={onCancel} variant="surface" color="gray"><X size={14} /></UiButton>
+      </UiBox>
+      <UiBox className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <UiInput type="date" value={fecha} onChange={e => setFecha(e.target.value)} size="2" color="gray" />
+        <UiBox className="sm:col-span-2">
+          <UiInput
+            value={descripcion}
+            onChange={e => setDescripcion(e.target.value)}
+            placeholder="Concepto / glosa del asiento contable..."
+            size="2"
+            color="gray"
+            className="w-full"
+          />
+        </UiBox>
+      </UiBox>
+      <UiBox className="space-y-2">
+        {lineas.map((l, idx) => (
+          <UiBox key={idx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+            <UiBox className="sm:col-span-4">
+              <UiSelect value={l.cuentaId} onChange={e => updateLinea(idx, 'cuentaId', e.target.value)} size="2" color="gray" className="w-full">
+                <option value="">Seleccionar cuenta...</option>
+                {listaCuentas.map(c => (
+                  <option key={c.id} value={c.id}>{c.codigo} - {c.nombre}</option>
+                ))}
+              </UiSelect>
+            </UiBox>
+            <UiBox className="sm:col-span-2">
+              <UiSelect value={l.centroCostoId} onChange={e => updateLinea(idx, 'centroCostoId', e.target.value)} size="2" color="gray" className="w-full">
+                <option value="">Centro (opc.)</option>
+                {centros.map(cc => <option key={cc.id} value={cc.id}>{cc.codigo}</option>)}
+              </UiSelect>
+            </UiBox>
+            <UiBox className="sm:col-span-2">
+              <UiInput value={l.descripcion} onChange={e => updateLinea(idx, 'descripcion', e.target.value)} placeholder="Detalle" size="2" color="gray" className="w-full" />
+            </UiBox>
+            <UiBox className="sm:col-span-2">
+              <UiInput type="number" step="0.01" min="0" value={l.debe} onChange={e => updateLinea(idx, 'debe', e.target.value)} placeholder="Debe ($)" size="2" color="gray" className="w-full" />
+            </UiBox>
+            <UiBox className="sm:col-span-1">
+              <UiInput type="number" step="0.01" min="0" value={l.haber} onChange={e => updateLinea(idx, 'haber', e.target.value)} placeholder="Haber ($)" size="2" color="gray" className="w-full" />
+            </UiBox>
+            <UiBox className="sm:col-span-1 flex justify-end">
+              {lineas.length > 2 && (
+                <UiButton iconOnly type="button" color="red" variant="ghost" onClick={() => setLineas(prev => prev.filter((_, i) => i !== idx))}>
+                  <Trash2 size={13} />
+                </UiButton>
+              )}
+            </UiBox>
+          </UiBox>
+        ))}
+      </UiBox>
+      <UiBox className="flex flex-wrap items-center justify-between gap-2 pt-2" style={{ borderTop: '1px solid var(--gray-a5)' }}>
+        <UiButton
+          type="button"
+          size="1"
+          variant="soft"
+          color="blue"
+          onClick={() => setLineas(prev => [...prev, { cuentaId: '', centroCostoId: '', descripcion: '', debe: '', haber: '' }])}
+        >
+          <Plus size={12} /> Agregar línea
+        </UiButton>
+        <UiBox className="flex items-center gap-3 text-xs font-mono">
+          <UiText size="1" color="green" weight="bold">Debe: ${totalDebe.toFixed(2)}</UiText>
+          <UiText size="1" color="red" weight="bold">Haber: ${totalHaber.toFixed(2)}</UiText>
+          <UiText size="1" color={cuadra ? 'green' : 'amber'} weight="bold">
+            {cuadra ? 'Cuadrado ✓' : `Dif: $${diff.toFixed(2)}`}
+          </UiText>
+        </UiBox>
+        <UiBox className="flex items-center gap-2">
+          <UiButton type="button" onClick={onCancel} size="2" variant="outline" color="gray">Cancelar</UiButton>
+          <UiButton type="button" onClick={handleSubmit} disabled={!cuadra} size="2" variant="solid" color="blue" className="flex items-center gap-1.5">
+            <Save size={14} /> Guardar Asiento
+          </UiButton>
+        </UiBox>
+      </UiBox>
     </UiBox>
   );
 }

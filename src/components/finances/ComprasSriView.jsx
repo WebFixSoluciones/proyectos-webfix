@@ -145,13 +145,18 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     try {
       const text = await file.text();
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(text, "text/xml");
+      let xmlDoc = parser.parseFromString(text, "text/xml");
+      // Soportar XML oficial descargado del SRI (<autorizacion><comprobante><![CDATA[...]]></comprobante></autorizacion>)
+      const wrappedComprobante = xmlDoc.getElementsByTagName("comprobante")?.[0]?.textContent?.trim();
+      if (wrappedComprobante && wrappedComprobante.startsWith('<')) {
+        xmlDoc = parser.parseFromString(wrappedComprobante, "text/xml");
+      }
       
       const infoTrib = xmlDoc.getElementsByTagName("infoTributaria")?.[0];
       if (!infoTrib) { showToast?.('XML invalido: falta infoTributaria', 'error'); setLoading(false); return; }
 
-      const claveAcceso = infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '';
-      const ruc = infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '';
+      const claveAcceso = (infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '').replace(/\s+/g, '');
+      const ruc = (infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '').replace(/\s+/g, '');
       const razonSocial = infoTrib.getElementsByTagName("razonSocial")?.[0]?.textContent || '';
       const estab = infoTrib.getElementsByTagName("estab")?.[0]?.textContent || '';
       const ptoEmi = infoTrib.getElementsByTagName("ptoEmi")?.[0]?.textContent || '';
@@ -174,12 +179,40 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       if (infoNC) tipoComprobante = 'nota_credito';
       else if (infoRet) tipoComprobante = 'retencion';
 
-      const date = infoDoc?.getElementsByTagName("fechaEmision")?.[0]?.textContent || getEcuadorDateString();
-      const totalConImpuesto = infoDoc?.getElementsByTagName("importeTotal")?.[0];
+      const rawDate = infoDoc?.getElementsByTagName("fechaEmision")?.[0]?.textContent?.trim() || '';
+      const ecMatch = rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      const date = ecMatch ? `${ecMatch[3]}-${ecMatch[2]}-${ecMatch[1]}` : (rawDate || getEcuadorDateString());
+      const totalConImpuesto = infoDoc?.getElementsByTagName("importeTotal")?.[0] || infoDoc?.getElementsByTagName("valorModificacion")?.[0];
       const totalSinImpuesto = infoDoc?.getElementsByTagName("totalSinImpuestos")?.[0];
       const total = Number(totalConImpuesto?.textContent || 0);
       const baseImponible = Number(totalSinImpuesto?.textContent || total / 1.15);
-      const ivaValor = total - baseImponible;
+      const ivaValor = Math.round((total - baseImponible) * 100) / 100;
+
+      // Extraer líneas <detalle> del XML para que "Importar con Inventario" ingrese stock/Kardex correctamente
+      const detallesNodes = xmlDoc.getElementsByTagName("detalle");
+      const parsedItems = [];
+      for (let i = 0; i < detallesNodes.length; i++) {
+        const d = detallesNodes[i];
+        const codigo = d.getElementsByTagName("codigoPrincipal")?.[0]?.textContent?.trim() || d.getElementsByTagName("codigoInterno")?.[0]?.textContent?.trim() || '';
+        const desc = d.getElementsByTagName("descripcion")?.[0]?.textContent?.trim() || 'Ítem XML';
+        const qty = Number(d.getElementsByTagName("cantidad")?.[0]?.textContent || 1);
+        const unitPrice = Number(d.getElementsByTagName("precioUnitario")?.[0]?.textContent || 0);
+        const discount = Number(d.getElementsByTagName("descuento")?.[0]?.textContent || 0);
+        const matched = products.find(p =>
+          (codigo && (String(p.sku || '').toLowerCase() === codigo.toLowerCase() || String(p.codigoBarras || '').toLowerCase() === codigo.toLowerCase())) ||
+          String(p.name || '').toLowerCase() === desc.toLowerCase()
+        );
+        parsedItems.push({
+          productId: matched?.id || '',
+          sku: matched?.sku || codigo,
+          name: matched?.name || desc,
+          quantity: qty,
+          price: unitPrice,
+          unitCost: unitPrice,
+          discount,
+          subtotal: Math.round((qty * unitPrice - discount) * 100) / 100
+        });
+      }
 
       // Check for duplicates
       const existing = sriBills.find(b => b.claveAcceso === claveAcceso);
@@ -211,6 +244,7 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       const bill = {
         id: billId, tipoComprobante, ruc, razonSocial, documentNumber,
         date, baseImponible, ivaValor, total, claveAcceso,
+        items: parsedItems,
         category: 'compras', description: `Compra ${tipoComprobante} ${documentNumber}`,
         receiverRuc: companyRuc, xmlContent: text, xmlAutorizado,
         sriStatus
@@ -282,14 +316,15 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
     try {
       if (method === 'con_inventario') {
         const txPayload = {
-          id: docId, type: 'egreso', documentType: 'factura', category: 'compras',
+          id: docId, type: 'egreso', documentType: bill.tipoComprobante || 'factura', category: 'compras',
           documentNumber: bill.documentNumber, claveAcceso: bill.claveAcceso,
           date: bill.date, thirdPartyId: '', thirdPartyName: bill.razonSocial,
           thirdPartyRuc: bill.ruc, baseImponible: bill.baseImponible,
           ivaPorcentaje: 15, ivaValor: bill.ivaValor, total: bill.total,
           paymentMethod: 'transferencia', paymentStatus: 'pagado',
           sriStatus: bill.sriStatus === 'autorizado' ? 'autorizado' : 'pendiente_verificacion', description: bill.description,
-          items: bill.items || [], bodega: 'Bodega Central'
+          items: bill.items || [], bodega: 'Bodega Central',
+          inventarioRegistrado: Boolean(bill.items?.some(i => i.productId))
         };
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', docId), txPayload);
         if (bill.items?.length) {
@@ -396,17 +431,24 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
       try {
         const text = ev.target.result;
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(text, "text/xml");
+        let xmlDoc = parser.parseFromString(text, "text/xml");
+        const wrapped = xmlDoc.getElementsByTagName("comprobante")?.[0]?.textContent?.trim();
+        if (wrapped && wrapped.startsWith('<')) {
+          xmlDoc = parser.parseFromString(wrapped, "text/xml");
+        }
         const infoTrib = xmlDoc.getElementsByTagName("infoTributaria")?.[0];
         const infoFact = xmlDoc.getElementsByTagName("infoFactura")?.[0];
         if (infoTrib) {
+          const rawFecha = infoFact?.getElementsByTagName("fechaEmision")?.[0]?.textContent?.trim() || '';
+          const ecMatch = rawFecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          const isoDate = ecMatch ? `${ecMatch[3]}-${ecMatch[2]}-${ecMatch[1]}` : (rawFecha || '');
           setManualForm(prev => ({
             ...prev,
             documentNumber: `${infoTrib.getElementsByTagName("estab")?.[0]?.textContent || ''}-${infoTrib.getElementsByTagName("ptoEmi")?.[0]?.textContent || ''}-${infoTrib.getElementsByTagName("secuencial")?.[0]?.textContent || ''}`,
             supplierRuc: infoTrib.getElementsByTagName("ruc")?.[0]?.textContent || '',
             supplierName: infoTrib.getElementsByTagName("razonSocial")?.[0]?.textContent || '',
             claveAcceso: infoTrib.getElementsByTagName("claveAcceso")?.[0]?.textContent || '',
-            date: infoFact?.getElementsByTagName("fechaEmision")?.[0]?.textContent || prev.date,
+            date: isoDate || prev.date,
           }));
         }
         const detalles = xmlDoc.getElementsByTagName("detalle");
@@ -435,7 +477,9 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
   };
 
   const handleManualSave = async () => {
-    if (!manualForm.documentNumber || !manualForm.items.length) { showToast?.('Complete documento y al menos 1 producto', 'warning'); return; }
+    if (!manualForm.documentNumber) { showToast?.('Complete el número de documento', 'warning'); return; }
+    if (manualForm.type === 'con_inventario' && !manualForm.items.length) { showToast?.('Agrega al menos 1 producto para una compra con inventario', 'warning'); return; }
+    if (manualForm.type === 'sin_inventario' && Number(manualForm.total) <= 0) { showToast?.('Ingresa un monto total mayor a $0.00', 'warning'); return; }
     setManualSaving(true);
     const docId = `compra_manual_${Date.now()}`;
     try {
@@ -828,6 +872,76 @@ export default function ComprasSriView({ transactions = [], showToast, db, appId
                   <UiBox>Base Imponible: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${manualForm.baseImponible.toFixed(2)}</UiText></UiBox>
                   <UiBox>IVA 15%: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${manualForm.ivaValor.toFixed(2)}</UiText></UiBox>
                   <UiBox>Total: <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>${manualForm.total.toFixed(2)}</UiText></UiBox>
+                </UiBox>
+              </UiCard>
+            )}
+
+            {manualForm.type === 'sin_inventario' && (
+              <UiCard style={{ backgroundColor: 'var(--color-panel-solid)' }} className="p-4 space-y-3">
+                <UiHeading as="h3" size="3" weight="bold" color="gray" highContrast>Importes de Compra (Sin Inventario)</UiHeading>
+                <UiBox className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <UiBox>
+                    <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1">Base Imponible ($)</UiLabel>
+                    <UiInput
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={manualForm.baseImponible || ''}
+                      onChange={e => {
+                        const base = Number(e.target.value) || 0;
+                        setManualForm(prev => ({
+                          ...prev,
+                          baseImponible: base,
+                          total: Math.round((base + (Number(prev.ivaValor) || 0)) * 100) / 100
+                        }));
+                      }}
+                      size="2"
+                      color="gray"
+                      className="w-full"
+                    />
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1">IVA ($)</UiLabel>
+                    <UiInput
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={manualForm.ivaValor || ''}
+                      onChange={e => {
+                        const iva = Number(e.target.value) || 0;
+                        setManualForm(prev => ({
+                          ...prev,
+                          ivaValor: iva,
+                          total: Math.round(((Number(prev.baseImponible) || 0) + iva) * 100) / 100
+                        }));
+                      }}
+                      size="2"
+                      color="gray"
+                      className="w-full"
+                    />
+                  </UiBox>
+                  <UiBox>
+                    <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1">Total ($)</UiLabel>
+                    <UiInput
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={manualForm.total || ''}
+                      onChange={e => {
+                        const tot = Number(e.target.value) || 0;
+                        setManualForm(prev => ({
+                          ...prev,
+                          total: tot,
+                          baseImponible: Number(prev.ivaValor) > 0
+                            ? Math.max(0, Math.round((tot - Number(prev.ivaValor)) * 100) / 100)
+                            : tot
+                        }));
+                      }}
+                      size="2"
+                      color="gray"
+                      className="w-full"
+                    />
+                  </UiBox>
                 </UiBox>
               </UiCard>
             )}

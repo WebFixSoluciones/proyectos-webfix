@@ -1,10 +1,18 @@
 import * as firestore from 'firebase/firestore';
 import { productKind, tracksStock } from './productModel.js';
+import { slugifyWarehouseId } from '../modules/warehouse/domain/warehouseModel.js';
 
 const entryTypes = new Set(['PURCHASE_RECEIPT', 'CUSTOMER_RETURN', 'POSITIVE_ADJUSTMENT', 'TRANSFER_IN']);
 const exitTypes = new Set(['SALE', 'TRANSFER_OUT', 'NEGATIVE_ADJUSTMENT', 'SHRINKAGE', 'MASSIVE_ZERO']);
 export const CENTRAL_BRANCH = 'sucursal-central-uuid';
-export const branchForWarehouse = warehouse => /sur/i.test(warehouse || '') ? 'sucursal-sur-uuid' : /norte/i.test(warehouse || '') ? 'sucursal-norte-uuid' : CENTRAL_BRANCH;
+export const branchForWarehouse = warehouse => {
+  const raw = String(warehouse || '').trim();
+  if (!raw) return CENTRAL_BRANCH;
+  if (raw === CENTRAL_BRANCH || raw === 'sucursal-sur-uuid' || raw === 'sucursal-norte-uuid' || raw.startsWith('bodega-')) return raw;
+  if (/sur/i.test(raw)) return 'sucursal-sur-uuid';
+  if (/norte/i.test(raw)) return 'sucursal-norte-uuid';
+  return slugifyWarehouseId(raw);
+};
 const key = (...parts) => parts.map(p => encodeURIComponent(String(p))).join('~');
 const stamp = d => d?.toMillis?.() ?? new Date(d || 0).getTime();
 

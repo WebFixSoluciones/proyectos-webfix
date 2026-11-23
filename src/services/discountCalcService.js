@@ -172,14 +172,18 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
 
   // Paso 6 - descuento_venta = calcular sobre subtotal_general_neto
   let montoDescuentoVenta = 0;
+  const generalTypeVal = generalDiscount
+    ? String(generalDiscount.tipo_valor || generalDiscount.type || 'PORCENTAJE').toUpperCase()
+    : '';
+  const isSinIvaGeneral = Boolean(generalDiscount && isDiscountScheduleActive(generalDiscount) && generalTypeVal === 'SIN_IVA');
+
   if (generalDiscount && isDiscountScheduleActive(generalDiscount)) {
     const val = Number(generalDiscount.valor !== undefined ? generalDiscount.valor : generalDiscount.value) || 0;
-    const typeVal = String(generalDiscount.tipo_valor || generalDiscount.type || 'PORCENTAJE').toUpperCase();
-    if (typeVal === 'PORCENTAJE' || typeVal === 'PERCENT') {
+    if (generalTypeVal === 'PORCENTAJE' || generalTypeVal === 'PERCENT') {
       montoDescuentoVenta = subtotalGeneralNeto * (val / 100);
-    } else if (typeVal === 'MONTO_FIJO' || typeVal === 'FIXED') {
+    } else if (generalTypeVal === 'MONTO_FIJO' || generalTypeVal === 'FIXED') {
       montoDescuentoVenta = val;
-    } else if (typeVal === 'SIN_IVA') {
+    } else if (generalTypeVal === 'SIN_IVA') {
       montoDescuentoVenta = processedItems.reduce((acc, item) => {
         return acc + item.subtotal_neto_linea * (item.tarifa_iva / (1 + item.tarifa_iva));
       }, 0);
@@ -188,6 +192,11 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
   }
 
   // Paso 7 & 8 & 9 - Prorratear, calcular IVA y totales por línea
+  // Cuando el descuento es SIN_IVA, prorratear EXCLUSIVAMENTE entre líneas con IVA > 0 para no descontar ítems tarifa 0%
+  const prorationDenominator = isSinIvaGeneral
+    ? processedItems.reduce((acc, item) => acc + (item.tarifa_iva > 0 ? item.subtotal_neto_linea : 0), 0)
+    : subtotalGeneralNeto;
+
   let totalIva = 0;
   let totalNetoFinal = 0;
   
@@ -195,9 +204,10 @@ export function calculateTransactionTotals(items = [], generalDiscount = null) {
   let cumulativeBase = 0;
   const finalItems = processedItems.map(item => {
     let descuentoProrrateado = 0;
-    if (subtotalGeneralNeto > 0) {
+    const eligibleForProration = !isSinIvaGeneral || item.tarifa_iva > 0;
+    if (prorationDenominator > 0 && eligibleForProration) {
       cumulativeBase += item.subtotal_neto_linea;
-      const cumulativeDiscount = roundMoney(montoDescuentoVenta * cumulativeBase / subtotalGeneralNeto);
+      const cumulativeDiscount = roundMoney(montoDescuentoVenta * cumulativeBase / prorationDenominator);
       descuentoProrrateado = roundMoney(cumulativeDiscount - allocatedDiscount);
       allocatedDiscount = cumulativeDiscount;
     }

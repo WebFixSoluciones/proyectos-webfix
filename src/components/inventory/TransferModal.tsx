@@ -267,9 +267,10 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
                 <UiBox {...{"className":"flex gap-2"}}>
                   <UiInput
                     type="number"
-                    min="1"
+                    min="0.01"
+                    step="any"
                     value={quantityToTransfer}
-                    onChange={(e) => setQuantityToTransfer(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setQuantityToTransfer(parseFloat(e.target.value) || 1)}
                     {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   />
                   <UiButton
@@ -287,7 +288,7 @@ export default function TransferModal({ onClose, onSuccess }: TransferModalProps
           {/* Items Table */}
           <UiBox {...{"className":"space-y-2"}}>
             <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Ítems a Enviar ({items.length})</UiLabel>
-            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-hidden"})}>
+            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"overflow-x-auto"})}>
               <UiTable {...{"className":"w-full text-left whitespace-nowrap"}}>
                 <UiTableHeader {...mergeThemeProps({"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)"}})}>
                   <UiTableRow>

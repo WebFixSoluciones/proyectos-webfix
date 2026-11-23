@@ -2,12 +2,20 @@ import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiCard, UiHeading, UiLabel, UiText } from '../ui/layout';
 import { UiButton, UiInput, UiSelect } from '../ui/controls';
 import { useState, useEffect } from 'react';
-import { Settings, Sparkles, Save, ExternalLink } from 'lucide-react';
+import { Settings, Sparkles, Save, ExternalLink, ShieldCheck, Plus, Trash2, Lock } from 'lucide-react';
 import { doc, getDoc, setDoc } from '../../services/financeStore.js';
+import confirmAction from '../../services/confirmDialog';
+import {
+  normalizeEmissionPoints,
+  validateEmissionPointInput,
+  validateSequentialChange
+} from '../../modules/sri/domain/emissionPoints.js';
 
 
 export default function FinanceSettings({  showToast, db, appId }) {
   const [loading, setLoading] = useState(true);
+  const [newPoint, setNewPoint] = useState({ estab: '001', ptoEmi: '002', label: '', branchName: 'Matriz' });
+  const [savingSeqKey, setSavingSeqKey] = useState('');
   const [sriConfig, setSriConfig] = useState({
     razonSocial: '',
     nombreComercial: '',
@@ -88,8 +96,19 @@ export default function FinanceSettings({  showToast, db, appId }) {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
+      const pad3 = (v) => {
+        const d = String(v || '').replace(/\D/g, '').padStart(3, '0').slice(-3);
+        return d === '000' ? '' : d;
+      };
+      const cleanEstab = pad3(sriConfig.establecimiento);
+      const cleanPto = pad3(sriConfig.puntoEmision);
+      if (!cleanEstab || !cleanPto) {
+        showToast('Establecimiento y Punto de Emisión deben ser 3 dígitos distintos de 000 (ej. 001-001).', 'error');
+        return;
+      }
+
       const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config');
-      // Extraer solo los campos administrados por esta pantalla, evitando sobreescribir la firma digital
+      // Extraer solo campos de configuración general: NUNCA sobreescribir certificados .p12 ni secuenciales activos en vivo
       /* eslint-disable no-unused-vars */
       const {
         certificadoCargado,
@@ -99,11 +118,25 @@ export default function FinanceSettings({  showToast, db, appId }) {
         certificadoBase64,
         certificadoRuc,
         certificadoSujeto,
+        secuencialFactura,
+        secuencialNotaCredito,
+        secuencialNotaDebito,
+        secuencialRetencion,
+        secuencialGuiaRemision,
+        secuencialLiquidacion,
+        secuencialNotaVenta,
         ...sriConfigRest
       } = sriConfig;
       /* eslint-enable no-unused-vars */
 
-      await setDoc(docRef, sriConfigRest, { merge: true });
+      const sanitizedPayload = {
+        ...sriConfigRest,
+        establecimiento: cleanEstab,
+        puntoEmision: cleanPto
+      };
+
+      await setDoc(docRef, sanitizedPayload, { merge: true });
+      setSriConfig(prev => ({ ...prev, establecimiento: cleanEstab, puntoEmision: cleanPto }));
 
       // Guardar Gemini Key en localStorage
       const trimmedKey = geminiKey.trim();
@@ -115,7 +148,7 @@ export default function FinanceSettings({  showToast, db, appId }) {
         await setDoc(infoRef, { geminiApiKey: trimmedKey }, { merge: true });
       }
       
-      showToast("Configuraciones fiscales y comerciales guardadas", "success");
+      showToast("Configuraciones fiscales y comerciales guardadas (secuenciales protegidos)", "success");
     } catch (err) {
       console.error(err);
       showToast("Error al guardar en la base de datos", "error");
@@ -123,6 +156,91 @@ export default function FinanceSettings({  showToast, db, appId }) {
   };
 
   
+
+  const emissionPoints = normalizeEmissionPoints(sriConfig);
+
+  const handleEnvironmentSwitch = async (targetEnv) => {
+    if (sriConfig.ambiente === targetEnv) return;
+    const msg = targetEnv === '2'
+      ? '¿Cambiar al ambiente de PRODUCCIÓN SRI? Los comprobantes emitidos tendrán validez tributaria oficial ante el SRI.'
+      : '¿Cambiar al ambiente de PRUEBAS SRI? Los comprobantes emitidos serán únicamente de prueba sin validez fiscal.';
+    if (await confirmAction(msg)) {
+      setSriConfig(prev => ({ ...prev, ambiente: targetEnv }));
+    }
+  };
+
+  const handleAddEmissionPoint = async () => {
+    const estab = String(newPoint.estab || '').replace(/\D/g, '').padStart(3, '0').slice(-3);
+    const ptoEmi = String(newPoint.ptoEmi || '').replace(/\D/g, '').padStart(3, '0').slice(-3);
+    const check = validateEmissionPointInput({ estab, ptoEmi, existingPoints: emissionPoints });
+    if (!check.valid) {
+      showToast?.(check.message, 'error');
+      return;
+    }
+    const created = {
+      id: `ep_${estab}_${ptoEmi}_${Date.now()}`,
+      estab,
+      ptoEmi,
+      label: newPoint.label.trim() || `Punto ${estab}-${ptoEmi}`,
+      branchName: newPoint.branchName.trim() || 'Matriz',
+      active: true,
+      locked: false,
+      isDefault: false
+    };
+    const nextList = [...emissionPoints, created];
+    setSriConfig(prev => ({ ...prev, puntosEmision: nextList }));
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), { puntosEmision: nextList }, { merge: true });
+      setNewPoint({ estab, ptoEmi: String(Number(ptoEmi) + 1).padStart(3, '0'), label: '', branchName: 'Matriz' });
+      showToast?.(`Punto de emisión ${estab}-${ptoEmi} registrado y asegurado.`, 'success');
+    } catch {
+      showToast?.('No se pudo guardar el punto de emisión.', 'error');
+    }
+  };
+
+  const handleRemoveEmissionPoint = async (epId) => {
+    const target = emissionPoints.find(p => p.id === epId);
+    if (!target || target.isDefault) return;
+    const nextList = emissionPoints.filter(p => p.id !== epId);
+    setSriConfig(prev => ({ ...prev, puntosEmision: nextList }));
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), { puntosEmision: nextList }, { merge: true });
+      showToast?.(`Punto de emisión ${target.estab}-${target.ptoEmi} eliminado.`, 'success');
+    } catch {
+      showToast?.('Error al eliminar punto de emisión.', 'error');
+    }
+  };
+
+  const handleUpdateSequentialSafe = async (secKey, label) => {
+    setSavingSeqKey(secKey);
+    try {
+      const proposedNext = Number.parseInt(sriConfig[secKey], 10);
+      const estab = String(sriConfig.establecimiento || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+      const pto = String(sriConfig.puntoEmision || '001').replace(/\D/g, '').padStart(3, '0').slice(-3);
+      const scope = `${sriConfig.ruc}_${sriConfig.ambiente}_${secKey}_${estab}_${pto}`;
+      const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'sri_sequences', scope);
+      const counterSnap = await getDoc(counterRef);
+      const currentFloor = Number(counterSnap.exists() ? counterSnap.data()?.next : 1) || 1;
+
+      const check = validateSequentialChange({ currentFloor, proposedNext });
+      if (!check.valid) {
+        showToast?.(check.message, 'error');
+        return;
+      }
+      if (check.warning && !(await confirmAction(check.warning))) {
+        return;
+      }
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'), { [secKey]: proposedNext }, { merge: true });
+      if (secKey !== 'secuencialNotaVenta' && sriConfig.ruc) {
+        await setDoc(counterRef, { next: proposedNext, estab, ptoEmi: pto, ambiente: String(sriConfig.ambiente), updatedAt: new Date().toISOString() }, { merge: true });
+      }
+      showToast?.(`Secuencial de ${label} actualizado con seguridad a ${String(proposedNext).padStart(9, '0')}.`, 'success');
+    } catch (err) {
+      showToast?.(`No se pudo actualizar el secuencial: ${err.message}`, 'error');
+    } finally {
+      setSavingSeqKey('');
+    }
+  };
 
   if (loading) {
     return (
@@ -150,14 +268,14 @@ export default function FinanceSettings({  showToast, db, appId }) {
                 <UiBox {...{"className":"grid grid-cols-2 gap-2 mt-1"}}>
                   <UiButton
                     type="button" 
-                    onClick={() => setSriConfig({...sriConfig, ambiente: '1'})} 
+                    onClick={() => handleEnvironmentSwitch('1')} 
                     {...mergeThemeProps({"size":"2","variant":"outline"}, {}, (sriConfig.ambiente === '1' ? {"variant":"solid","color":"blue"} : {"variant":"soft","color":"gray"}))}
                   >
                     PRUEBAS
                   </UiButton>
                   <UiButton
                     type="button" 
-                    onClick={() => setSriConfig({...sriConfig, ambiente: '2'})} 
+                    onClick={() => handleEnvironmentSwitch('2')} 
                     {...mergeThemeProps({"size":"2","variant":"outline"}, {}, (sriConfig.ambiente === '2' ? {"variant":"solid","color":"green"} : {"variant":"soft","color":"gray"}))}
                   >
                     PRODUCCIÓN
@@ -204,6 +322,89 @@ export default function FinanceSettings({  showToast, db, appId }) {
                 />
               </UiBox>
             </UiBox>
+            {/* PUNTOS DE EMISIÓN MÚLTIPLES ASEGURADOS */}
+            <div className="pt-4 mt-4 border-t border-slate-200 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                  <ShieldCheck size={15} className="text-emerald-700" />
+                  <span>Puntos de Emisión Autorizados ({emissionPoints.length})</span>
+                </div>
+                <span className="text-[11px] text-slate-500">Asignables por usuario en Ajustes &gt; Usuarios y Roles</span>
+              </div>
+
+              <div className="space-y-1.5">
+                {emissionPoints.map((ep) => (
+                  <div key={ep.id} className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-900">
+                        {ep.estab}-{ep.ptoEmi}
+                      </span>
+                      <span className="font-semibold text-slate-800">{ep.label}</span>
+                      <span className="text-[11px] text-slate-500">({ep.branchName})</span>
+                      {ep.isDefault && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Principal</span>
+                      )}
+                      {ep.locked && <Lock size={12} className="text-amber-700" />}
+                    </div>
+                    {!ep.isDefault && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEmissionPoint(ep.id)}
+                        className="p-1 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
+                        title="Eliminar punto de emisión"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-end pt-1">
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Estab.</label>
+                  <input
+                    type="text"
+                    maxLength={3}
+                    value={newPoint.estab}
+                    onChange={(e) => setNewPoint(p => ({ ...p, estab: e.target.value.replace(/\D/g, '').slice(0, 3) }))}
+                    placeholder="001"
+                    className="w-full h-9 px-2.5 rounded-lg border border-slate-300 text-xs font-mono bg-white"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Pto. Emi.</label>
+                  <input
+                    type="text"
+                    maxLength={3}
+                    value={newPoint.ptoEmi}
+                    onChange={(e) => setNewPoint(p => ({ ...p, ptoEmi: e.target.value.replace(/\D/g, '').slice(0, 3) }))}
+                    placeholder="002"
+                    className="w-full h-9 px-2.5 rounded-lg border border-slate-300 text-xs font-mono bg-white"
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-5">
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nombre / Caja</label>
+                  <input
+                    type="text"
+                    value={newPoint.label}
+                    onChange={(e) => setNewPoint(p => ({ ...p, label: e.target.value }))}
+                    placeholder="Ej. Caja POS Sucursal Sur"
+                    className="w-full h-9 px-2.5 rounded-lg border border-slate-300 text-xs bg-white"
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-3">
+                  <button
+                    type="button"
+                    onClick={handleAddEmissionPoint}
+                    className="w-full h-9 px-3 rounded-lg bg-[#1b1b1b] hover:bg-black text-white text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <Plus size={13} />
+                    <span>Añadir Punto</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </UiCard>
 
           {/* VINCULACIÓN SRI ECUADOR */}
@@ -276,81 +477,41 @@ export default function FinanceSettings({  showToast, db, appId }) {
               <UiHeading as="h3" {...{"size":"3","weight":"bold"}}>Secuenciales de Facturación (SRI)</UiHeading>
             </UiBox>
             <UiText as="p" {...{"size":"1","color":"gray","className":"mb-4 leading-relaxed"}}>
-              Configure el número secuencial para cada tipo de comprobante. El sistema lo incrementará automáticamente tras cada emisión autorizada por el SRI.
+              Los secuenciales activos están protegidos contra retrocesos accidentales. Usa el botón <strong>Aplicar</strong> en cada comprobante si necesitas adelantar una numeración (p. ej. migración desde otro facturador).
             </UiText>
             
-            <UiBox {...{"className":"space-y-4"}}>
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Próximo Secuencial de Factura</UiLabel>
-                <UiInput
-                  type="number" 
-                  min="1"
-                  value={sriConfig.secuencialFactura || 1} 
-                  onChange={e => setSriConfig({...sriConfig, secuencialFactura: parseInt(e.target.value, 10) || 1})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
-                  placeholder="1" 
-                />
-              </UiBox>
-
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Próximo Secuencial de Retención</UiLabel>
-                <UiInput
-                  type="number" 
-                  min="1"
-                  value={sriConfig.secuencialRetencion || 1} 
-                  onChange={e => setSriConfig({...sriConfig, secuencialRetencion: parseInt(e.target.value, 10) || 1})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
-                  placeholder="1" 
-                />
-              </UiBox>
-
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Próximo Secuencial de Nota de Crédito</UiLabel>
-                <UiInput
-                  type="number" 
-                  min="1"
-                  value={sriConfig.secuencialNotaCredito || 1} 
-                  onChange={e => setSriConfig({...sriConfig, secuencialNotaCredito: parseInt(e.target.value, 10) || 1})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
-                  placeholder="1" 
-                />
-              </UiBox>
-
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Próximo Secuencial de Liquidación de Compra</UiLabel>
-                <UiInput
-                  type="number" 
-                  min="1"
-                  value={sriConfig.secuencialLiquidacion || 1} 
-                  onChange={e => setSriConfig({...sriConfig, secuencialLiquidacion: parseInt(e.target.value, 10) || 1})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
-                  placeholder="1" 
-                />
-              </UiBox>
-
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Próximo Secuencial de Guía de Remisión</UiLabel>
-                <UiInput
-                  type="number"
-                  min="1"
-                  value={sriConfig.secuencialGuiaRemision || 1}
-                  onChange={e => setSriConfig({...sriConfig, secuencialGuiaRemision: parseInt(e.target.value, 10) || 1})}
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})}
-                  placeholder="1"
-                />
-              </UiBox>
-
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"}}>Próximo Secuencial de Nota de Venta / Recibo</UiLabel>
-                <UiInput
-                  type="number" 
-                  min="1"
-                  value={sriConfig.secuencialNotaVenta || 1} 
-                  onChange={e => setSriConfig({...sriConfig, secuencialNotaVenta: parseInt(e.target.value, 10) || 1})} 
-                  {...mergeThemeProps({"size":"2","className":"w-full"}, {}, {"color":"gray"})} 
-                  placeholder="1" 
-                />
-              </UiBox>
+            <UiBox {...{"className":"space-y-3"}}>
+              {[
+                { key: 'secuencialFactura', label: 'Factura (01)' },
+                { key: 'secuencialRetencion', label: 'Retención (07)' },
+                { key: 'secuencialNotaCredito', label: 'Nota de Crédito (04)' },
+                { key: 'secuencialNotaDebito', label: 'Nota de Débito (05)' },
+                { key: 'secuencialLiquidacion', label: 'Liquidación de Compra (03)' },
+                { key: 'secuencialGuiaRemision', label: 'Guía de Remisión (06)' },
+                { key: 'secuencialNotaVenta', label: 'Nota de Venta / Recibo' }
+              ].map((seq) => (
+                <UiBox key={seq.key}>
+                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","className":"block mb-1"}}>Próximo Secuencial — {seq.label}</UiLabel>
+                  <div className="flex items-center gap-2">
+                    <UiInput
+                      type="number"
+                      min="1"
+                      value={sriConfig[seq.key] || 1}
+                      onChange={e => setSriConfig({ ...sriConfig, [seq.key]: parseInt(e.target.value, 10) || 1 })}
+                      {...mergeThemeProps({"size":"2","className":"flex-1 font-mono"}, {}, {"color":"gray"})}
+                      placeholder="1"
+                    />
+                    <button
+                      type="button"
+                      disabled={savingSeqKey === seq.key}
+                      onClick={() => handleUpdateSequentialSafe(seq.key, seq.label)}
+                      className="h-8 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-semibold text-slate-800 shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      {savingSeqKey === seq.key ? '...' : 'Aplicar'}
+                    </button>
+                  </div>
+                </UiBox>
+              ))}
             </UiBox>
           </UiCard>
 

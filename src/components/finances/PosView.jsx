@@ -18,6 +18,10 @@ import PosCreditAuthModal from './PosCreditAuthModal';
 import SaleValidationDialog from './SaleValidationDialog';
 import { getPosSaleIssues } from '../../services/saleValidation';
 import { sriDocumentLinks } from '../../services/sriAuthorization';
+import { verifySupervisorPin } from '../../modules/rbac/application/rbacService';
+import { useAuth } from '../../contexts/AuthContext';
+import BarcodeScannerModal from '../../modules/warehouse/ui/BarcodeScannerModal';
+import { resolveWarehouseId } from '../../modules/warehouse/domain/warehouseModel';
 
 function sanitizeData(obj) {
   if (obj === null || obj === undefined) return null;
@@ -93,7 +97,22 @@ const BarcodeScannerIcon = ({ className = {"style":{"color":"var(--blue-11)"},"c
   </svg>
 );
 
-export default function PosView({ products, thirdParties, transactions = [], discounts = [], promotions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly, usuario = null }) {
+export default function PosView({ products, thirdParties, transactions = [], discounts = [], promotions = [], showToast, db, appId, onCheckout, onClose, isPreventaOnly, usuario = null, tenantUsers = [] }) {
+  const { userProfile: posUserProfile } = useAuth();
+  const [isCameraScannerOpen, setIsCameraScannerOpen] = useState(false);
+  const posAudioCtxRef = useRef(null);
+  const openingSessionRef = useRef(false);
+  const getSharedAudioContext = () => {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    if (!posAudioCtxRef.current || posAudioCtxRef.current.state === 'closed') {
+      posAudioCtxRef.current = new AudioCtx();
+    }
+    if (posAudioCtxRef.current.state === 'suspended') {
+      posAudioCtxRef.current.resume().catch(() => {});
+    }
+    return posAudioCtxRef.current;
+  };
   // Configuración de visualización del POS (persistente en localStorage)
   const [posConfig, setPosConfig] = useState(() => {
     const saved = localStorage.getItem(`pos_config_${appId}`);
@@ -217,6 +236,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   const [receivedAmount, setReceivedAmount] = useState('');
   const [paymentRefCode, setPaymentRefCode] = useState('');
   const [posTransferenciaBankId, setPosTransferenciaBankId] = useState('');
+  const [posEfectivoCajaId, setPosEfectivoCajaId] = useState('');
   const [bankAccounts, setBankAccounts] = useState([]);
   const [isCreditAuthOpen, setIsCreditAuthOpen] = useState(false);
   const [creditAuthData, setCreditAuthData] = useState(null);
@@ -227,7 +247,11 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     if (db) {
       getCuentas(db, { estado: 'activo' })
         .then(accs => {
-          if (isMounted) setBankAccounts(accs || []);
+          if (!isMounted) return;
+          const list = accs || [];
+          setBankAccounts(list);
+          const defaultCaja = list.find(a => a.tipo === 'caja');
+          if (defaultCaja) setPosEfectivoCajaId(prev => prev || defaultCaja.id);
         })
         .catch(err => console.error('Error cargando cuentas bancarias en POS:', err));
     }
@@ -457,7 +481,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
   const playCashRegisterSound = () => {
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const audioCtx = getSharedAudioContext();
+      if (!audioCtx) return;
       
       // Ring sound: first note (high pitch)
       const osc1 = audioCtx.createOscillator();
@@ -526,7 +551,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         
         if (posConfig.barcodeMode) {
           try {
-            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const context = getSharedAudioContext();
+            if (!context) return;
             const osc = context.createOscillator();
             const gain = context.createGain();
             osc.connect(gain);
@@ -600,7 +626,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     if (posConfig.barcodeMode) {
       const interval = setInterval(() => {
         const active = document.activeElement;
-        if (isCheckoutOpen || isQuickAddOpen || isClosingOpen) return;
+        if (isCheckoutOpen || isQuickAddOpen || isClosingOpen || showPaymentScreen || isSearchModalOpen || isConfigOpen || isHistoryOpen || authDialog?.isOpen) return;
         if (active && ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) && active.id !== 'pos-search-input') {
           return;
         }
@@ -782,10 +808,16 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     return unsub;
   }, [appId, db]);
 
-  // Manejar apertura de caja
+  // Manejar apertura de caja (protegido contra doble clic y sesiones concurrentes)
   const handleOpenSession = async (e) => {
     e.preventDefault();
+    if (openingSessionRef.current) return;
+    if (activeSession?.status === 'abierta') {
+      showToast('Ya existe una sesión de caja abierta.', 'warning');
+      return;
+    }
     if (!Number.isFinite(Number(openingForm.initialAmount)) || Number(openingForm.initialAmount) < 0 || !openingForm.responsible.trim()) { showToast('Revisa el responsable y el fondo inicial de caja.', 'error'); return; }
+    openingSessionRef.current = true;
     try {
       const sessionId = `session_${new Date().getTime()}`;
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_cash_sessions', sessionId), sanitizeData({
@@ -802,6 +834,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     } catch (err) {
       console.error(err);
       showToast("Error al abrir la caja", "error");
+    } finally {
+      openingSessionRef.current = false;
     }
   };
 
@@ -951,6 +985,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         posCheckoutOrigin: true,
         isPOS: !isPreventaOnly,
         isPreventa: !!isPreventaOnly,
+        bodega: activeSession?.branch || 'Bodega Central',
+        branchId: resolveWarehouseId(activeSession?.branch || 'Bodega Central'),
         cashSessionId: isPreventaOnly ? '' : (activeSession?.id || ''),
         financialSyncStatus: 'pending',
         createdAt: new Date().toISOString()
@@ -1005,6 +1041,10 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
   // Checkout Finalizado
   const handleFinalCheckout = async () => {
+    if (posDocType === 'cotizacion') {
+      await handleCreateQuote();
+      return;
+    }
     if (processingRef.current || !validarCobro()) return;
     try { validateCartStock(cart, products); } catch (error) { blockCheckout(error.message, 'items', 'productos'); return; }
 
@@ -1075,6 +1115,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         posCheckoutOrigin: true,
         isPOS: !isPreventaOnly,
         isPreventa: !!isPreventaOnly,
+        bodega: activeSession?.branch || 'Bodega Central',
+        branchId: resolveWarehouseId(activeSession?.branch || 'Bodega Central'),
         cashSessionId: isPreventaOnly ? '' : (activeSession?.id || ''),
         paymentsBreakdown: isCheckoutOpen ? {
           efectivo: Number(payments.efectivo),
@@ -1088,12 +1130,19 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           cruce_cuentas: pMethod === 'cruce_cuentas' ? Number(totalToPay.toFixed(2)) : 0
         },
         transferenciaBankId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
-        cuentaBancariaId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
+        tarjetaBankId: isCheckoutOpen ? (payments.tarjetaBankId || '') : (pMethod === 'tarjeta' ? posTransferenciaBankId : ''),
+        efectivoCajaId: isCheckoutOpen ? (payments.efectivoCajaId || posEfectivoCajaId) : (pMethod === 'efectivo' ? posEfectivoCajaId : ''),
+        cuentaBancariaId: isCheckoutOpen
+          ? (payments.transferenciaBankId || payments.tarjetaBankId || payments.efectivoCajaId || posEfectivoCajaId || '')
+          : (pMethod === 'efectivo' ? posEfectivoCajaId : (pMethod === 'transferencia' || pMethod === 'tarjeta' ? posTransferenciaBankId : '')),
         transferenciaRef: isCheckoutOpen ? payments.transferenciaRef : (pMethod === 'transferencia' ? paymentRefCode : ''),
+        tarjetaRef: isCheckoutOpen ? payments.tarjetaRef : (pMethod === 'tarjeta' ? paymentRefCode : ''),
         creditAuthData: creditAuthData || null,
         paymentReferences: {
           transferenciaRef: isCheckoutOpen ? payments.transferenciaRef : (pMethod === 'transferencia' ? paymentRefCode : ''),
           transferenciaBankId: isCheckoutOpen ? payments.transferenciaBankId : (pMethod === 'transferencia' ? posTransferenciaBankId : ''),
+          tarjetaBankId: isCheckoutOpen ? (payments.tarjetaBankId || '') : (pMethod === 'tarjeta' ? posTransferenciaBankId : ''),
+          efectivoCajaId: isCheckoutOpen ? (payments.efectivoCajaId || posEfectivoCajaId) : (pMethod === 'efectivo' ? posEfectivoCajaId : ''),
           tarjetaRef: isCheckoutOpen ? payments.tarjetaRef : (pMethod === 'tarjeta' ? paymentRefCode : ''),
           cruceRef: isCheckoutOpen ? payments.cruceRef : (pMethod === 'cruce_cuentas' ? paymentRefCode : '')
         }
@@ -1204,8 +1253,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
         ciudad: quickAddFormData.ciudad ? quickAddFormData.ciudad.trim() : '',
         telefono: quickAddFormData.telefono ? quickAddFormData.telefono.trim() : '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
-        isValidated: true,
-        validado: true,
+        isValidated: Boolean(quickAddFormData.sriVerified),
+        validado: Boolean(quickAddFormData.sriVerified),
         updatedAt: new Date().toISOString()
       }));
       setSelectedClientId(docId);
@@ -1230,7 +1279,6 @@ export default function PosView({ products, thirdParties, transactions = [], dis
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
   const handleCreateQuote = async () => {
     if (cart.length === 0) {
       showToast("Agrega productos al carrito para realizar una cotización", "error");
@@ -1262,6 +1310,9 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       showToast("Cotización POS registrada con éxito", "success");
       setCart([]);
       setSelectedClientId('');
+      setSelectedGeneralDiscount(null);
+      setShowPaymentScreen(false);
+      setIsCheckoutOpen(false);
     } catch (err) {
       console.error(err);
       showToast("Error al crear la cotización", "error");
@@ -1624,7 +1675,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 {activeSession?.branch || 'MATRIZ QUITO'} : 
               </UiText>
               <UiText {...{"weight":"bold","color":"gray"}}>
-                {' '}Fondo ${Number(activeSession?.initialAmount || 100).toFixed(0)}
+                {' '}Fondo ${Number(activeSession?.initialAmount ?? 0).toFixed(0)}
               </UiText>
             </UiBox>
             
@@ -1820,7 +1871,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
               {/* Totales y Botón Abandonar */}
               <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"mt-6 pt-6 space-y-4"}}>
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--color-background)"},"className":"p-4 space-y-2"}}>
+                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--gray-12)","border":"1px solid var(--gray-a6)"},"className":"p-4 space-y-2"}}>
                   <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex justify-between"}}>
                     <UiText>Subtotal</UiText>
                     <UiText>${getSubtotal().toFixed(2)}</UiText>
@@ -1886,7 +1937,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Seleccionar Método de Pago</UiHeading>
                 
                 {/* Tabs de Métodos de Pago */}
-                <UiBox {...{"className":"grid grid-cols-3 gap-3"}}>
+                <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-3"}}>
                   <UiButton
                     type="button"
                     onClick={() => {
@@ -1921,6 +1972,18 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   >
                     <CreditCard size={20} />
                     <UiText>Tarjeta</UiText>
+                  </UiButton>
+
+                  <UiButton
+                    type="button"
+                    onClick={() => {
+                      setShowPaymentScreen(false);
+                      setIsCheckoutOpen(true);
+                    }}
+                    {...mergeThemeProps({"variant":"surface","color":"amber","size":"2","className":"flex flex-col items-center gap-2"})}
+                  >
+                    <ShieldAlert size={20} />
+                    <UiText>Combinado / Crédito</UiText>
                   </UiButton>
                 </UiBox>
 
@@ -1987,13 +2050,34 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                           )}
                         </UiBox>
                       )}
+                      {bankAccounts.length > 0 && (
+                        <UiBox className="flex flex-col gap-1.5 pt-2">
+                          <UiLabel size="1" weight="bold" color="gray">Caja / Cuenta que recibe el efectivo</UiLabel>
+                          <UiSelect
+                            value={posEfectivoCajaId}
+                            onChange={e => setPosEfectivoCajaId(e.target.value)}
+                            size="2"
+                            color="gray"
+                            className="w-full"
+                          >
+                            <option value="">-- Sin asignar a cuenta de Finanzas --</option>
+                            {bankAccounts.map(b => (
+                              <option key={b.id} value={b.id}>
+                                {b.nombre}{b.banco ? ` (${b.banco})` : ''} — Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                              </option>
+                            ))}
+                          </UiSelect>
+                        </UiBox>
+                      )}
                     </UiBox>
                   ) : (
                     /* Transferencia o Tarjeta */
                     <UiBox {...{"className":"space-y-4"}}>
-                      {posPaymentMethod === 'transferencia' && (
+                      {(posPaymentMethod === 'transferencia' || posPaymentMethod === 'tarjeta') && (
                         <UiBox {...{"className":"flex flex-col gap-2"}}>
-                          <UiLabel {...{"size":"1","weight":"bold","color":"gray"}}>Cuenta Bancaria Destino</UiLabel>
+                          <UiLabel {...{"size":"1","weight":"bold","color":"gray"}}>
+                            {posPaymentMethod === 'tarjeta' ? 'Cuenta Bancaria donde se acredita la Tarjeta' : 'Cuenta Bancaria Destino'}
+                          </UiLabel>
                           <UiSelect
                             value={posTransferenciaBankId}
                             onChange={e => {
@@ -2008,7 +2092,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                             <option value="">-- Seleccionar Cuenta Bancaria --</option>
                             {bankAccounts.map(b => (
                               <option key={b.id} value={b.id}>
-                                {b.banco || b.nombre} ({b.tipoCuenta || 'Cta'} {b.numeroCuenta || ''}) - Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                                {b.banco || b.nombre}{b.numeroCuenta ? ` (${b.numeroCuenta})` : ''} — Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
                               </option>
                             ))}
                           </UiSelect>
@@ -2054,7 +2138,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           </UiBox>
         ) : (
           /* POS MAIN AREA (PRODUCTS + CART) */
-          <UiBox {...mergeThemeProps({"className":"flex-1 flex overflow-hidden min-h-0"}, {}, (posConfig.cartPosition === 'left' ? {"className":"flex-row-reverse"} : {}))}>
+          <UiBox {...mergeThemeProps({"className":"flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden min-h-0"}, {}, (posConfig.cartPosition === 'left' ? {"className":"lg:flex-row-reverse"} : {}))}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
         <UiBox {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex-1 flex flex-col pt-[7px] px-3 sm:px-4 lg:px-6 pb-6 min-w-0"})}>
@@ -2104,8 +2188,16 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               })}
             </UiBox>
 
-            {/* Right: Grid & List Switcher */}
+            {/* Right: Camera Barcode Scanner + Grid & List Switcher */}
             <UiBox {...{"style":{"borderLeft":"1px solid var(--gray-a6)"},"className":"flex items-center gap-1.5 shrink-0 pl-3"}}>
+              <UiButton iconOnly
+                type="button"
+                onClick={() => setIsCameraScannerOpen(true)}
+                {...mergeThemeProps({}, {}, {"color":"green","variant":"soft"})}
+                title="Escanear Código de Barras (Cámara / USB)"
+              >
+                <Barcode size={18} />
+              </UiButton>
               <UiButton iconOnly
                 type="button"
                 onClick={() => {
@@ -2662,8 +2754,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
       {/* APERTURA Y CIERRE DE CAJA DIALOG */}
       {isClosingOpen && (
-        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-6 duration-300"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
+        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[240] flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <UiCard {...mergeThemeProps({"className":"w-full max-w-md max-h-[90dvh] overflow-y-auto p-6 duration-300"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
             <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-4 pb-2">
               <UiHeading as="h3" size="2" weight="bold" color="red" className="flex items-center gap-2">
                 <ShieldAlert size={16} /> Arqueo y Cierre de Caja
@@ -3426,7 +3518,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       {/* QUICK CLIENT ADD MODAL IN POS */}
       {isQuickAddOpen && (
         <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <UiCard {...mergeThemeProps({"className":"w-full max-w-md p-6 duration-300"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
+          <UiCard {...mergeThemeProps({"className":"w-full max-w-md max-h-[90dvh] overflow-y-auto p-6 duration-300"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
             <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex justify-between items-center mb-4 pb-2">
               <UiHeading as="h3" size="3" weight="bold" className="flex items-center gap-2">
                 <UserPlus size={17} style={{ color: 'var(--blue-11)' }} />
@@ -4153,13 +4245,14 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   }}
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
-                      if (supervisorPassword === 'SUPERVISOR123') {
+                      const check = verifySupervisorPin({ pin: supervisorPassword, tenantUsers, fiscalConfig: sriConfig, currentUserProfile: posUserProfile });
+                      if (check.ok) {
                         authDialog.onConfirm();
                         setAuthDialog(null);
                         setSupervisorPassword('');
                         setAuthError('');
                       } else {
-                        setAuthError('Clave incorrecta. Solicite al supervisor.');
+                        setAuthError(check.error || 'PIN incorrecto. Solicite al supervisor.');
                       }
                     }
                   }}
@@ -4182,13 +4275,14 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 <UiButton
                   type="button" 
                   onClick={() => {
-                    if (supervisorPassword === 'SUPERVISOR123') {
+                    const check = verifySupervisorPin({ pin: supervisorPassword, tenantUsers, fiscalConfig: sriConfig, currentUserProfile: posUserProfile });
+                    if (check.ok) {
                       authDialog.onConfirm();
                       setAuthDialog(null);
                       setSupervisorPassword('');
                       setAuthError('');
                     } else {
-                      setAuthError('Clave incorrecta. Solicite al supervisor.');
+                      setAuthError(check.error || 'PIN incorrecto. Solicite al supervisor.');
                     }
                   }} 
                   {...{"variant":"solid","color":"red","className":"cursor-pointer"}}
@@ -4207,12 +4301,38 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           onClose={() => setIsCreditAuthOpen(false)}
           client={thirdParties.find(t => t.id === selectedClientId) || { name: 'Cliente POS' }}
           totalAmount={Number(payments.cruce_cuentas || getTotal())}
+          tenantUsers={tenantUsers}
+          fiscalConfig={sriConfig}
           showToast={showToast}
           onApprove={(auth) => {
             setCreditAuthData(auth);
           }}
         />
       )}
+
+      <BarcodeScannerModal
+        isOpen={isCameraScannerOpen}
+        onClose={() => setIsCameraScannerOpen(false)}
+        continuous
+        title="Escáner POS (Cámara o Lector USB)"
+        subtitle="Escanea códigos de barras para agregarlos directamente al carrito."
+        onScan={(code) => {
+          const clean = String(code || '').trim().toLowerCase();
+          const matched = products.find(p =>
+            isSellable(p) && (
+              String(p.codigoBarras || '').trim().toLowerCase() === clean ||
+              String(p.sku || '').trim().toLowerCase() === clean
+            )
+          );
+          if (matched) {
+            if (addToCart(matched)) {
+              showToast?.(`Agregado al carrito: ${matched.name}`, 'success');
+            }
+          } else {
+            showToast?.(`Producto no encontrado para código "${code}".`, 'warning');
+          }
+        }}
+      />
 
       <SaleValidationDialog
         issues={validationIssues}

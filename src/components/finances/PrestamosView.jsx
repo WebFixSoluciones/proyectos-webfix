@@ -34,6 +34,7 @@ export default function PrestamosView({ db, usuario, showToast }) {
   const [showForm, setShowForm] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('all');
+  const [pagoModal, setPagoModal] = useState(null);
 
   const cargar = useCallback(async () => {
     setLoading(true); setError(null);
@@ -212,16 +213,17 @@ export default function PrestamosView({ db, usuario, showToast }) {
                             <UiTableCell {...{"className":"px-3 py-2 text-right"}}>
                               {(c.estado === 'pendiente' || c.estado === 'vencido' || c.estado === 'parcial') && (
                                 <UiButton
-                                  onClick={async (e) => {
+                                  onClick={(e) => {
                                     e.stopPropagation();
-                                    const restante = (Number(c.cuotaTotal) - Number(c.pagadaCapital || 0) - Number(c.pagadaInteres || 0));
-                                    const montoStr = prompt(`Monto a pagar (cuota: ${formatCurrency(restante)}):`, String(restante.toFixed(2)));
-                                    if (!montoStr || Number(montoStr) <= 0) return;
-                                    try {
-                                      await pagarCuota(db, p.id, c.numero, Number(montoStr), usuario);
-                                      showToast(`Cuota #${c.numero} pagada: ${formatCurrency(Number(montoStr))}`, 'success');
-                                      cargar();
-                                    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+                                    const restante = Math.max(0, Number(c.cuotaTotal) - Number(c.pagadaCapital || 0) - Number(c.pagadaInteres || 0));
+                                    setPagoModal({
+                                      prestamoId: p.id,
+                                      entidad: p.entidad,
+                                      cuotaNumero: c.numero,
+                                      restante,
+                                      monto: restante.toFixed(2),
+                                      saving: false,
+                                    });
                                   }}
                                   {...{"size":"2","variant":"solid","color":"green","className":"hover:opacity-90"}}
                                 >
@@ -261,6 +263,70 @@ export default function PrestamosView({ db, usuario, showToast }) {
       </UiBox>
 
       {showForm && <FormPrestamo db={db} usuario={usuario} showToast={showToast} onClose={() => { setShowForm(false); cargar(); }} />}
+
+      {pagoModal && (
+        <UiBox style={{ backgroundColor: 'var(--black-a7)' }} className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={() => setPagoModal(null)}>
+          <UiCard style={{ backgroundColor: 'var(--color-panel-solid)' }} className="w-full max-w-sm max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex items-center justify-between px-5 py-3">
+              <UiHeading as="h3" color="gray" weight="bold" highContrast>Pagar Cuota #{pagoModal.cuotaNumero}</UiHeading>
+              <UiButton iconOnly onClick={() => setPagoModal(null)} variant="surface" color="gray"><X size={16} /></UiButton>
+            </UiBox>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const montoNum = Number(pagoModal.monto);
+                if (!Number.isFinite(montoNum) || montoNum <= 0) {
+                  showToast('Ingresa un monto mayor a $0.00', 'error');
+                  return;
+                }
+                setPagoModal(prev => ({ ...prev, saving: true }));
+                try {
+                  await pagarCuota(db, pagoModal.prestamoId, pagoModal.cuotaNumero, montoNum, usuario);
+                  showToast(`Cuota #${pagoModal.cuotaNumero} pagada: ${formatCurrency(montoNum)}`, 'success');
+                  setPagoModal(null);
+                  cargar();
+                } catch (err) {
+                  showToast('Error: ' + err.message, 'error');
+                  setPagoModal(prev => (prev ? { ...prev, saving: false } : null));
+                }
+              }}
+              className="p-5 space-y-4"
+            >
+              <UiBox style={{ backgroundColor: 'var(--gray-2)', borderRadius: 'var(--radius-3)' }} className="p-3 space-y-1 text-sm">
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Entidad:</UiText>
+                  <UiText weight="bold">{pagoModal.entidad}</UiText>
+                </UiBox>
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Saldo de cuota:</UiText>
+                  <UiText weight="bold" color="green">{formatCurrency(pagoModal.restante)}</UiText>
+                </UiBox>
+              </UiBox>
+              <UiBox>
+                <UiLabel size="1" weight="medium" color="gray" highContrast className="block mb-1">Monto a pagar ($)</UiLabel>
+                <UiInput
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  required
+                  autoFocus
+                  value={pagoModal.monto}
+                  onChange={e => setPagoModal(prev => ({ ...prev, monto: e.target.value }))}
+                  size="2"
+                  color="gray"
+                  className="w-full"
+                />
+              </UiBox>
+              <UiBox className="flex justify-end gap-2">
+                <UiButton type="button" onClick={() => setPagoModal(null)} size="2" color="gray" variant="outline">Cancelar</UiButton>
+                <UiButton type="submit" disabled={pagoModal.saving} size="2" variant="solid" color="green">
+                  {pagoModal.saving ? 'Registrando...' : 'Confirmar Pago'}
+                </UiButton>
+              </UiBox>
+            </form>
+          </UiCard>
+        </UiBox>
+      )}
     </UiBox>
   );
 }
@@ -375,11 +441,15 @@ function FormPrestamo({ db, usuario, showToast, onClose }) {
   );
 }
 
-function Input({ label, ...props }) {
+function Input({ label, onChange, ...props }) {
   return (
     <UiBox {...{"className":"space-y-1"}}>
       {label && <UiLabel {...{"size":"1","weight":"medium","color":"gray"}}>{label}</UiLabel>}
-      <UiInput {...props} {...{"size":"2","color":"gray","className":"w-full"}} />
+      <UiInput
+        {...props}
+        onChange={(e) => onChange?.(e && e.target ? e.target.value : e)}
+        {...{"size":"2","color":"gray","className":"w-full"}}
+      />
     </UiBox>
   );
 }

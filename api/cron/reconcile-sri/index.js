@@ -84,12 +84,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Verificación de seguridad si CRON_SECRET está configurado en variables de entorno
+  // Verificación estricta de seguridad cuando CRON_SECRET está configurado
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers['authorization'];
   const isVercelCron = req.headers['x-vercel-cron'] === '1' || req.headers['x-vercel-cron'] === 'true';
 
-  if (cronSecret && !isVercelCron) {
+  if (cronSecret) {
     const expectedAuth = `Bearer ${cronSecret}`;
     if (authHeader !== expectedAuth) {
       res.status(401).json({ error: 'Unauthorized: Invalid cron secret' });

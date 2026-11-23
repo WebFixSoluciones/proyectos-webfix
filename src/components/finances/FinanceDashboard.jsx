@@ -178,8 +178,15 @@ export default function FinanceDashboard({ transactions, thirdParties, db, appId
                     <UiText>{item.label}</UiText>
                     <UiText>{count} ({pct.toFixed(0)}%)</UiText>
                   </UiBox>
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)"},"className":"w-full h-1.5 overflow-hidden"}}>
-                    <UiBox {...mergeThemeProps({"className":"h-full"}, {}, resolveThemeProps(item.color))} style={{ width: `${pct}%` }}></UiBox>
+                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-4)"},"className":"w-full h-1.5 overflow-hidden"}}>
+                    <UiBox
+                      className="h-full"
+                      style={{
+                        ...(item.color?.style || {}),
+                        backgroundColor: item.key === 'anulado' ? 'var(--gray-8)' : (item.color?.style?.backgroundColor || 'var(--blue-9)'),
+                        width: `${pct}%`
+                      }}
+                    />
                   </UiBox>
                 </UiBox>
               );

@@ -30,11 +30,22 @@ export function generateSriAtsXml({ companyProfile = {}, year, month, transactio
   const formattedMonth = String(month).padStart(2, '0');
   const formattedYear = String(year);
 
-  // Filtrar transacciones del periodo
+  const parseYearMonth = (rawDate) => {
+    const str = String(rawDate || '').trim();
+    const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) return { y: iso[1], m: iso[2], d: iso[3] };
+    const ec = str.match(/^(\d{2})[/-](\d{2})[/-](\d{4})/);
+    if (ec) return { y: ec[3], m: ec[2], d: ec[1] };
+    return null;
+  };
+
+  // Filtrar transacciones válidas del periodo (excluyendo anulados, borradores y rechazados)
   const periodTxs = transactions.filter(t => {
-    if (!t.date) return false;
-    const [y, m] = t.date.split('-');
-    return y === formattedYear && String(m).padStart(2, '0') === formattedMonth;
+    if (!t?.date) return false;
+    const status = String(t.sriStatus || t.status || '').toLowerCase();
+    if (['anulado', 'borrador', 'rechazado', 'devuelto', 'no_autorizado'].includes(status)) return false;
+    const parsed = parseYearMonth(t.date);
+    return parsed && parsed.y === formattedYear && parsed.m === formattedMonth;
   });
 
   const ventas = periodTxs.filter(t => t.type === 'ingreso' || t.movementType === 'ingreso' || t.movementType === 'cobro');
@@ -78,7 +89,7 @@ export function generateSriAtsXml({ companyProfile = {}, year, month, transactio
       xml += `      <puntoEmision>${ptoEmi}</puntoEmision>\n`;
       xml += `      <secuencial>${sec}</secuencial>\n`;
       xml += `      <fechaEmision>${fechaEmi}</fechaEmision>\n`;
-      xml += `      <autorizacion>${escapeXml(c.autorizacionSRI || '1234567890123456789012345678901234567890123456789')}</autorizacion>\n`;
+      xml += `      <autorizacion>${escapeXml(c.claveAcceso || c.autorizacionSRI || '1234567890123456789012345678901234567890123456789')}</autorizacion>\n`;
       xml += `      <baseNoGraIva>0.00</baseNoGraIva>\n`;
       xml += `      <baseImponible>${subtotal0.toFixed(2)}</baseImponible>\n`;
       xml += `      <baseImpGrav>${subtotal15.toFixed(2)}</baseImpGrav>\n`;
@@ -124,7 +135,7 @@ export function generateSriAtsXml({ companyProfile = {}, year, month, transactio
       xml += `      <montoIva>${montoIva.toFixed(2)}</montoIva>\n`;
       xml += `      <montoIce>0.00</montoIce>\n`;
       xml += `      <valorRetIva>${(Number(v.retencionIva) || 0).toFixed(2)}</valorRetIva>\n`;
-      xml += `      <valorRetRenta>${(Number(v.retencionRenta) || 0).toFixed(2)}</valorRetRenta>\n`;
+      xml += `      <valorRetRenta>${(Number(v.retencionFuente ?? v.retencionRenta) || 0).toFixed(2)}</valorRetRenta>\n`;
       xml += `      <formsPago>\n`;
       xml += `        <formaPago>${v.paymentMethod === 'efectivo' ? '01' : v.paymentMethod === 'tarjeta' ? '19' : '20'}</formaPago>\n`;
       xml += `      </formsPago>\n`;

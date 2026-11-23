@@ -149,9 +149,10 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     const movementId = previous?.movimientoId || (venta ? 'venta_' : 'compra_') + data.id;
     const movementRef = doc(db, 'fin_movimientos', movementId);
     const movement = await tx.get(movementRef);
+    const defaultBankId = data.cuentaBancariaId || data.transferenciaBankId || data.bankAccountId || '';
     const initialPaid = Number(data.paidAmount ?? (data.paymentStatus === 'pagado' ? total : 0));
     if (!Number.isFinite(initialPaid) || initialPaid < 0 || initialPaid > total + 0.01) throw new Error('El pago inicial no coincide con el total.');
-    const splitPayments = data.paymentsBreakdown ? ['efectivo', 'transferencia', 'tarjeta'].filter(method => Number(data.paymentsBreakdown[method]) > 0).map(method => ({ id: 'origen:' + data.id + ':' + method, fecha: movData.fecha.toISOString(), monto: roundMoney(data.paymentsBreakdown[method]), metodoPago: mapearMetodoPago(method), referencia: data[method + 'Ref'] || '', movimientoId: movementId })) : null;
+    const splitPayments = data.paymentsBreakdown ? ['efectivo', 'transferencia', 'tarjeta'].filter(method => Number(data.paymentsBreakdown[method]) > 0).map(method => ({ id: 'origen:' + data.id + ':' + method, fecha: movData.fecha.toISOString(), monto: roundMoney(data.paymentsBreakdown[method]), metodoPago: mapearMetodoPago(method), referencia: data[method + 'Ref'] || data.paymentReferences?.[method + 'Ref'] || '', movimientoId: movementId })) : null;
     if (splitPayments && Math.abs(roundMoney(splitPayments.reduce((sum, p) => sum + p.monto, 0)) - initialPaid) > 0.01) throw new Error('El desglose de pagos no coincide con el importe abonado.');
     const abonos = previous?.abonos || splitPayments || (initialPaid > 0 ? [{ id: 'origen:' + data.id, fecha: movData.fecha.toISOString(), monto: roundMoney(initialPaid), metodoPago: movData.metodoPago, referencia: data.transactionRef || '', movimientoId: movementId }] : []);
     const paid = roundMoney(abonos.reduce((sum, p) => sum + Number(p.monto || 0), 0));
@@ -159,28 +160,93 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     const saldoPendiente = Math.max(0, roundMoney(total - paid));
     const estado = previous?.estado === 'anulado' ? 'anulado' : saldoPendiente === 0 ? 'pagado' : paid > 0 ? 'parcial' : 'pendiente';
     const factura = { tipo: data.documentType || 'factura', numero: data.documentNumber || '', claveAcceso: data.claveAcceso || null, fecha: movData.fecha, fechaVencimiento: data.creditDueDate ? parsearFecha(data.creditDueDate) : movData.fechaVencimiento, montoTotal: total, baseImponible: Number(data.baseImponible || 0), iva: Number(data.ivaValor || 0), retencionFuente: Number(data.retencionFuente || 0), retencionIva: Number(data.retencionIva || 0) };
-    tx.set(linkedRef, { tenantId: getAppId(), movimientoId: movementId, tercero: movData.tercero, factura, abonos, saldoPendiente, estado, notas: data.notas || '', creadoEn: previous?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
-    tx.set(movementRef, { ...movData, monto: total, pagos: abonos, saldoPendiente, estado, creadoPor: user.uid || '', creadoEn: movement.data()?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
 
-    const bankId = data.cuentaBancariaId || data.transferenciaBankId || data.bankAccountId;
-    if (bankId && initialPaid > 0) {
-      const bankRef = doc(db, 'fin_bancos', bankId);
-      const bankMovRef = doc(db, 'fin_movimientos_bancarios', `mov_doc_${data.id}`);
-      const bankAmount = Number(data.paymentsBreakdown?.transferencia || (data.paymentMethod === 'transferencia' ? initialPaid : initialPaid));
-      tx.set(bankMovRef, {
-        cuentaId: bankId,
-        tipo: venta ? 'credito' : 'debito',
-        monto: roundMoney(bankAmount),
-        fecha: movData.fecha,
-        descripcion: `${venta ? 'Venta' : 'Compra'} ${data.documentType || 'factura'} ${data.documentNumber || data.id}`,
+    // Construir asientos bancarios/caja por cada canal de pago inmediato con cuenta destino
+    const candidatePostings = [];
+    if (data.paymentsBreakdown) {
+      const amtTransf = roundMoney(data.paymentsBreakdown.transferencia || 0);
+      const amtTarjeta = roundMoney(data.paymentsBreakdown.tarjeta || 0);
+      const amtEfectivo = roundMoney(data.paymentsBreakdown.efectivo || 0);
+      const transfBankId = data.transferenciaBankId || data.paymentReferences?.transferenciaBankId || (amtTransf > 0 ? defaultBankId : '');
+      const tarjetaBankId = data.tarjetaBankId || data.paymentReferences?.tarjetaBankId || (amtTransf === 0 && amtTarjeta > 0 ? defaultBankId : '');
+      const efectivoCajaId = data.efectivoCajaId || data.paymentReferences?.efectivoCajaId || (amtTransf === 0 && amtTarjeta === 0 && amtEfectivo > 0 ? defaultBankId : '');
+      if (amtTransf > 0 && transfBankId) {
+        candidatePostings.push({
+          docId: `mov_doc_${data.id}`,
+          cuentaId: transfBankId,
+          monto: amtTransf,
+          metodoPago: 'transferencia',
+          referencia: data.transferenciaRef || data.paymentReferences?.transferenciaRef || data.transactionRef || '',
+        });
+      }
+      if (amtTarjeta > 0 && tarjetaBankId) {
+        candidatePostings.push({
+          docId: candidatePostings.length === 0 ? `mov_doc_${data.id}` : `mov_doc_${data.id}_tarjeta`,
+          cuentaId: tarjetaBankId,
+          monto: amtTarjeta,
+          metodoPago: 'tarjeta_credito',
+          referencia: data.tarjetaRef || data.paymentReferences?.tarjetaRef || data.transactionRef || '',
+        });
+      }
+      if (amtEfectivo > 0 && efectivoCajaId) {
+        candidatePostings.push({
+          docId: candidatePostings.length === 0 ? `mov_doc_${data.id}` : `mov_doc_${data.id}_efectivo`,
+          cuentaId: efectivoCajaId,
+          monto: amtEfectivo,
+          metodoPago: 'efectivo',
+          referencia: data.transactionRef || '',
+        });
+      }
+    } else if (defaultBankId && initialPaid > 0) {
+      candidatePostings.push({
+        docId: `mov_doc_${data.id}`,
+        cuentaId: defaultBankId,
+        monto: roundMoney(initialPaid),
+        metodoPago: movData.metodoPago,
         referencia: data.transferenciaRef || data.transactionRef || '',
+      });
+    }
+
+    // Leer todas las cuentas bancarias/caja ANTES de escribir en la transacción
+    const uniqueBankIds = [...new Set(candidatePostings.map(p => p.cuentaId))];
+    const bankSnaps = new Map();
+    for (const bId of uniqueBankIds) {
+      const bRef = doc(db, 'fin_bancos', bId);
+      const bSnap = await tx.get(bRef);
+      if (bSnap?.exists?.() && bSnap.data()?.estado !== 'inactivo') {
+        bankSnaps.set(bId, bRef);
+      }
+    }
+    const validPostings = candidatePostings.filter(p => bankSnaps.has(p.cuentaId));
+    const primaryBankMovId = validPostings[0]?.docId || null;
+
+    tx.set(linkedRef, { tenantId: getAppId(), movimientoId: movementId, tercero: movData.tercero, factura, abonos, saldoPendiente, estado, notas: data.notas || '', creadoEn: previous?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
+    tx.set(movementRef, { ...movData, monto: total, pagos: abonos, saldoPendiente, estado, ...(primaryBankMovId ? { conciliacionBancariaId: primaryBankMovId } : {}), creadoPor: user.uid || '', creadoEn: movement.data()?.creadoEn || serverTimestamp(), actualizadoEn: serverTimestamp() }, { merge: true });
+
+    const touchedBankRefs = new Set();
+    for (const posting of validPostings) {
+      const bankMovRef = doc(db, 'fin_movimientos_bancarios', posting.docId);
+      tx.set(bankMovRef, {
+        cuentaId: posting.cuentaId,
+        tipo: venta ? 'credito' : 'debito',
+        monto: roundMoney(posting.monto),
+        fecha: movData.fecha,
+        descripcion: `${venta ? (data.isPOS ? 'Venta POS' : 'Venta') : 'Compra'} ${data.documentType || 'factura'} ${data.documentNumber || data.id} — ${movData.tercero.nombre}`,
+        terceroNombre: movData.tercero.nombre,
+        metodoPago: posting.metodoPago,
+        origen: venta ? (data.isPOS ? 'pos' : 'ventas') : 'compras',
+        referencia: posting.referencia,
         conciliado: true,
         movimientoId: movementId,
         origenId: data.id,
+        estado: 'activo',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      tx.update(bankRef, { updatedAt: serverTimestamp() });
+      touchedBankRefs.add(posting.cuentaId);
+    }
+    for (const bId of touchedBankRefs) {
+      tx.update(bankSnaps.get(bId), { updatedAt: serverTimestamp() });
     }
 
     return { movimientoId: movementId, [venta ? 'cxcId' : 'cxpId']: data.id };

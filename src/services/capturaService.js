@@ -146,12 +146,42 @@ async function detectarDuplicado(db, datos) {
 
 export async function confirmarCaptura(db, capturaId, datosEditados, usuario) {
   const docRef = doc(db, COLLECTION, capturaId);
+  const monto = Number(datosEditados?.montoTotal || datosEditados?.total || 0);
+  const tipo = datosEditados?.tipo === 'ingreso' ? 'ingreso' : 'egreso';
+  const movPayload = {
+    tipo,
+    origen: 'captura_ocr',
+    origenId: capturaId,
+    fecha: datosEditados?.fecha ? new Date(datosEditados.fecha) : new Date(),
+    monto,
+    saldoPendiente: monto,
+    estado: 'pendiente',
+    pagos: [],
+    metodoPago: 'transferencia',
+    documento: {
+      tipo: datosEditados?.tipoComprobante || 'factura',
+      numero: datosEditados?.numeroDocumento || datosEditados?.numero || '',
+      claveAcceso: datosEditados?.claveAcceso || null
+    },
+    tercero: {
+      nombre: datosEditados?.emisor || datosEditados?.razonSocial || datosEditados?.proveedor || 'Tercero OCR',
+      ruc: datosEditados?.ruc || ''
+    },
+    descripcion: datosEditados?.descripcion || `Captura inteligente ${datosEditados?.numeroDocumento || capturaId}`,
+    creadoPor: usuario?.uid || '',
+    creadoEn: serverTimestamp(),
+    actualizadoEn: serverTimestamp()
+  };
+
+  const movRef = await addDoc(collection(db, 'fin_movimientos'), movPayload);
   await updateDoc(docRef, {
     datosExtraidos: datosEditados,
     estado: 'confirmado',
+    movimientoId: movRef.id,
     updatedAt: serverTimestamp(),
   });
-  registrarAuditoria(db, { coleccion: COLLECTION, documentoId: capturaId, accion: 'confirmar', usuario: usuario?.uid, usuarioEmail: usuario?.email, cambios: { datos: datosEditados }, modulo: 'finanzas' });
+  registrarAuditoria(db, { coleccion: COLLECTION, documentoId: capturaId, accion: 'confirmar', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { datos: datosEditados, movimientoId: movRef.id }, modulo: 'finanzas' });
+  return { capturaId, movimientoId: movRef.id };
 }
 
 export async function rechazarCaptura(db, capturaId, usuario) {

@@ -70,7 +70,7 @@ const glassInputLight = "glass-input-light";
 
 
 export default function App() {
-  const { currentUser, tenantInfo, planId, role: userRole, emailVerificationRequired } = useAuth();
+  const { currentUser, userProfile, tenantInfo, tenantId, planId, role: userRole, emailVerificationRequired } = useAuth();
   const isAuthenticated = !!currentUser;
   const navigate = useNavigate();
   const location = useLocation();
@@ -87,7 +87,10 @@ export default function App() {
     }
     return 'dashboard';
   });
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
+  const [isOffline, setIsOffline] = useState(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const notificationsRef = useRef(null);
   const mainContentRef = useRef(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
@@ -97,11 +100,17 @@ export default function App() {
       if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
         setIsProfileMenuOpen(false);
       }
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target)) {
+        setIsNotificationsOpen(false);
+      }
     };
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') setIsProfileMenuOpen(false);
+      if (e.key === 'Escape') {
+        setIsProfileMenuOpen(false);
+        setIsNotificationsOpen(false);
+      }
     };
-    if (isProfileMenuOpen) {
+    if (isProfileMenuOpen || isNotificationsOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleKeyDown);
     }
@@ -109,7 +118,7 @@ export default function App() {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isProfileMenuOpen]);
+  }, [isProfileMenuOpen, isNotificationsOpen]);
 
   // Scroll reset al cambiar de pagina/módulo
   useEffect(() => {
@@ -221,7 +230,10 @@ export default function App() {
   }, [planId, plansList]);
   const [ventasInitialSubTab, setVentasInitialSubTab] = useState(() => localStorage.getItem('ventasInitialSubTab') || 'resumen_ventas');
   const [comprasInitialSubTab, setComprasInitialSubTab] = useState(() => localStorage.getItem('comprasInitialSubTab') || 'compras_resumen');
-  const [contabilidadInitialSubTab, setContabilidadInitialSubTab] = useState(() => localStorage.getItem('contabilidadInitialSubTab') || 'dashboard');
+  const [contabilidadInitialSubTab, setContabilidadInitialSubTab] = useState(() => {
+    const saved = localStorage.getItem('contabilidadInitialSubTab');
+    return saved && saved !== 'dashboard' ? saved : 'resumen_financiero';
+  });
   const [billingInitialSubTab, setBillingInitialSubTab] = useState(() => localStorage.getItem('billingInitialSubTab') || 'facturacion');
   const [gastosInitialSubTab, setGastosInitialSubTab] = useState(() => localStorage.getItem('gastosInitialSubTab') || 'resumen');
   const [inventarioInitialSubTab, setInventarioInitialSubTab] = useState(() => localStorage.getItem('inventarioInitialSubTab') || 'productos');
@@ -369,7 +381,14 @@ export default function App() {
     });
 
     window.alert = (message) => {
-      showToast(message, 'error');
+      const text = String(message || '');
+      const lower = text.toLowerCase();
+      const type = lower.includes('error') || lower.includes('fallo') || lower.includes('inválid') || lower.includes('no se pudo')
+        ? 'error'
+        : lower.includes('éxito') || lower.includes('guardad') || lower.includes('correcto')
+        ? 'success'
+        : 'warning';
+      showToast(text, type);
     };
 
     return unregisterConfirm;
@@ -384,14 +403,23 @@ export default function App() {
     }
   }, [isAuthenticated]);
 
-  // 1.5 Escuchador de estado Offline (pérdida de conexión)
+  // 1.5 Escuchador no destructivo de estado Offline/Online (preserva formularios y carritos POS)
   useEffect(() => {
     const handleOffline = () => {
       console.warn("Dispositivo sin conexión a internet.");
-      triggerSyncError();
+      setIsOffline(true);
+      showToast('Sin conexión a internet. Tu trabajo local se conservará hasta reconectar.', 'warning');
+    };
+    const handleOnline = () => {
+      setIsOffline(false);
+      showToast('Conexión restablecida con la nube.', 'sync');
     };
     window.addEventListener('offline', handleOffline);
-    return () => window.removeEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
   }, []);
 
   // --- INTEGRACIÓN CON EL HISTORIAL DEL NAVEGADOR (botón Atrás/Adelante) ---
@@ -478,7 +506,7 @@ export default function App() {
     const isSuperAdmin = String(userRole || '').toLowerCase().trim() === 'superadmin';
 
     // Si estamos en /superadmin o somos superadmin fuera del ERP (/app), no suscribir al sandbox de empresa
-    if (location.pathname.startsWith('/superadmin') || (isSuperAdmin && !location.pathname.startsWith('/app'))) {
+    if (!isInAppRoute || (isSuperAdmin && !isInAppRoute)) {
       setIsLoadingFinances(false);
       return;
     }
@@ -492,7 +520,15 @@ export default function App() {
         if (data.trash) setTrash(data.trash);
         if (data.googleClientId !== undefined) setGoogleClientId(data.googleClientId);
         if (data.activeModules !== undefined) {
-          setActiveModules(prev => ({ ...prev, ...data.activeModules }));
+          // Intersección estricta con los módulos habilitados por el plan SaaS:
+          // meta/info puede desactivar módulos por preferencia del admin, nunca escalar privilegios del plan.
+          setActiveModules(prev => {
+            const merged = { ...prev };
+            for (const key of Object.keys(merged)) {
+              if (data.activeModules[key] === false) merged[key] = false;
+            }
+            return merged;
+          });
         }
         if (data.companyProfile !== undefined) {
           setCompanyProfile(data.companyProfile);
@@ -596,7 +632,7 @@ export default function App() {
     };
 
     return () => { if (window.__unsubFirestore) window.__unsubFirestore(); };
-  }, [isAuthenticated, currentUser, userRole, emailVerificationRequired, location.pathname]);
+  }, [isAuthenticated, currentUser, userRole, emailVerificationRequired, isInAppRoute, tenantId]);
 
   // Determinar página activa
   // --- Lógica de Usuarios ---
@@ -807,10 +843,17 @@ export default function App() {
         trash={trash}
         handleLogout={handleLogout}
         userRole={userRole}
+        userProfile={userProfile}
       />
 
       {/* Main Content Area */}
-      <UiBox {...{"className":"flex-1 flex flex-col h-full overflow-hidden relative z-10 md:z-[60]"}}>
+      <UiBox {...{"className":"flex-1 flex flex-col h-full overflow-hidden relative z-auto md:z-[60]"}}>
+        {isOffline && (
+          <div className="bg-amber-500 text-white text-xs font-semibold px-4 py-1.5 flex items-center justify-center gap-2 shrink-0 z-40">
+            <CloudOff size={14} />
+            <span>Sin conexión a internet — trabajando en modo espera; los cambios se sincronizarán al reconectar.</span>
+          </div>
+        )}
         
         {/* Topbar Stripe (Brevo Design System Header) */}
         <header className="flex items-center px-4 sm:px-6 justify-between gap-4 shrink-0 h-14 bg-white select-none z-30">
@@ -828,23 +871,24 @@ export default function App() {
 
           {/* Right: Brevo Action Icons & User Profile */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Direct POS button if ventas module is active */}
+            {/* Direct POS button visible across desktop, tablet & mobile */}
             {activeModules.ventas && (
               <button
                 type="button"
                 onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors cursor-pointer mr-1"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors cursor-pointer mr-1"
                 title="Abrir Punto de Venta (POS)"
               >
-                <Calculator size={13} />
-                <span>Punto de Venta</span>
+                <Calculator size={14} />
+                <span className="hidden sm:inline">Punto de Venta</span>
+                <span className="sm:hidden">POS</span>
               </button>
             )}
 
             {/* "Uso y plan" button */}
             <button
               type="button"
-              onClick={() => { setBillingInitialSubTab('planes'); setActivePageId('billing'); }}
+              onClick={() => { setBillingInitialSubTab('facturacion'); setActivePageId('billing'); }}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               title="Ver consumo y planes"
             >
@@ -872,15 +916,62 @@ export default function App() {
               <Settings size={16} />
             </button>
 
-            {/* Notifications Icon */}
-            <button
-              type="button"
-              onClick={() => showToast('Sin notificaciones nuevas', 'info')}
-              className="w-8 h-8 flex items-center justify-center text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer relative"
-              title="Notificaciones"
-            >
-              <Bell size={16} />
-            </button>
+            {/* Notifications Bell with Live ERP Alerts */}
+            {(() => {
+              const pendingSriCount = globalTransactions.filter(t => t.type === 'ingreso' && t.sriStatus === 'pendiente_sri').length;
+              const lowStockCount = globalProducts.filter(p => p.type !== 'SERVICE' && p.inventoryType !== 'VIRTUAL' && Number(p.stock ?? 0) <= Number(p.stockMinimo ?? p.minStock ?? 5)).length;
+              const totalAlerts = pendingSriCount + (lowStockCount > 0 ? 1 : 0);
+              return (
+                <div className="relative" ref={notificationsRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsNotificationsOpen(v => !v)}
+                    className="w-8 h-8 flex items-center justify-center text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer relative"
+                    title="Notificaciones del ERP"
+                  >
+                    <Bell size={16} />
+                    {totalAlerts > 0 && (
+                      <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
+                    )}
+                  </button>
+                  {isNotificationsOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl border border-slate-200 py-2 z-[220] text-xs">
+                      <div className="px-4 py-2 border-b border-slate-100 font-bold text-slate-900 flex items-center justify-between">
+                        <span>Alertas Operativas</span>
+                        <span className="text-[11px] font-semibold text-slate-500">{totalAlerts} activas</span>
+                      </div>
+                      <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                        {pendingSriCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => { setIsNotificationsOpen(false); setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }}
+                            className="w-full px-4 py-2.5 text-left hover:bg-slate-50 cursor-pointer"
+                          >
+                            <div className="font-semibold text-amber-800">{pendingSriCount} comprobante(s) pendiente(s) SRI</div>
+                            <div className="text-[11px] text-slate-500">Clic para verificar autorización en Historial de Ventas.</div>
+                          </button>
+                        )}
+                        {lowStockCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => { setIsNotificationsOpen(false); setInventarioInitialSubTab('bodegas'); setActivePageId('inventario'); }}
+                            className="w-full px-4 py-2.5 text-left hover:bg-slate-50 cursor-pointer"
+                          >
+                            <div className="font-semibold text-rose-700">{lowStockCount} producto(s) con stock bajo</div>
+                            <div className="text-[11px] text-slate-500">Revisar existencias en Control de Bodegas.</div>
+                          </button>
+                        )}
+                        {totalAlerts === 0 && (
+                          <div className="px-4 py-6 text-center text-slate-500">
+                            Todo al día. Sin alertas pendientes.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* User Profile Pill & Dropdown (Brevo Style) */}
             <div className="relative ml-1" ref={profileMenuRef}>
@@ -989,9 +1080,9 @@ export default function App() {
                   <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--red-3)","color":"var(--red-11)","border":"1px solid var(--gray-a6)"},"className":"p-5 mb-6"}}>
                     <Lock size={36} />
                   </UiBox>
-                  <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"red","className":"mb-2"}}>Servicio Suspendido</UiHeading>
+                  <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"red","className":"mb-2"}}>{tenantInfo?.planStatus === 'pending_approval' ? 'Empresa pendiente de aprobación' : 'Servicio Suspendido'}</UiHeading>
                   <UiText as="p" {...{"size":"1","weight":"bold","color":"gray","className":"max-w-sm mb-6 leading-relaxed"}}>
-                    Tu acceso al ERP ha sido temporalmente suspendido debido al vencimiento o falta de pago de tu suscripción.
+                    {tenantInfo?.planStatus === 'pending_approval' ? 'Tu registro fue recibido. El administrador debe revisar los datos y habilitar tu empresa antes de que puedas operar.' : 'Tu acceso al ERP ha sido temporalmente suspendido debido al vencimiento o falta de pago de tu suscripción.'}
                   </UiText>
                   <UiButton
                     onClick={() => setActivePageId('billing')}
@@ -1030,22 +1121,73 @@ export default function App() {
 
               {activePageId === 'ventas' && (
                 <ErrorBoundary title="Error en el módulo de Ventas">
-                  <FinanceModule mode="ventas" initialSubTab={ventasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} categories={globalCategories} isLoading={isLoadingFinances} />
+                  <FinanceModule
+                    mode="ventas"
+                    initialSubTab={ventasInitialSubTab}
+                    onSubTabChange={setVentasInitialSubTab}
+                    showToast={showToast}
+                    usuario={currentUser}
+                    userProfile={userProfile}
+                    tenantUsers={users}
+                    transactions={globalTransactions}
+                    thirdParties={globalThirdParties}
+                    products={globalProducts}
+                    discounts={globalDiscounts}
+                    promotions={globalPromotions}
+                    categories={globalCategories}
+                    isLoading={isLoadingFinances}
+                  />
                 </ErrorBoundary>
               )}
               {activePageId === 'inventario' && (
                 <ErrorBoundary title="Error en el módulo de Inventario">
-                  <InventoryModule initialSubTab={inventarioInitialSubTab} showToast={showToast} />
+                  <InventoryModule
+                    initialSubTab={inventarioInitialSubTab}
+                    onSubTabChange={setInventarioInitialSubTab}
+                    showToast={showToast}
+                    transactions={globalTransactions}
+                    companyProfile={companyProfile}
+                  />
                 </ErrorBoundary>
               )}
               {activePageId === 'finances' && (
                 <ErrorBoundary title="Error en el módulo de Control Financiero">
-                  <FinanceModule mode="contabilidad" initialSubTab={contabilidadInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} categories={globalCategories} isLoading={isLoadingFinances} />
+                  <FinanceModule
+                    mode="contabilidad"
+                    initialSubTab={contabilidadInitialSubTab}
+                    onSubTabChange={setContabilidadInitialSubTab}
+                    showToast={showToast}
+                    usuario={currentUser}
+                    userProfile={userProfile}
+                    tenantUsers={users}
+                    transactions={globalTransactions}
+                    thirdParties={globalThirdParties}
+                    products={globalProducts}
+                    discounts={globalDiscounts}
+                    promotions={globalPromotions}
+                    categories={globalCategories}
+                    isLoading={isLoadingFinances}
+                  />
                 </ErrorBoundary>
               )}
               {activePageId === 'compras' && (
                 <ErrorBoundary title="Error en el módulo de Compras">
-                  <FinanceModule mode="compras" initialSubTab={comprasInitialSubTab} showToast={showToast} transactions={globalTransactions} thirdParties={globalThirdParties} products={globalProducts} discounts={globalDiscounts} promotions={globalPromotions} categories={globalCategories} isLoading={isLoadingFinances} />
+                  <FinanceModule
+                    mode="compras"
+                    initialSubTab={comprasInitialSubTab}
+                    onSubTabChange={setComprasInitialSubTab}
+                    showToast={showToast}
+                    usuario={currentUser}
+                    userProfile={userProfile}
+                    tenantUsers={users}
+                    transactions={globalTransactions}
+                    thirdParties={globalThirdParties}
+                    products={globalProducts}
+                    discounts={globalDiscounts}
+                    promotions={globalPromotions}
+                    categories={globalCategories}
+                    isLoading={isLoadingFinances}
+                  />
                 </ErrorBoundary>
               )}
               {activePageId === 'gastos_creditos' && (
@@ -1127,9 +1269,9 @@ export default function App() {
             </UiBox>
           </UiBox> {/* Closes Editor Area */}
 
-        {/* Chat Lateral de IA Global */}
+        {/* Chat Lateral de IA Global (responsivo en móvil como overlay) */}
         {isGlobalChatOpen && (
-          <UiBox {...mergeThemeProps({"style":{"borderLeft":"1px solid var(--gray-a6)"},"className":"w-80 shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300"}, {}, {"style":{"backgroundColor":"var(--blue-3)"}})}>
+          <UiBox {...mergeThemeProps({"style":{"borderLeft":"1px solid var(--gray-a6)"},"className":"fixed inset-y-0 right-0 z-[240] w-full max-w-xs lg:static lg:z-auto lg:w-80 shrink-0 flex flex-col p-4 animate-in slide-in-from-right duration-300 bg-white"}, {}, {"style":{"backgroundColor":"var(--blue-3)"}})}>
             <FinanceChat
               transactions={globalTransactions}
               onClose={() => setIsGlobalChatOpen(false)}
@@ -1210,12 +1352,13 @@ export default function App() {
 
 
 
-      {/* Contenedor de Toasts (Notificaciones Flotantes Minimalistas) */}
-      <UiBox {...{"className":"fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"}}>
+      {/* Contenedor de Toasts (Notificaciones Flotantes Minimalistas — siempre sobre modales) */}
+      <UiBox {...{"className":"fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[600] flex flex-col gap-2 pointer-events-none max-w-[calc(100vw-2rem)]"}}>
         {toasts.map(toast => (
-          <UiCard key={toast.id} {...mergeThemeProps({"className":"animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 pointer-events-auto"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
+          <UiCard key={toast.id} {...mergeThemeProps({"className":"animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 pointer-events-auto border border-slate-200"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
             {toast.type === 'success' && <CheckCircle2 size={16} {...{"style":{"color":"var(--green-11)"}}} />}
             {toast.type === 'error' && <X size={16} {...{"style":{"color":"var(--red-11)"}}} />}
+            {(toast.type === 'warning' || toast.type === 'info') && <AlertCircle size={16} {...{"style":{"color": toast.type === 'warning' ? "var(--amber-11)" : "var(--blue-11)"}}} />}
             {toast.type === 'sync' && <Cloud size={16} {...{"style":{"color":"var(--blue-12)"},"className":"animate-pulse"}} />}
             <UiText {...{"size":"1","weight":"bold"}}>{toast.message}</UiText>
           </UiCard>

@@ -153,8 +153,26 @@ export default function ReportesView({ db, showToast }) {
                   <UiBox key={s.mes} {...{"className":"flex items-center gap-2"}}>
                     <UiText {...{"color":"gray","className":"w-14 shrink-0"}}>{MESES[parseInt(m)-1]} {y?.slice(2)}</UiText>
                     <UiBox {...{"className":"flex-1 flex items-center gap-1"}}>
-                      <UiBox {...{"style":{"backgroundColor":"var(--green-3)","borderRadius":"var(--radius-3)"},"className":"h-3"}} style={{ width: `${(s.ingresos / maxVal) * 100}%`, minWidth: s.ingresos > 0 ? '2px' : '0' }} title={`Ingresos: ${fmt(s.ingresos)}`} />
-                      <UiBox {...{"style":{"backgroundColor":"var(--red-3)","borderRadius":"var(--radius-3)"},"className":"h-3"}} style={{ width: `${(s.egresos / maxVal) * 100}%`, minWidth: s.egresos > 0 ? '2px' : '0' }} title={`Egresos: ${fmt(s.egresos)}`} />
+                      <UiBox
+                        className="h-3"
+                        style={{
+                          backgroundColor: 'var(--green-9)',
+                          borderRadius: 'var(--radius-3)',
+                          width: `${(s.ingresos / maxVal) * 100}%`,
+                          minWidth: s.ingresos > 0 ? '4px' : '0'
+                        }}
+                        title={`Ingresos: ${fmt(s.ingresos)}`}
+                      />
+                      <UiBox
+                        className="h-3"
+                        style={{
+                          backgroundColor: 'var(--red-9)',
+                          borderRadius: 'var(--radius-3)',
+                          width: `${(s.egresos / maxVal) * 100}%`,
+                          minWidth: s.egresos > 0 ? '4px' : '0'
+                        }}
+                        title={`Egresos: ${fmt(s.egresos)}`}
+                      />
                     </UiBox>
                     <UiText {...mergeThemeProps({"weight":"medium","className":"w-20 text-right"}, {}, (s.saldo >= 0 ? {"color":"green"} : {"color":"red"}))}>{fmt(s.saldo)}</UiText>
                   </UiBox>
@@ -162,8 +180,8 @@ export default function ReportesView({ db, showToast }) {
               })}
             </UiBox>
             <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-4 mt-3"}}>
-              <UiText {...{"className":"flex items-center gap-1"}}><UiText {...{"className":"w-2.5 h-2.5 inline-block"}} /> Ingresos</UiText>
-              <UiText {...{"className":"flex items-center gap-1"}}><UiText {...{"className":"w-2.5 h-2.5 inline-block"}} /> Egresos</UiText>
+              <UiText {...{"className":"flex items-center gap-1.5"}}><UiBox className="w-2.5 h-2.5 inline-block rounded-sm" style={{ backgroundColor: 'var(--green-9)' }} /> Ingresos</UiText>
+              <UiText {...{"className":"flex items-center gap-1.5"}}><UiBox className="w-2.5 h-2.5 inline-block rounded-sm" style={{ backgroundColor: 'var(--red-9)' }} /> Egresos</UiText>
             </UiBox>
           </UiCard>
         )}
@@ -216,8 +234,8 @@ export default function ReportesView({ db, showToast }) {
                 <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"mb-0.5"}}>{k} días</UiBox>
                 <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{v.count}</UiBox>
                 <UiBox {...{"style":{"color":"var(--gray-11)"}}}>{fmt(v.total)}</UiBox>
-                <UiBox {...{"style":{"backgroundColor":"var(--gray-2)","borderRadius":"var(--radius-3)"},"className":"mt-1.5 h-1 overflow-hidden"}}>
-                  <UiBox {...{"style":{"backgroundColor":"var(--blue-9)","borderRadius":"var(--radius-3)"},"className":"h-full"}} style={{ width: `${Math.min(pct, 100)}%` }} />
+                <UiBox {...{"style":{"backgroundColor":"var(--gray-4)","borderRadius":"var(--radius-3)"},"className":"mt-1.5 h-1.5 overflow-hidden"}}>
+                  <UiBox className="h-full" style={{ backgroundColor: 'var(--blue-9)', borderRadius: 'var(--radius-3)', width: `${Math.min(pct, 100)}%` }} />
                 </UiBox>
               </UiBox>
             );

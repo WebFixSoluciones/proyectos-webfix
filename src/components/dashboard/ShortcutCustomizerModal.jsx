@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   X, Check, Search, RotateCcw, PlusCircle, ShoppingCart, FileText, 
   FileCheck, Clock, PackagePlus, Briefcase, Package, Boxes,
@@ -297,6 +297,13 @@ export default function ShortcutCustomizerModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
 
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedIds(currentShortcuts.length > 0 ? [...currentShortcuts] : [...DEFAULT_SHORTCUT_IDS]);
+      setSearchQuery('');
+    }
+  }, [isOpen, currentShortcuts]);
+
   if (!isOpen) return null;
 
   const handleToggle = (id) => {
@@ -352,7 +359,7 @@ export default function ShortcutCustomizerModal({
           borderRadius: 'var(--radius-4)',
           border: '1px solid var(--gray-a6)'
         }}
-        className="w-full max-w-3xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-3xl max-h-[90dvh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={e => e.stopPropagation()}
       >
         {/* Cabecera del Modal */}

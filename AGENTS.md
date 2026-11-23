@@ -7,6 +7,22 @@ React 19 + Vite 8 | Tailwind CSS 4 | Firebase | React Router 7
 
 ## Walkthroughs activos (ordenados por fecha)
 
+### 13. Auditoría QA Integral, Blindaje SRI, Arquitectura por Capas y Bodegas/Etiquetas/RBAC (2026-11-23) — COMPLETADO
+- **Arquitectura Modular por Capas (Dominio / Aplicación / Infraestructura / UI)** sin pérdida de datos existentes:
+  - `src/modules/rbac/` — Control granular de permisos por módulo (14), acción (15), bodegas asignadas, tope de descuento, punto de emisión bloqueado y hash de PIN de supervisor (`PermissionsManagerView.jsx` integrado en `GeneralSettings.jsx`).
+  - `src/modules/sri/` — Matemática fiscal exacta en centavos (`fiscalMath.js`, elimina deriva de IVA agrupado, bug float 14%, soporta No Objeto `'6'` y Exento `'7'`), blindaje de múltiples puntos de emisión (`emissionPoints.js`, bloquea `000`, duplicados y retroceso de secuenciales) y banner pre-emisión (`SriPreflightGuard.jsx`).
+  - `src/modules/warehouse/` — Generador SVG nativo Code 128B y EAN-13 (`barcodeUtils.js`), reconciliación unificada de bodegas preservando `sucursal-central-uuid` y `stockByBranch` (`warehouseModel.js`), flujo completo de **Despachos Posteriores de Bodega** (`dispatchModel.js`, `WarehouseDispatchView.jsx`), **Diseñador de Etiquetas** térmico/A4 (`LabelDesignerView.jsx`), **Escáner USB/HID + Cámara** (`BarcodeScannerModal.jsx`) y **Control de Bodegas** (`WarehousesView.jsx`).
+  - Microservicios backend endurecidos: `server/domains/sriGateway.js` (allowlist SOAP + límite 2MB), `server/domains/mailerGuard.js` (anti-SSRF + escape HTML), cierre de bypass `x-vercel-cron` en `api/cron/reconcile-sri/index.js`, `camera=(self)` en `vercel.json`.
+- **SRI, Ventas y POS**:
+  - Agregada generación XML de **Nota de Débito SRI (`codDoc 05`)** en `sriService.js` e integrada en `TransactionForm.jsx`; etiquetas RIMPE/AgenteRetencion/ContribuyenteEspecial; confirmación de cambio de ambiente y gestor multi-punto de emisión + secuenciales seguros en `FinanceSettings.jsx`; envío directo a Despacho Posterior de Bodega desde `TransactionForm` y `TransactionsView`.
+  - POS (`PosView.jsx`): escáner cámara/USB integrado, botón de cobro Combinado/Crédito en pantalla de cobro, soporte de emisión de cotizaciones, trazabilidad de `bodega`/`branchId`, single `AudioContext` y bloqueo contra doble apertura de caja.
+- **Finanzas, Contabilidad, Bancos y Compras/Gastos**:
+  - `ContabilidadView.jsx` + `contabilidadService.js`: validación estricta de partida doble (`validarAsiento`), formulario de **Nuevo Asiento Manual**, botón **Generar Asientos desde Movimientos**, filtros independientes por pestaña, corrección del árbol recursivo y botones táctiles en móvil.
+  - `MovimientoForm.jsx` y `MovimientoAbono.jsx`: corrección del signo de `irbpnr`, validación de `ingreso_vario`, pago inicial inmediato opcional y selector de cuenta bancaria/caja vinculado a `fin_bancos`.
+  - `PurchaseForm.jsx`, `ComprasSriView.jsx` y `ComprasGastosView.jsx`: retenciones visibles, auto-pendiente en compras a crédito, importación XML `<autorizacion><comprobante>` con `<detalle>`, captura de base/IVA en compras sin inventario, recálculo de total y anulación en cascada en `fin_movimientos`/`fin_cxp`.
+  - Gráficos, modales y UI: corregidos gráficos y barras de progreso invisibles (`ReportesView`, `TarjetasCreditosView`, `FinanceDashboard`), spinners visibles (`FinanceModule`, `CapturaInteligenteView`, `GastosCreditosModule`), reemplazo de `prompt()` nativos por modales formales (`BancosCajaView`, `PrestamosView`) y scroll móvil (`max-h-[90dvh] overflow-y-auto`).
+- **Verificación**: **90/90 tests unitarios** aprobados (`npm test`), **0 advertencias** en `npm run lint:critical` y compilación de producción (`npm run build`) verificada sin errores.
+
 ### 1. Design Standardization (2026-07-06) — COMPLETADO
 **Spec:** `docs/superpowers/specs/2026-07-06-design-standardization-design.md`
 **Plan:** `docs/superpowers/plans/2026-07-06-design-standardization-plan.md`
@@ -914,3 +930,17 @@ Remover barras de pestañas horizontales, migrar a sidebar navigation.
 
 
 
+
+### 62. Administración de tenants y revisión del alta (2026-11-13) — COMPLETADO LOCALMENTE
+- Informe: `docs/qa/tenant-admin/inspeccion.md` con recorrido, correcciones, pendientes y condiciones de publicación.
+- SuperAdmin: empresa/plan/ciclo/fechas sincronizadas, accesos y roles, diagnóstico, historial protegido, conteos y mejoras móviles.
+- Altas: validación de parámetros públicos, alta manual transaccional y anual correcta; compensación de cuentas Auth ante fallo de provisión.
+- Firestore: perfiles inactivos sin acceso operativo; eventos administrativos exclusivos de superadmin.
+- Validación: 70 pruebas unitarias, emulador de reglas y recorridos de navegador. Sin despliegue ni cambios en cuentas reales.
+
+### 63. Detección de Altas Incompletas y Aprobación de Tenants (2026-11-13) — COMPLETADO LOCALMENTE
+- Confirmada incompatibilidad del registro `trial` con reglas publicadas que exigen `pending_approval`. Registro alineado sin debilitar controles publicados de pagos y leads.
+- Nueva sección `Usuarios y altas`: cruza Authentication, perfiles y tenants; muestra contactos, faltantes y alerta en dashboard/sidebar.
+- Servicio administrativo autenticado: recuperación de cuentas sin perfil con datos confirmados y aprobación explícita que habilita 14 días de prueba. Auditoría y protección de cuentas ya vinculadas.
+- Reanudación del registro de cuentas preexistentes sin perfil mediante contraseña; nunca se elimina una cuenta preexistente.
+- 77 pruebas unitarias, emulador y navegador. Publicación requiere app, reglas y `FIREBASE_SERVICE_ACCOUNT_JSON` del servidor. Sin modificaciones de cuentas reales ni despliegue.

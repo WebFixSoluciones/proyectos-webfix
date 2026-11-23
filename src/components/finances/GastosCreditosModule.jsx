@@ -235,7 +235,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
         <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex-1 overflow-y-auto px-8 py-6 custom-scrollbar"}}>
           {loading ? (
             <UiBox {...{"className":"flex justify-center items-center h-64"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)"},"className":"animate-spin h-8 w-8"}}></UiBox>
+              <UiBox className="animate-spin h-8 w-8 rounded-full border-2 border-[var(--gray-5)] border-t-[var(--blue-9)]"></UiBox>
             </UiBox>
           ) : (
             <>
@@ -487,14 +487,14 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
       {/* MODAL: REGISTRAR PAGO DE CUOTA */}
       {selectedLiability && (
         <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in"}}>
-          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md p-6"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md max-h-[90dvh] overflow-y-auto p-6"}}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-4 pb-2"}}>
               <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Registrar Pago de Cuota / Abono</UiHeading>
               <UiButton iconOnly onClick={() => setSelectedLiability(null)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
             </UiBox>
 
             <form onSubmit={handleRecordPayment} {...{"className":"space-y-4"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--black-a7)","border":"1px solid var(--gray-a6)"},"className":"p-3.5 space-y-2"}}>
+              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","border":"1px solid var(--gray-a6)"},"className":"p-3.5 space-y-2"}}>
                 <UiBox {...{"className":"flex justify-between"}}>
                   <UiText {...{"color":"gray"}}>Entidad:</UiText>
                   <UiText {...{"weight":"bold"}}>{selectedLiability.entity}</UiText>
@@ -571,7 +571,7 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
       {/* MODAL: AGREGAR PASIVO */}
       {isAddModalOpen && (
         <UiBox {...{"style":{"backgroundColor":"var(--black-a7)"},"className":"fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in"}}>
-          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md p-6"}}>
+          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-md max-h-[90dvh] overflow-y-auto p-6"}}>
             <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex justify-between items-center mb-4 pb-2"}}>
               <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Registrar Nuevo Pasivo</UiHeading>
               <UiButton iconOnly onClick={() => setIsAddModalOpen(false)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>

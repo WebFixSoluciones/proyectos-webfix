@@ -245,9 +245,10 @@ export default function AdjustmentModal({ onClose, onSuccess }: AdjustmentModalP
                   <UiLabel {...mergeThemeProps({"size":"1","weight":"bold","color":"gray","className":"block mb-1.5"})}>Cantidad</UiLabel>
                   <UiInput
                     type="number"
-                    min="1"
+                    min="0.01"
+                    step="any"
                     value={quantity}
-                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
                     {...mergeThemeProps({"size":"2","color":"gray","className":"w-full"})}
                   />
                 </UiBox>

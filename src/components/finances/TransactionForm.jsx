@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString } from '../../services/sriService';
+import { validarIdentificacion, generarFacturaXML, simularTransmisionSRI, consultarRucSri, generarRetencionXML, generarNotaCreditoXML, generarNotaDebitoXML, generarLiquidacionXML, generarGuiaRemisionXML, getEcuadorDateString, getEcuadorTimeString } from '../../services/sriService';
 import { firmarComprobanteXML } from '../../services/xadesSigner';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { validateCartStock, taxRateFor, isSellable } from '../../services/productModel';
@@ -33,6 +33,10 @@ import CreditSetupModal from './CreditSetupModal';
 import SaleValidationDialog from './SaleValidationDialog';
 import { getAdministrativeSaleIssues } from '../../services/saleValidation';
 import { notifyAuthorizedInvoice } from '../../services/invoiceNotification';
+import SriPreflightGuard from '../../modules/sri/ui/SriPreflightGuard';
+import { ensureDispatchForSale } from '../../modules/warehouse/infrastructure/DispatchRepository';
+import { useAuth } from '../../contexts/AuthContext';
+import { getUserAssignedEmissionPoint, verifySupervisorPin } from '../../modules/rbac/application/rbacService';
 
 const SRI_RENTA_CODES = [
   { code: '312', label: '312 - Transferencia de tecnología / asistencia técnica (10%)', rate: 10 },
@@ -74,7 +78,8 @@ function sanitizeFirestoreData(obj) {
   return obj;
 }
 
-export default function TransactionForm({ tx, onClose, thirdParties, products = [], discounts = [], promotions = [], showToast, db, storage, appId, isInline = false, onSaved, usuario = null }) {
+export default function TransactionForm({ tx, onClose, thirdParties, products = [], discounts = [], promotions = [], showToast, db, storage, appId, isInline = false, onSaved, usuario = null, tenantUsers = [] }) {
+  const { userProfile: authUserProfile } = useAuth();
   const [sriConfig, setSriConfig] = useState({
     ruc: '',
     razonSocial: '',
@@ -188,9 +193,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     transferencia: 0,
     tarjeta: 0,
     cruce_cuentas: 0,
+    efectivoCajaId: '',
     transferenciaRef: '',
     transferenciaBankId: '',
     tarjetaRef: '',
+    tarjetaBankId: '',
     cruceRef: ''
   });
 
@@ -391,8 +398,8 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         ciudad: quickAddFormData.ciudad ? quickAddFormData.ciudad.trim() : '',
         telefono: quickAddFormData.telefono ? quickAddFormData.telefono.trim() : '',
         tipoContribuyente: quickAddFormData.tipoContribuyente || 'general',
-        isValidated: true,
-        validado: true,
+        isValidated: Boolean(quickAddFormData.sriVerified),
+        validado: Boolean(quickAddFormData.sriVerified),
         updatedAt: new Date().toISOString()
       });
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', docId), contactPayload);
@@ -916,8 +923,15 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
 
     if (cr > 0) {
       const matchedTercero = formData.claveAcceso ? formData.thirdParty : thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty;
-      const limit = Number(matchedTercero?.limiteCredito) || 1000;
+      const limit = Number(matchedTercero?.creditLimit ?? matchedTercero?.limiteCredito ?? matchedTercero?.cupoCredito ?? 0);
       const available = limit - clientDebt;
+      if (!matchedTercero?.hasCredit && limit <= 0) {
+        return {
+          isValid: false,
+          vuelto: 0,
+          error: 'Este cliente no tiene una línea de crédito habilitada. Actívala antes de vender a crédito.'
+        };
+      }
       if (cr > available) {
         return {
           isValid: false,
@@ -1174,7 +1188,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         paymentsBreakdown: payBreakdown,
         transferenciaRef: payments.transferenciaRef || '',
         transferenciaBankId: payments.transferenciaBankId || '',
-        cuentaBancariaId: payments.transferenciaBankId || '',
+        tarjetaBankId: payments.tarjetaBankId || '',
+        efectivoCajaId: payments.efectivoCajaId || '',
+        cuentaBancariaId: payments.transferenciaBankId || payments.tarjetaBankId || payments.efectivoCajaId || '',
         tarjetaRef: payments.tarjetaRef || '',
         cruceRef: payments.cruceRef || '',
         creditDueDate: crVal > 0 ? creditDueDate : '',
@@ -1420,8 +1436,27 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         } catch { /* use currentConfig */ }
       }
 
-      // Si el comprobante NO está autorizado y se solicita reintento/corrección:
-      if (retry === true && snapshot.sriStatus !== 'autorizado' && currentConfig?.certificadoBase64 && currentConfig?.certificadoClave) {
+      // SEGURIDAD SRI: Antes de regenerar una clave de acceso, consultar SIEMPRE al SRI si la clave previa ya fue autorizada
+      if (retry === true && snapshot.claveAcceso && snapshot.sriStatus !== 'autorizado') {
+        try {
+          setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: 'Consultando estado previo en SRI antes de reemitir...', status: 'info' }]);
+          const preCheck = await consultarAutorizacionSRI(snapshot.claveAcceso, snapshot.sriAmbiente || snapshot.claveAcceso[23]);
+          if (preCheck?.status === 'autorizado') {
+            const alreadyAuth = await saveSriResult({ db, appId, document: snapshot, result: preCheck, api: fiscalApi });
+            setFormData(alreadyAuth);
+            setCurrentStep(2);
+            await finishAuthorizedEmission(alreadyAuth);
+            await enviarCorreoComprobante(alreadyAuth, thirdParties.find(tp => tp.id === alreadyAuth.thirdPartyId) || alreadyAuth.thirdParty, currentConfig || sriConfig, null, true);
+            showToast(`El comprobante ${alreadyAuth.documentNumber || ''} ya se encontraba AUTORIZADO en el SRI.`, 'success');
+            return;
+          }
+        } catch {
+          // Si no se puede consultar por red, continuar con cuidado solo si el comprobante está explícitamente devuelto/no_autorizado
+        }
+      }
+
+      // Solo regenerar clave/XML cuando el comprobante está explícitamente devuelto o no_autorizado (nunca sobre pendiente_sri sin confirmación)
+      if (retry === true && ['devuelto', 'no_autorizado', 'rechazado'].includes(snapshot.sriStatus) && currentConfig?.certificadoBase64 && currentConfig?.certificadoClave) {
         try {
           setSriLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: 'Regenerando clave de acceso y re-firmando XML con datos limpios...', status: 'info' }]);
           let receiver = thirdParties.find(tp => tp.id === (formData.thirdPartyId || snapshot.thirdPartyId)) || formData.thirdParty || snapshot.thirdParty;
@@ -1437,18 +1472,22 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           const generators = { factura: generarFacturaXML, retencion: generarRetencionXML, nota_credito: generarNotaCreditoXML, liquidacion: generarLiquidacionXML, guia_remision: generarGuiaRemisionXML };
           const generate = generators[snapshot.documentType || 'factura'];
           if (generate) {
-            // Generar siempre un nuevo código numérico de 8 dígitos para generar una clave inédita en el SRI
-            // y evitar el bloqueo por límite de intentos diarios, manteniendo el mismo secuencial fiscal
+            const effectiveEmitter = {
+              ...currentConfig,
+              ambiente: snapshot.emisorSnapshot?.ambiente || snapshot.sriAmbiente || currentConfig.ambiente,
+              establecimiento: snapshot.emisorSnapshot?.establecimiento || currentConfig.establecimiento,
+              puntoEmision: snapshot.emisorSnapshot?.puntoEmision || currentConfig.puntoEmision
+            };
             const newCodigoNumerico = String(crypto.getRandomValues(new Uint32Array(1))[0] % 100000000).padStart(8, '0');
             const itemsForInvoice = (formData.items && formData.items.length > 0) ? formData.items : (snapshot.items || []);
             const invoiceForGen = {
               ...snapshot,
               ...formData,
               codigoNumerico: newCodigoNumerico,
-              claveAcceso: null // Provoca la generación limpia de la nueva clave de acceso
+              claveAcceso: null
             };
 
-            const { xml, claveAcceso } = generate(currentConfig, invoiceForGen, receiver, itemsForInvoice);
+            const { xml, claveAcceso } = generate(effectiveEmitter, invoiceForGen, receiver, itemsForInvoice);
             const signedXml = firmarComprobanteXML(xml, currentConfig.certificadoBase64, currentConfig.certificadoClave);
 
             await setDoc(txDocRef, {
@@ -1594,22 +1633,28 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     try {
       if (formData.type === 'ingreso' && formData.documentType === 'factura' && !formData.inventarioRegistrado) validateCartStock(formData.items, products);
       if (!validarIdentificacion(receiver.ruc, receiver.tipoIdentificacion, receiver.isValidated || receiver.validado)) throw new Error('Identificación del receptor inválida.');
-      if (formData.documentType === 'factura' && receiver.ruc === '9999999999999' && Number(formData.total) > 50) throw new Error('Para valores superiores a $50 se requiere identificar al cliente.');
-      const generators = { factura: generarFacturaXML, retencion: generarRetencionXML, nota_credito: generarNotaCreditoXML, liquidacion: generarLiquidacionXML, guia_remision: generarGuiaRemisionXML };
-      const sequences = { factura: 'secuencialFactura', retencion: 'secuencialRetencion', nota_credito: 'secuencialNotaCredito', liquidacion: 'secuencialLiquidacion', guia_remision: 'secuencialGuiaRemision' };
+      const isConsFinal = receiver.ruc === '9999999999999' || receiver.tipoIdentificacion === 'consumidor_final' || !receiver.ruc;
+      if (formData.documentType === 'factura' && isConsFinal && Number(formData.total) > 50) throw new Error('Para facturas superiores a $50 el SRI exige identificar al cliente con RUC o Cédula.');
+      const generators = { factura: generarFacturaXML, retencion: generarRetencionXML, nota_credito: generarNotaCreditoXML, nota_debito: generarNotaDebitoXML, liquidacion: generarLiquidacionXML, guia_remision: generarGuiaRemisionXML };
+      const sequences = { factura: 'secuencialFactura', retencion: 'secuencialRetencion', nota_credito: 'secuencialNotaCredito', nota_debito: 'secuencialNotaDebito', liquidacion: 'secuencialLiquidacion', guia_remision: 'secuencialGuiaRemision' };
       const generate = generators[formData.documentType];
       if (!generate) throw new Error('Tipo de comprobante electrónico no soportado.');
       const docId = formData.id || stableIdRef.current;
       const timestamp = new Date();
       const date = getEcuadorDateString(timestamp), time = getEcuadorTimeString(timestamp);
       const codigoNumerico = String(crypto.getRandomValues(new Uint32Array(1))[0] % 100000000).padStart(8, '0');
-      const paymentSnapshot = settlePayments(formData.total, payments);
+      const requiresPayment = !['retencion', 'nota_credito', 'guia_remision'].includes(formData.documentType);
+      const paymentSnapshot = requiresPayment
+        ? settlePayments(formData.total, payments)
+        : { paymentMethod: 'efectivo', paymentsBreakdown: {}, paidAmount: 0, changeDue: 0, paymentStatus: 'pagado' };
+      const assignedEP = getUserAssignedEmissionPoint(authUserProfile);
       const reservation = await reserveSriEmission({
         db, appId, docId, secKey: sequences[formData.documentType], api: fiscalApi,
+        emissionPointOverride: assignedEP,
         build: (config, secuencial) => {
           if (!/^\d{13}$/.test(String(config.ruc)) || !['1', '2'].includes(String(config.ambiente))) throw new Error('Configure RUC y ambiente del emisor.');
           if (!config.certificadoCargado || !config.certificadoBase64 || !config.certificadoClave) throw new Error('Se requiere certificado y contraseña válidos tanto en pruebas como en producción.');
-          const invoice = { ...formData, ...paymentSnapshot, id: docId, thirdParty: receiver, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, date, time, codigoNumerico, secuencial };
+          const invoice = { ...formData, ...paymentSnapshot, isPreventa: false, id: docId, thirdParty: receiver, items: invoiceItems(), generalDiscount: selectedGeneralDiscount, date, time, codigoNumerico, secuencial };
           const { xml, claveAcceso } = generate(config, invoice, receiver, invoice.items);
           const signedXml = firmarComprobanteXML(xml, config.certificadoBase64, config.certificadoClave);
           const emitter = {
@@ -1646,7 +1691,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             tenantId: appId,
             appId: appId,
             sriReservedAt: timestamp.toISOString(), financialSyncStatus: 'awaiting_authorization',
-            transferenciaRef: payments.transferenciaRef || '', transferenciaBankId: payments.transferenciaBankId || '', cuentaBancariaId: payments.transferenciaBankId || '',
+            transferenciaRef: payments.transferenciaRef || '', transferenciaBankId: payments.transferenciaBankId || '',
+            tarjetaBankId: payments.tarjetaBankId || '', efectivoCajaId: payments.efectivoCajaId || '',
+            cuentaBancariaId: payments.transferenciaBankId || payments.tarjetaBankId || payments.efectivoCajaId || '',
             tarjetaRef: payments.tarjetaRef || '', cruceRef: payments.cruceRef || '', creditDueDate, creditObservations,
           });
         }
@@ -1805,6 +1852,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
       tarjetaRef: '',
       cruceRef: ''
     });
+    setActivePayments({ efectivo: true, transferencia: false, tarjeta: false, cruce_cuentas: false });
+    setSelectedGeneralDiscount(null);
+    setSriLogs([]);
+    setCreditDueDate('');
+    setClientSearchTerm('');
     setEmailDeliveryResult(null);
     setPrintTx(null);
     setCurrentStep(1);
@@ -3223,6 +3275,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               className="w-full bg-white rounded-lg h-8"
                               placeholder="0.00"
                             />
+                            {bankAccounts.length > 0 && (
+                              <UiSelect
+                                disabled={!isEditable}
+                                value={payments.efectivoCajaId || ''}
+                                onChange={e => setPayments(prev => ({ ...prev, efectivoCajaId: e.target.value }))}
+                                className="w-full rounded-lg text-xs"
+                              >
+                                <option value="">-- Caja / Cuenta Destino (opcional) --</option>
+                                {bankAccounts.map(b => (
+                                  <option key={b.id} value={b.id}>
+                                    {b.nombre}{b.banco ? ` (${b.banco})` : ''} — Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                                  </option>
+                                ))}
+                              </UiSelect>
+                            )}
                           </div>
                         )}
 
@@ -3291,6 +3358,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               className="w-full bg-white rounded-lg h-8"
                               placeholder="0.00"
                             />
+                            {bankAccounts.length > 0 && (
+                              <UiSelect
+                                disabled={!isEditable}
+                                value={payments.tarjetaBankId || ''}
+                                onChange={e => setPayments(prev => ({ ...prev, tarjetaBankId: e.target.value }))}
+                                className="w-full rounded-lg text-xs"
+                              >
+                                <option value="">-- Banco donde se acredita (opcional) --</option>
+                                {bankAccounts.map(b => (
+                                  <option key={b.id} value={b.id}>
+                                    {b.banco || b.nombre}{b.numeroCuenta ? ` (${b.numeroCuenta})` : ''} — Saldo: ${Number(b.saldoActual || 0).toFixed(2)}
+                                  </option>
+                                ))}
+                              </UiSelect>
+                            )}
                             <UiInput
                               disabled={!isEditable}
                               type="text"
@@ -3385,8 +3467,23 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <div className="space-y-2 pt-0.5">
                   {isEditable ? (
                     <>
-                      {/* Emit SRI (Factura Electrónica) */}
-                      {formData.type === 'ingreso' && formData.documentType !== 'nota_venta' && (
+                      {/* Panel Pre-Emisión SRI: Punto de emisión asegurado, cuadre al centavo y validaciones */}
+                      {formData.documentType !== 'nota_venta' && (
+                        <SriPreflightGuard
+                          compact
+                          documentType={formData.documentType}
+                          emisorConfig={sriConfig || {}}
+                          buyer={thirdParties.find(tp => tp.id === formData.thirdPartyId) || formData.thirdParty || {}}
+                          items={formData.items || []}
+                          retenciones={formData.retenciones || []}
+                          establecimiento={getUserAssignedEmissionPoint(authUserProfile)?.estab || sriConfig?.establecimiento}
+                          puntoEmision={getUserAssignedEmissionPoint(authUserProfile)?.ptoEmi || sriConfig?.puntoEmision}
+                          assignedEmissionPoint={getUserAssignedEmissionPoint(authUserProfile)}
+                        />
+                      )}
+
+                      {/* Emit SRI (Factura / NC / Retención / Liquidación / Guía) */}
+                      {(formData.type === 'ingreso' || ['retencion', 'liquidacion', 'nota_credito', 'guia_remision'].includes(formData.documentType)) && formData.documentType !== 'nota_venta' && (
                         <>
                           <button
                             type="button" 
@@ -4024,10 +4121,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </div>
                     <div className="flex justify-between items-center py-1">
                       <span className="text-slate-500">Descuento:</span>
-                      <span className="font-mono text-slate-800">${Number(formData.totalDiscount || formData.discount || 0).toFixed(2)}</span>
+                      <span className="font-mono text-slate-800">${Number(formData.totalDescuento || formData.totalDiscount || formData.discount || 0).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-slate-500">IVA 15%:</span>
+                      <span className="text-slate-500">IVA:</span>
                       <span className="font-mono text-slate-800">${Number(formData.ivaValor || 0).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center pt-2.5 mt-2 border-t border-slate-300">
@@ -4036,6 +4133,35 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         ${Number(formData.total || 0).toFixed(2)}
                       </span>
                     </div>
+                    {formData.type === 'ingreso' && (formData.items || []).some(i => i && i.type !== 'SERVICE' && i.inventoryType !== 'VIRTUAL') && (
+                      <div className="pt-3">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const order = await ensureDispatchForSale(formData, {
+                                firestore: db,
+                                tenantId: appId,
+                                branchName: formData.bodega || 'Bodega Central',
+                                createdBy: authUserProfile?.name || usuario?.email || 'Ventas'
+                              });
+                              showToast(
+                                order.alreadyExisted
+                                  ? `Orden de despacho ya registrada (${order.status}).`
+                                  : `Orden de despacho enviada a Bodega (${order.documentNumber}).`,
+                                'success'
+                              );
+                            } catch (err) {
+                              showToast(err.message || 'No se pudo generar el despacho de bodega.', 'error');
+                            }
+                          }}
+                          className="w-full py-2 px-3 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <Package size={14} />
+                          <span>Enviar a Despacho de Bodega</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -4562,7 +4688,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 )}
               </div>
               {(() => {
-                const cats = ['all', ...new Set(products.filter(isSellable).map(p => p.category).filter(Boolean))];
+                const cats = ['all', ...new Set(products.filter(isSellable).map(p => p.categoria || p.category).filter(Boolean))];
                 if (cats.length > 1) {
                   return (
                     <UiSelect
@@ -4590,7 +4716,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     p.name?.toLowerCase().includes(advSearchTerm.toLowerCase()) ||
                     p.sku?.toLowerCase().includes(advSearchTerm.toLowerCase()) ||
                     p.codigoBarras?.toLowerCase().includes(advSearchTerm.toLowerCase());
-                  const matchCat = selectedCategory === 'all' || p.category === selectedCategory;
+                  const matchCat = selectedCategory === 'all' || (p.categoria || p.category) === selectedCategory;
                   return matchText && matchCat;
                 });
 
@@ -5027,13 +5153,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 }}
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
-                    if (supervisorPassword === 'SUPERVISOR123') {
+                    const check = verifySupervisorPin({ pin: supervisorPassword, tenantUsers, fiscalConfig: sriConfig, currentUserProfile: authUserProfile });
+                    if (check.ok) {
                       authDialog.onConfirm();
                       setAuthDialog(null);
                       setSupervisorPassword('');
                       setAuthError('');
                     } else {
-                      setAuthError('Clave incorrecta. Solicite al supervisor.');
+                      setAuthError(check.error || 'PIN incorrecto. Solicite autorización a un supervisor.');
                     }
                   }
                 }}
@@ -5056,13 +5183,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
               <button
                 type="button" 
                 onClick={() => {
-                  if (supervisorPassword === 'SUPERVISOR123') {
+                  const check = verifySupervisorPin({ pin: supervisorPassword, tenantUsers, fiscalConfig: sriConfig, currentUserProfile: authUserProfile });
+                  if (check.ok) {
                     authDialog.onConfirm();
                     setAuthDialog(null);
                     setSupervisorPassword('');
                     setAuthError('');
                   } else {
-                    setAuthError('Clave incorrecta. Solicite al supervisor.');
+                    setAuthError(check.error || 'PIN incorrecto. Solicite autorización a un supervisor.');
                   }
                 }} 
                 className="py-2 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs cursor-pointer shadow-none transition-all"

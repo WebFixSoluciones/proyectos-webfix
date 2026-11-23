@@ -18,6 +18,7 @@ import { auth } from '../../firebase';
 import RidePreviewModal from './RidePreviewModal';
 import confirmAction from '../../services/confirmDialog';
 import { Badge } from '../ui/badge';
+import { ensureDispatchForSale } from '../../modules/warehouse/infrastructure/DispatchRepository';
 
 export default function TransactionsView({ transactions, thirdParties, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
   const getTransactionParty = (tx) => thirdParties.find(tp => tp.id === tx.thirdPartyId) || tx.thirdParty || null;
@@ -148,9 +149,19 @@ export default function TransactionsView({ transactions, thirdParties, showToast
     let matchesMonth = true;
     let matchesYear = true;
     if (tx.date) {
-      const d = new Date(tx.date);
-      if (filterMonth !== 'all') matchesMonth = d.getMonth().toString() === filterMonth;
-      if (filterYear !== 'all') matchesYear = d.getFullYear().toString() === filterYear;
+      const isoMatch = String(tx.date).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        const y = Number.parseInt(isoMatch[1], 10);
+        const m = Number.parseInt(isoMatch[2], 10) - 1;
+        if (filterMonth !== 'all') matchesMonth = String(m) === filterMonth;
+        if (filterYear !== 'all') matchesYear = String(y) === filterYear;
+      } else {
+        const d = new Date(tx.date);
+        if (!Number.isNaN(d.getTime())) {
+          if (filterMonth !== 'all') matchesMonth = d.getMonth().toString() === filterMonth;
+          if (filterYear !== 'all') matchesYear = d.getFullYear().toString() === filterYear;
+        }
+      }
     }
 
     return matchesSearch && matchesType && matchesDocType && matchesSubDocType && matchesMonth && matchesYear;
@@ -463,7 +474,12 @@ export default function TransactionsView({ transactions, thirdParties, showToast
   }, [transactions]);
 
   const getStatusBadge = (status, documentType, tx = null) => {
-    // 1. Autorizado o Registrado (Notas de Venta)
+    // 1. Anulado SIEMPRE tiene prioridad (incluye Notas de Venta anuladas)
+    if (status === 'anulado' || (tx && (tx.status === 'anulado' || tx.sriStatus === 'anulado'))) {
+      return <Badge variant="destructive">Anulado</Badge>;
+    }
+
+    // 2. Autorizado o Registrado (Notas de Venta)
     if (status === 'autorizado' || (tx && tx.sriStatus === 'autorizado')) {
       if (documentType === 'nota_venta') {
         return <Badge variant="success"><CheckCircle2 size={10}/> Registrado</Badge>;
@@ -473,11 +489,6 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
     if (documentType === 'nota_venta') {
       return <Badge variant="success"><CheckCircle2 size={10}/> Registrado</Badge>;
-    }
-
-    // 2. Anulado
-    if (status === 'anulado' || (tx && tx.status === 'anulado')) {
-      return <Badge variant="destructive">Anulado</Badge>;
     }
 
     // 3. Devuelto / No Autorizado / Rechazado por el SRI (Botón interactivo con modal de diagnóstico)
@@ -1184,6 +1195,46 @@ export default function TransactionsView({ transactions, thirdParties, showToast
                         >
                           <Eye size={14} />
                         </button>
+
+                        {/* Enviar a Despacho Posterior de Bodega (solo ventas físicas activas) */}
+                        {tx.type === 'ingreso' && tx.sriStatus !== 'anulado' && Array.isArray(tx.items) && tx.items.some(i => i && i.type !== 'SERVICE' && i.inventoryType !== 'VIRTUAL') && (
+                          <button
+                            type="button"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                const order = await ensureDispatchForSale(tx, {
+                                  firestore: db,
+                                  tenantId: appId,
+                                  branchName: tx.bodega || 'Bodega Central',
+                                  createdBy: auth.currentUser?.displayName || auth.currentUser?.email || 'Ventas'
+                                });
+                                showToast?.(
+                                  order.alreadyExisted
+                                    ? `Despacho ya existente (${order.status}). Revísalo en Inventarios > Despachos.`
+                                    : `Orden de despacho enviada a Bodega para ${tx.documentNumber || tx.id}.`,
+                                  'success'
+                                );
+                              } catch (err) {
+                                showToast?.(err.message || 'No se pudo generar despacho.', 'error');
+                              }
+                            }}
+                            className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                              tx.dispatchStatus === 'ENTREGADO' || tx.dispatchStatus === 'DESPACHADO'
+                                ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
+                                : tx.dispatchId
+                                ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+                                : 'text-slate-700 hover:text-blue-700 hover:bg-blue-50'
+                            }`}
+                            title={
+                              tx.dispatchStatus
+                                ? `Despacho Bodega: ${tx.dispatchStatus}`
+                                : 'Generar orden de despacho posterior de bodega'
+                            }
+                          >
+                            <Truck size={14} />
+                          </button>
+                        )}
 
                         {/* 2. Impresión Directa (asistente de Windows / navegador) */}
                         <button

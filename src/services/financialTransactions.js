@@ -69,7 +69,7 @@ export async function postFinancialPayment(db, target, payment, user = {}, { api
       return { ...(obligation || movement), pagos: originalPayments, abonos: originalPayments };
     }
     const total = obligation?.factura?.montoTotal ?? movement.monto;
-    const newPayment = { id: paymentId, monto: amount, fecha: payment.fecha || new Date().toISOString(), metodoPago: payment.metodoPago || 'efectivo', referencia: payment.referencia || '', registradoPor: user.uid || '', movimientoId: movementId };
+    const newPayment = { id: paymentId, monto: amount, fecha: payment.fecha || new Date().toISOString(), metodoPago: payment.metodoPago || 'efectivo', referencia: payment.referencia || '', notas: payment.notas || '', registradoPor: user.uid || '', movimientoId: movementId };
     const payments = [...originalPayments, newPayment];
     const balance = paymentBalance(total, payments);
     let sourceRef, source;
@@ -90,7 +90,22 @@ export async function postFinancialPayment(db, target, payment, user = {}, { api
     if (source) tx.update(sourceRef, { paidAmount: balance.paid, paymentStatus: balance.estado === 'pagado' ? 'pagado' : 'pendiente', outstandingBalance: balance.saldoPendiente, updatedAt: new Date().toISOString() });
     if (bankRef) {
       tx.update(bankRef, { updatedAt: api.serverTimestamp() });
-      tx.set(ref('fin_movimientos_bancarios', `abono_${paymentId}`), { cuentaId: payment.cuentaId, tipo: movement.tipo === 'ingreso' ? 'credito' : 'debito', monto: amount, fecha: new Date(newPayment.fecha), descripcion: 'Abono ' + (movement.documento?.numero || movementId), referencia: newPayment.referencia, conciliado: true, movimientoId: movementId, pagoId: paymentId, createdAt: api.serverTimestamp() });
+      tx.set(ref('fin_movimientos_bancarios', `abono_${paymentId}`), {
+        cuentaId: payment.cuentaId,
+        tipo: movement.tipo === 'ingreso' ? 'credito' : 'debito',
+        monto: amount,
+        fecha: new Date(newPayment.fecha),
+        descripcion: `${movement.tipo === 'ingreso' ? 'Cobro CxC' : 'Pago CxP'} ${movement.documento?.numero || movementId}${movement.tercero?.nombre ? ` — ${movement.tercero.nombre}` : ''}`,
+        terceroNombre: movement.tercero?.nombre || '',
+        metodoPago: newPayment.metodoPago,
+        origen: movement.tipo === 'ingreso' ? 'abono_cxc' : 'abono_cxp',
+        referencia: newPayment.referencia,
+        conciliado: true,
+        movimientoId: movementId,
+        pagoId: paymentId,
+        estado: 'activo',
+        createdAt: api.serverTimestamp()
+      });
     }
     tx.set(ref('fin_auditoria', `abono_${paymentId}`), { coleccion: target.collection, documentoId: target.id, accion: 'abonar', usuario: user.uid || '', usuarioEmail: user.email || '', fecha: api.serverTimestamp(), cambios: { abono: newPayment, saldoNuevo: balance.saldoPendiente }, modulo: 'finanzas' });
     return { ...(obligation || movement), ...state, pagos: payments, abonos: payments };

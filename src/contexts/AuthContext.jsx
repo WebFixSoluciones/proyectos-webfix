@@ -3,6 +3,11 @@ import { onAuthStateChanged, signOut, reload } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, setTenantId } from '../firebase';
 import { ensureFinanceMigration } from '../services/financeStore.js';
+import {
+  resolveEffectivePermissions,
+  canAccessModule,
+  canPerformAction
+} from '../modules/rbac/application/rbacService.js';
 
 
 const AuthContext = createContext(null);
@@ -26,7 +31,7 @@ export function AuthProvider({ children }) {
       stopProfile = onSnapshot(doc(db, 'users', user.uid), snapshot => {
         stopTenant();
         const profile = snapshot.data();
-        const isSuperAdmin = String(profile?.role || '').toLowerCase().trim() === 'superadmin';
+        const isSuperAdmin = profile?.status === 'active' && String(profile?.role || '').toLowerCase().trim() === 'superadmin';
 
         if (isSuperAdmin) {
           if (profile?.tenantId) {
@@ -81,6 +86,8 @@ export function AuthProvider({ children }) {
     return auth.currentUser.emailVerified;
   };
 
+  const effectivePermissions = resolveEffectivePermissions(userProfile);
+
   const value = {
     profileError,
     currentUser,
@@ -93,7 +100,10 @@ export function AuthProvider({ children }) {
     tenantId: userProfile?.tenantId || '',
     planId: tenantInfo?.planId || 'starter',
     planStatus: tenantInfo?.planStatus || 'trial',
-    role: userProfile?.role || 'staff'
+    role: userProfile?.role || 'staff',
+    permissions: effectivePermissions,
+    canAccessModule: (moduleId) => canAccessModule(userProfile, moduleId),
+    canPerformAction: (actionId) => canPerformAction(userProfile, actionId)
   };
 
   return (

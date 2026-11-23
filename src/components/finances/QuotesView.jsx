@@ -70,25 +70,36 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
     return unsub;
   }, [appId, db]);
 
-  // Generar número de cotización consecutivo
+  // Generar número de cotización consecutivo sin colisiones tras eliminaciones
   useEffect(() => {
     if (!formData.id && isModalOpen) {
-      const nextNum = quotes.length + 1;
+      const maxExisting = quotes.reduce((max, q) => {
+        const match = String(q.quoteNumber || '').match(/(\d+)$/);
+        const n = match ? Number.parseInt(match[1], 10) : 0;
+        return Number.isFinite(n) && n > max ? n : max;
+      }, 0);
+      const nextNum = maxExisting + 1;
       setFormData(prev => ({
         ...prev,
         quoteNumber: `COT-${String(nextNum).padStart(6, '0')}`,
-        validUntil: getEcuadorDateString(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)) // 15 días validez por defecto
+        validUntil: getEcuadorDateString(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000))
       }));
     }
   }, [isModalOpen, quotes, formData.id]);
 
-  // Recalcular totales al cambiar los ítems
+  // Recalcular totales al cambiar los ítems (respeta tarifa 0% y tax_mode INCLUIDO)
   useEffect(() => {
     let sub = 0;
     let iva = 0;
     formData.items.forEach(item => {
-      const lineSub = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
-      const lineIva = lineSub * ((parseInt(item.ivaCategory) || 15) / 100);
+      const rawRate = item.ivaCategory !== undefined && item.ivaCategory !== '' ? Number(item.ivaCategory) : 15;
+      const rate = Number.isFinite(rawRate) ? rawRate : 15;
+      const qty = Number(item.quantity) || 1;
+      const rawPrice = Number(item.price) || 0;
+      const isIncluded = String(item.tax_mode || '').toUpperCase() === 'INCLUIDO' && rate > 0;
+      const unitBase = isIncluded ? rawPrice / (1 + rate / 100) : rawPrice;
+      const lineSub = unitBase * qty;
+      const lineIva = lineSub * (rate / 100);
       sub += lineSub;
       iva += lineIva;
     });
@@ -184,14 +195,8 @@ export default function QuotesView({ products, thirdParties,  showToast, db, app
 
   const handlePromote = async (quote) => {
     try {
-      // 1. Llamar al callback que abre TransactionForm prellenado
-      onPromoteToInvoice(quote);
-      
-      // 2. Cambiar estado de cotización a 'facturado' en Firestore
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_quotes', quote.id), {
-        status: 'facturado'
-      }, { merge: true });
-      
+      // Abrir TransactionForm prellenado con sourceQuoteId; no marcar 'facturado' hasta que el usuario guarde/emita
+      onPromoteToInvoice({ ...quote, sourceQuoteId: quote.id });
     } catch (err) {
       console.error(err);
       showToast("Error al promover cotización", "error");

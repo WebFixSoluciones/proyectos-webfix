@@ -63,13 +63,22 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     }
 
     const certBag = p12.getBags({ bagType: forge.pki.oids.certBag });
-    let certificate;
+    const allCerts = [];
     for (let certId in certBag) {
-      if (certBag[certId] && certBag[certId][0]) {
-        certificate = certBag[certId][0].cert;
-        break;
+      if (Array.isArray(certBag[certId])) {
+        certBag[certId].forEach((entry) => {
+          if (entry?.cert) allCerts.push(entry.cert);
+        });
       }
     }
+    // Seleccionar el certificado hoja cuya clave pública coincide con la clave privada (evita tomar CA intermedia)
+    let certificate = allCerts.find((c) => {
+      try {
+        return privateKey?.n && c?.publicKey?.n && c.publicKey.n.toString(16) === privateKey.n.toString(16);
+      } catch {
+        return false;
+      }
+    }) || allCerts[0];
 
     if (!privateKey || !certificate) {
       throw new Error("No se pudo extraer la clave privada o el certificado del archivo .p12");
@@ -82,7 +91,12 @@ export function firmarComprobanteXML(xmlString, p12Base64, password) {
     // Calcular digest del certificado
     const certDigest = sha1Base64(certDer, 'raw');
     
-    const issuerName = getIssuerString(certificate);
+    const issuerName = getIssuerString(certificate)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
     const serialNumber = hexToDec(certificate.serialNumber);
 
     // 4. Limpiar el XML original (eliminar cabecera XML temporal si tiene)

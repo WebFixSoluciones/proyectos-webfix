@@ -3,7 +3,8 @@ import {
   Package, Users, Settings,
   ChevronDown, DollarSign, Shield
 } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
+import { canAccessModule } from '../modules/rbac/application/rbacService';
 
 export default function Sidebar({
   isSidebarOpen, setIsSidebarOpen, activePageId, setActivePageId,
@@ -13,10 +14,11 @@ export default function Sidebar({
   inventarioInitialSubTab, setInventarioInitialSubTab,
   contabilidadInitialSubTab, setContabilidadInitialSubTab,
   billingInitialSubTab, setBillingInitialSubTab,
-  personasSubTab, setPersonasSubTab, userRole
+  personasSubTab, setPersonasSubTab, userRole, userProfile
 }) {
   const navigate = useNavigate();
   const closeMobile = () => { if(window.innerWidth < 768) setIsSidebarOpen(false); };
+  const allowMod = (modId) => canAccessModule(userProfile || { role: userRole || 'staff' }, modId);
 
   const navBase = "group relative flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl transition-all text-sm tracking-tight cursor-pointer";
   const navActive = "bg-[#c0ffa5] text-[#004227] font-semibold";
@@ -80,7 +82,7 @@ export default function Sidebar({
           </button>
       
           {/* Ventas */}
-          {activeModules.ventas && (
+          {activeModules.ventas && (allowMod('ventas') || allowMod('pos')) && (
             <div className="space-y-0.5">
               <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'ventas' ? null : 'ventas'); setVentasInitialSubTab('resumen_ventas'); setActivePageId('ventas'); }} className={navBtnClass(activePageId === 'ventas')}>
                 <div className="flex items-center gap-3 flex-1">
@@ -93,24 +95,33 @@ export default function Sidebar({
               {isSidebarOpen && expandedSidebarMenu === 'ventas' && (
                 <div className={menuBorderClass}>
                   {[
-                    { id: 'resumen_ventas', label: 'Historial de Ventas' },
-                    { id: 'ventas_nueva', label: 'Registrar Venta' },
-                    { id: 'preventas', label: 'Preventas' },
-                    { id: 'quotes', label: 'Cotizaciones' },
-                    { id: 'nota_credito', label: 'Notas de Crédito' },
-                    { id: 'retencion', label: 'Retenciones de Venta' },
-                    { id: 'discounts', label: 'Descuentos y Promos' }
+                    ...(allowMod('pos') ? [{ id: 'pos', label: 'Punto de Venta (POS)' }] : []),
+                    ...(allowMod('ventas') ? [
+                      { id: 'resumen_ventas', label: 'Historial de Ventas' },
+                      { id: 'ventas_nueva', label: 'Registrar Venta' },
+                      { id: 'preventas', label: 'Preventas' },
+                      { id: 'quotes', label: 'Cotizaciones' },
+                      { id: 'nota_credito', label: 'Notas de Crédito' },
+                      { id: 'retencion', label: 'Retenciones de Venta' },
+                      { id: 'discounts', label: 'Descuentos y Promos' }
+                    ] : [])
                   ].map(sub => {
                     const isActive = activePageId === 'ventas' && (
                       sub.id === 'ventas_nueva'
                         ? (ventasInitialSubTab && (String(ventasInitialSubTab).startsWith('ventas_nueva') || String(ventasInitialSubTab).startsWith('ventas_preventa')))
+                        : sub.id === 'pos'
+                        ? (ventasInitialSubTab && String(ventasInitialSubTab).startsWith('pos'))
                         : ventasInitialSubTab === sub.id
                     );
                     return (
                       <button 
                         key={sub.id} 
                         onClick={() => { 
-                          const targetId = sub.id === 'ventas_nueva' ? `ventas_nueva_${Date.now()}` : sub.id;
+                          const targetId = sub.id === 'ventas_nueva'
+                            ? `ventas_nueva_${Date.now()}`
+                            : sub.id === 'pos'
+                            ? `pos_${Date.now()}`
+                            : sub.id;
                           setVentasInitialSubTab(targetId); 
                           setActivePageId('ventas'); 
                           closeMobile(); 
@@ -127,7 +138,7 @@ export default function Sidebar({
           )}
 
           {/* Compras */}
-          {activeModules.compras && (
+          {activeModules.compras && allowMod('compras') && (
             <div className="space-y-0.5">
               <button 
                 onClick={() => { 
@@ -180,11 +191,11 @@ export default function Sidebar({
           )}
 
           {/* Control Financiero */}
-          {activeModules.finances && (
+          {activeModules.finances && (allowMod('finanzas') || allowMod('contabilidad') || allowMod('impuestos') || allowMod('reportes')) && (
             <div className="space-y-0.5">
               <button 
                 onClick={() => { 
-                  setExpandedSidebarMenu(expandedSidebarMenu === 'finanzas' ? null : 'finanzas'); 
+                  setExpandedSidebarMenu(expandedSidebarMenu === 'finances' ? null : 'finances'); 
                   setContabilidadInitialSubTab('resumen_financiero'); 
                   setActivePageId('finances'); 
                 }} 
@@ -194,23 +205,26 @@ export default function Sidebar({
                   <DollarSign size={18} strokeWidth={2.2} className={iconClass(activePageId === 'finances')} />
                   {isSidebarOpen && <span>Finanzas</span>}
                 </div>
-                {isSidebarOpen && <ChevronDown size={14} strokeWidth={2.2} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finanzas' ? 'rotate-180' : ''} text-slate-500`} />}
+                {isSidebarOpen && <ChevronDown size={14} strokeWidth={2.2} className={`shrink-0 transition-transform duration-200 ${expandedSidebarMenu === 'finances' ? 'rotate-180' : ''} text-slate-500`} />}
                 {activePageId === 'finances' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
               </button>
-              {isSidebarOpen && expandedSidebarMenu === 'finanzas' && (
+              {isSidebarOpen && expandedSidebarMenu === 'finances' && (
                 <div className={menuBorderClass}>
                   {[
-                    { id: 'resumen_financiero', label: 'Resumen' },
-                    { id: 'movimientos', label: 'Movimientos' },
-                    { id: 'cxc', label: 'Cuentas por Cobrar' },
-                    { id: 'cxp', label: 'Cuentas por Pagar' },
-                    { id: 'bancos', label: 'Bancos y Caja' },
-                    { id: 'tarjetas', label: 'Tarjetas y Créditos' },
-                    { id: 'prestamos', label: 'Préstamos' },
-                    { id: 'captura', label: 'Captura Inteligente' },
-                    { id: 'contabilidad_tab', label: 'Contabilidad' },
-                    { id: 'impuestos', label: 'Impuestos y SRI' },
-                    { id: 'reportes', label: 'Reportes' }
+                    ...(allowMod('finanzas') ? [
+                      { id: 'resumen_financiero', label: 'Resumen' },
+                      { id: 'movimientos', label: 'Movimientos' },
+                      { id: 'cxc', label: 'Cuentas por Cobrar' },
+                      { id: 'cxp', label: 'Cuentas por Pagar' },
+                      { id: 'bancos', label: 'Bancos y Caja' },
+                      { id: 'tarjetas', label: 'Tarjetas y Créditos' },
+                      { id: 'prestamos', label: 'Préstamos' },
+                      { id: 'captura', label: 'Captura Inteligente' },
+                      { id: 'validaciones', label: 'Validaciones de Integridad' }
+                    ] : []),
+                    ...(allowMod('contabilidad') ? [{ id: 'contabilidad_tab', label: 'Contabilidad' }] : []),
+                    ...(allowMod('impuestos') ? [{ id: 'impuestos', label: 'Impuestos y SRI' }] : []),
+                    ...(allowMod('reportes') ? [{ id: 'reportes', label: 'Reportes' }] : [])
                   ].map(sub => {
                     const isActive = activePageId === 'finances' && contabilidadInitialSubTab === sub.id;
                     return (
@@ -233,7 +247,7 @@ export default function Sidebar({
           )}
 
           {/* Inventarios */}
-          {activeModules.inventario && (
+          {activeModules.inventario && (allowMod('inventario') || allowMod('bodegas') || allowMod('despachos')) && (
             <div className="space-y-0.5">
               <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'inventario' ? null : 'inventario'); setInventarioInitialSubTab('productos'); setActivePageId('inventario'); }} className={navBtnClass(activePageId === 'inventario')}>
                 <div className="flex items-center gap-3 flex-1">
@@ -246,12 +260,21 @@ export default function Sidebar({
               {isSidebarOpen && expandedSidebarMenu === 'inventario' && (
                 <div className={menuBorderClass}>
                   {[
-                    { id: 'productos', label: 'Catálogo de Productos' },
-                    { id: 'servicios', label: 'Servicios' },
-                    { id: 'categorias', label: 'Categorías y Marcas' },
-                    { id: 'kardex', label: 'Movimientos Kardex' },
-                    { id: 'transferencias', label: 'Transferencias' },
-                    { id: 'ajustes', label: 'Ajustes de Inventario' }
+                    ...(allowMod('inventario') ? [
+                      { id: 'productos', label: 'Catálogo de Productos' },
+                      { id: 'servicios', label: 'Servicios' },
+                      { id: 'categorias', label: 'Categorías y Marcas' },
+                      { id: 'kardex', label: 'Movimientos Kardex' },
+                      { id: 'transferencias', label: 'Transferencias' },
+                      { id: 'ajustes', label: 'Ajustes de Inventario' }
+                    ] : []),
+                    ...(allowMod('bodegas') ? [
+                      { id: 'bodegas', label: 'Control de Bodegas' },
+                      { id: 'etiquetas', label: 'Etiquetas y Códigos Barra' }
+                    ] : []),
+                    ...(allowMod('despachos') ? [
+                      { id: 'despachos', label: 'Despachos de Bodega' }
+                    ] : [])
                   ].map(sub => {
                     const isActive = activePageId === 'inventario' && (
                       sub.id === 'servicios'
@@ -268,7 +291,7 @@ export default function Sidebar({
           )}
 
           {/* Personas (Clientes y Proveedores) */}
-          {activeModules.personas && (
+          {activeModules.personas && allowMod('personas') && (
             <div className="space-y-0.5">
               <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'personas_menu' ? null : 'personas_menu'); setPersonasSubTab('cliente'); setActivePageId('personas'); }} className={navBtnClass(activePageId === 'personas')}>
                 <div className="flex items-center gap-3 flex-1">
@@ -293,17 +316,20 @@ export default function Sidebar({
           )}
 
           {/* Ajustes */}
-          <button onClick={() => { setActivePageId('general_settings'); closeMobile(); }} className={navBtnClass(activePageId === 'general_settings')}>
-            <div className="flex items-center gap-3">
-              <Settings size={18} strokeWidth={2.2} className={iconClass(activePageId === 'general_settings')} />
-              {isSidebarOpen && <span>Ajustes</span>}
-            </div>
-            {activePageId === 'general_settings' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
-          </button>
+          {(allowMod('configuracion') || allowMod('usuarios')) && (
+            <button onClick={() => { setActivePageId('general_settings'); closeMobile(); }} className={navBtnClass(activePageId === 'general_settings')}>
+              <div className="flex items-center gap-3">
+                <Settings size={18} strokeWidth={2.2} className={iconClass(activePageId === 'general_settings')} />
+                {isSidebarOpen && <span>Ajustes</span>}
+              </div>
+              {activePageId === 'general_settings' && <span className="absolute -right-2.5 top-1.5 bottom-1.5 w-1 bg-[#0b996e] rounded-l" />}
+            </button>
+          )}
 
           {/* Suscripción SaaS */}
+          {allowMod('configuracion') && (
           <div className="space-y-0.5">
-            <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'billing' ? null : 'billing'); setBillingInitialSubTab('planes'); setActivePageId('billing'); }} className={navBtnClass(activePageId === 'billing')}>
+            <button onClick={() => { setExpandedSidebarMenu(expandedSidebarMenu === 'billing' ? null : 'billing'); setBillingInitialSubTab('facturacion'); setActivePageId('billing'); }} className={navBtnClass(activePageId === 'billing')}>
               <div className="flex items-center gap-3 flex-1">
                 <CreditCard size={18} strokeWidth={2.2} className={iconClass(activePageId === 'billing')} />
                 {isSidebarOpen && <span>Suscripción</span>}
@@ -326,6 +352,7 @@ export default function Sidebar({
               </div>
             )}
           </div>
+          )}
 
           {/* SuperAdmin Access */}
           {String(userRole || '').toLowerCase().trim() === 'superadmin' && (

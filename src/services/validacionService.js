@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, doc, getDoc, serverTimestamp } from './financeStore.js';
+import { collection, getDocs, query, where, doc, getDoc, updateDoc, serverTimestamp } from './financeStore.js';
 
 /**
  * Servicio de validación de integridad de datos financieros
@@ -340,7 +340,7 @@ export async function corregirSaldoPendiente(db, movimientoId) {
   const saldoCorregido = Math.max(0, monto - sumaAbonos);
   const nuevoEstado = saldoCorregido === 0 ? 'pagado' : saldoCorregido === monto ? 'pendiente' : 'parcial';
   
-  await docRef.update({
+  await updateDoc(docRef, {
     saldoPendiente: saldoCorregido,
     estado: nuevoEstado,
     actualizadoEn: serverTimestamp()

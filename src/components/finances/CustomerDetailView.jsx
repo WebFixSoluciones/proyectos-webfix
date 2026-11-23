@@ -68,9 +68,11 @@ export default function CustomerDetailView({
   useEffect(() => {
     if (client) {
       const limit = Number(client.creditLimit || client.cupoCredito || client.limiteCredito) || 0;
-      const days = Number(client.paymentDays || client.diasCredito) || 30;
-      const isSup = (client.type || forcedType) === 'proveedor';
-      const hasCred = !!(client.hasCredit || limit > 0 || (isSup && days > 0));
+      const savedDays = Number(client.paymentDays || client.diasCredito || 0);
+      const isSup = forcedType === 'proveedor' || (client.type || forcedType) === 'proveedor';
+      // No forzar hasCredit=true en proveedores de contado que no tienen plazo/cupo guardado
+      const hasCred = Boolean(client.hasCredit || limit > 0 || (isSup && savedDays > 0));
+      const days = savedDays > 0 ? savedDays : 30;
 
       setFormData({
         name: client.name || client.razonSocial || '',
@@ -83,7 +85,7 @@ export default function CustomerDetailView({
         agenteRetencion: !!(client.agenteRetencion),
         email: client.email || '',
         secondaryEmail: client.secondaryEmail || '',
-        telefono: client.telefono || '',
+        telefono: client.telefono || client.phone || '',
         celular: client.celular || '',
         direccion: client.direccion || '',
         ciudad: client.ciudad || '',

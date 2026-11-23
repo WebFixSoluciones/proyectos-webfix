@@ -1,17 +1,27 @@
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect } from '../ui/controls';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, DollarSign } from 'lucide-react';
 import { registrarAbono } from '../../services/movimientoService';
+import { getCuentas as getCuentasBancarias } from '../../services/bancosService';
 
 const METODOS_PAGO = ['efectivo', 'transferencia', 'tarjeta_credito', 'tarjeta_debito', 'cheque', 'cruce_cuentas', 'otro'];
 
 export default function MovimientoAbono({ movimiento, onClose, onSave, db, usuario, showToast }) {
   const [monto, setMonto] = useState('');
   const [metodoPago, setMetodoPago] = useState('efectivo');
+  const [cuentaId, setCuentaId] = useState('');
+  const [cuentasBancarias, setCuentasBancarias] = useState([]);
   const [referencia, setReferencia] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!db) return;
+    getCuentasBancarias(db, { estado: 'activo' })
+      .then((list) => setCuentasBancarias(Array.isArray(list) ? list : []))
+      .catch(() => setCuentasBancarias([]));
+  }, [db]);
   
   const saldoPendiente = Number(movimiento.saldoPendiente) || 0;
   const montoNumerico = Number(monto) || 0;
@@ -28,6 +38,7 @@ export default function MovimientoAbono({ movimiento, onClose, onSave, db, usuar
       await registrarAbono(db, movimiento.id, {
         monto: montoNumerico,
         metodoPago,
+        cuentaId: cuentaId || null,
         referencia,
         fecha: new Date().toISOString(),
       }, usuario);
@@ -95,6 +106,21 @@ export default function MovimientoAbono({ movimiento, onClose, onSave, db, usuar
               {METODOS_PAGO.map(m => <option key={m} value={m}>{m.replace('_', ' ')}</option>)}
             </UiSelect>
           </UiBox>
+
+          {cuentasBancarias.length > 0 && (
+            <UiBox>
+              <UiLabel {...{"size":"1","weight":"medium","color":"gray","className":"mb-1 block"}}>Cuenta bancaria / Caja (actualiza saldo)</UiLabel>
+              <UiSelect value={cuentaId} onChange={e => setCuentaId(e.target.value)}
+                {...{"size":"2","color":"gray","className":"w-full"}}>
+                <option value="">Sin afectar cuenta bancaria</option>
+                {cuentasBancarias.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre} {c.banco ? `(${c.banco})` : ''} — ${(Number(c.saldoActual) || 0).toFixed(2)}
+                  </option>
+                ))}
+              </UiSelect>
+            </UiBox>
+          )}
 
           <UiBox>
             <UiLabel {...{"size":"1","weight":"medium","color":"gray","className":"mb-1 block"}}>Referencia</UiLabel>

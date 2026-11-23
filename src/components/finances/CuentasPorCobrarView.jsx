@@ -118,7 +118,8 @@ export default function CuentasPorCobrarView({
   // Filtrado según pestañas y búsqueda
   const filteredItems = useMemo(() => {
     return items.filter(item => {
-      // 1. Filtro de tab
+      // 1. Filtro de tab (excluir siempre anulados de Pagados / Por Cobrar / Vencidos)
+      if (item.estado === 'anulado') return false;
       const saldo = Number(item.saldoPendiente || 0);
       const isVencido = (item.diasVencido > 0 || item.estado === 'vencido') && saldo > 0.005;
 

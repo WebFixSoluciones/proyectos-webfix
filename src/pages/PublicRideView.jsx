@@ -1,6 +1,7 @@
 import { UiButton } from '../components/ui/controls';
 import { invoiceDescription, invoiceLineAmounts } from '../services/invoiceLine';
 import { useState, useEffect } from 'react';
+import { encodeCode128Bars } from '../modules/warehouse/domain/barcodeUtils.js';
 import { useSearchParams } from 'react-router-dom';
 import { Printer, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 import { getAppId } from '../firebase';
@@ -52,14 +53,22 @@ function numeroALetras(num) {
 }
 
 function MockBarcode({ claveAcceso }) {
+  const encoded = encodeCode128Bars(claveAcceso || '');
   return (
     <div className="flex flex-col items-center my-1 select-none print:my-0.5 w-full max-w-full overflow-hidden">
-      <div className="flex h-6 w-full max-w-[280px] bg-white items-stretch justify-center gap-[1px] px-1 py-0.5" style={{ backgroundColor: '#ffffff' }}>
-        {[2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2,2,1,3,1,4,1,2].map((w, idx) => (
-          <div key={idx} className="bg-black" style={{ width: `${w}px`, backgroundColor: '#000000', height: '100%' }}></div>
-        ))}
-      </div>
-      <span className="font-mono text-black text-center mt-0.5 select-all" style={{ fontSize: '7.8px', letterSpacing: '0.01em', lineHeight: '1.1', maxWidth: '100%' }}>{claveAcceso}</span>
+      {encoded.totalModules > 0 && (
+        <svg
+          viewBox={`0 0 ${encoded.totalModules} 34`}
+          preserveAspectRatio="none"
+          className="w-full max-w-[290px] h-8 bg-white"
+          style={{ backgroundColor: '#ffffff' }}
+        >
+          {encoded.bars.map((b, idx) => (
+            <rect key={idx} x={b.x} y={0} width={b.w} height={34} fill="#000000" />
+          ))}
+        </svg>
+      )}
+      <span className="font-mono text-black text-center mt-0.5 select-all break-all" style={{ fontSize: '7.8px', letterSpacing: '0.01em', lineHeight: '1.1', maxWidth: '100%' }}>{claveAcceso}</span>
     </div>
   );
 }
