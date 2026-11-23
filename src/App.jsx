@@ -58,6 +58,7 @@ import FinanceChat from './components/finances/FinanceChat';
 import GastosCreditosModule from './components/finances/GastosCreditosModule';
 import InventoryModule from './components/inventory/InventoryModule';
 import Sidebar from './components/Sidebar';
+import MobileBottomNav from './components/MobileBottomNav';
 import { USER_COLORS } from './constants/appData';
 import { isSubscriptionBlocked } from './services/subscriptionAccess';
 
@@ -871,12 +872,12 @@ export default function App() {
 
           {/* Right: Brevo Action Icons & User Profile */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Direct POS button visible across desktop, tablet & mobile */}
+            {/* Direct POS button styled in Brevo Mint/Forest */}
             {activeModules.ventas && (
               <button
                 type="button"
                 onClick={() => { setVentasInitialSubTab(`pos_${Date.now()}`); setActivePageId('ventas'); }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors cursor-pointer mr-1"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#004227] bg-[#e8fedf] hover:bg-[#c0ffa5] border border-[#b3f4cb] rounded-full transition-colors cursor-pointer mr-1"
                 title="Abrir Punto de Venta (POS)"
               >
                 <Calculator size={14} />
@@ -1280,6 +1281,18 @@ export default function App() {
         )}
 
         </UiBox> {/* Closes Content Wrapper */}
+
+        {/* Barra de navegación inferior fija en Smartphones (estilo Brevo App) */}
+        <MobileBottomNav
+          activePageId={activePageId}
+          setActivePageId={setActivePageId}
+          setVentasInitialSubTab={setVentasInitialSubTab}
+          setInventarioInitialSubTab={setInventarioInitialSubTab}
+          setIsSidebarOpen={setIsSidebarOpen}
+          activeModules={activeModules}
+          userProfile={userProfile}
+          userRole={userRole}
+        />
       </UiBox> {/* Closes Main Content Area */}
 
 

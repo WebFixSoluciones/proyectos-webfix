@@ -1,30 +1,100 @@
-/* Compatibility aliases for charts, document integrations and fiscal previews.
-   Interactive components use the native Themes appearance and variants. */
+/* Brevo Official Design System unified across all Radix Themes primitives & views */
 .webfix-theme {
-  --primary: var(--accent-9);
-  --primary-hover: var(--accent-10);
-  --primary-light: var(--accent-3);
-  --primary-muted: var(--accent-4);
-  --surface-bg: var(--gray-2);
-  --surface-card: var(--color-panel-solid);
-  --surface-sidebar: var(--gray-1);
-  --surface-hover: var(--accent-3);
-  --surface-muted: var(--gray-3);
-  --border-default: var(--gray-a6);
-  --border-strong: var(--gray-a8);
-  --border-focus: var(--accent-9);
-  --text-heading: var(--gray-12);
-  --text-primary: var(--gray-12);
-  --text-secondary: var(--gray-11);
-  --text-muted: var(--gray-11);
+  /* Remap primary accent & legacy blue accent tokens to Brevo Forest + Mint */
+  --accent-1: #f9fff6;
+  --accent-2: #f0fdf4;
+  --accent-3: #e8fedf;
+  --accent-4: #d8fae4;
+  --accent-5: #c0ffa5;
+  --accent-6: #b3f4cb;
+  --accent-7: #7deda9;
+  --accent-8: #0b996f;
+  --accent-9: #0b996f;
+  --accent-10: #02835c;
+  --accent-11: #006a43;
+  --accent-12: #004227;
+  --accent-contrast: #ffffff;
+  --accent-surface: #f0fdf4;
+
+  --blue-1: #f9fff6;
+  --blue-2: #f0fdf4;
+  --blue-3: #e8fedf;
+  --blue-4: #d8fae4;
+  --blue-5: #c0ffa5;
+  --blue-6: #b3f4cb;
+  --blue-7: #7deda9;
+  --blue-8: #0b996f;
+  --blue-9: #0b996f;
+  --blue-10: #02835c;
+  --blue-11: #006a43;
+  --blue-12: #004227;
+  --blue-a3: rgba(11, 153, 111, 0.12);
+  --blue-a4: rgba(11, 153, 111, 0.18);
+  --blue-a6: rgba(11, 153, 111, 0.28);
+  --blue-a8: rgba(11, 153, 111, 0.55);
+  --blue-contrast: #ffffff;
+
+  /* Brevo Charcoal neutral surface polish */
+  --gray-1: #ffffff;
+  --gray-2: #fafafa;
+  --gray-3: #f5f5f5;
+  --gray-4: #f0f0f0;
+  --gray-5: #e3e3e3;
+  --gray-6: #dcdcdc;
+  --gray-11: #5c5c5c;
+  --gray-12: #1b1b1b;
+  --gray-a6: #e3e3e3;
+
+  --primary: var(--brand-forest-green-600);
+  --primary-hover: var(--brand-forest-green-700);
+  --primary-light: var(--brand-forest-green-50);
+  --primary-muted: var(--brand-mint-green-200);
+  --surface-bg: var(--brand-charcoal-grey-25);
+  --surface-card: var(--brand-pure-white);
+  --surface-sidebar: var(--brand-pure-white);
+  --surface-hover: var(--brand-forest-green-50);
+  --surface-muted: var(--brand-charcoal-grey-50);
+  --border-default: var(--brand-charcoal-grey-200);
+  --border-strong: var(--brand-charcoal-grey-300);
+  --border-focus: var(--brand-forest-green-600);
+  --text-heading: var(--brand-charcoal-grey-900);
+  --text-primary: var(--brand-charcoal-grey-800);
+  --text-secondary: var(--brand-charcoal-grey-700);
+  --text-muted: var(--brand-charcoal-grey-600);
+  --color-background: var(--brand-charcoal-grey-25);
+  --color-panel-solid: #ffffff;
+}
+
+.webfix-theme [data-accent-color="blue"] {
+  --accent-1: #f9fff6;
+  --accent-2: #f0fdf4;
+  --accent-3: #e8fedf;
+  --accent-4: #d8fae4;
+  --accent-5: #c0ffa5;
+  --accent-6: #b3f4cb;
+  --accent-7: #7deda9;
+  --accent-8: #0b996f;
+  --accent-9: #0b996f;
+  --accent-10: #02835c;
+  --accent-11: #006a43;
+  --accent-12: #004227;
+  --accent-a3: rgba(11, 153, 111, 0.12);
+  --accent-a4: rgba(11, 153, 111, 0.18);
+  --accent-a6: rgba(11, 153, 111, 0.30);
+  --accent-a8: rgba(11, 153, 111, 0.60);
+  --accent-contrast: #ffffff;
 }
 
 :root, .webfix-theme, .radix-themes {
   --default-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --code-font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
-/* Layout only: no overrides of Radix colors, borders, shadows or focus states. */
+
 .rt-TextFieldInput { text-align: inherit; }
+.rt-BaseButton {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
 .rt-BaseButton > svg { flex-shrink: 0; }
 .webfix-theme .rt-SelectTrigger { min-width: 0; }
 .rt-TextFieldSlot {
@@ -37,16 +107,52 @@
   flex-shrink: 0;
 }
 .rt-TextFieldRoot:focus-within .rt-TextFieldSlot {
-  color: var(--accent-9);
+  color: var(--brand-forest-green-600);
 }
 
-/* Flat Modern: Eliminar dobles bordes en tarjetas y tablas */
+/* Brevo Clean Cards & Tables (Zero shadows, hairline borders) */
 .rt-Card {
-  border: none !important;
+  border: 1px solid var(--brand-charcoal-grey-200) !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  background-color: #ffffff;
+}
+.rt-Card::after {
+  box-shadow: none !important;
 }
 
 .rt-TableRoot {
   border: none !important;
   background-color: transparent !important;
+}
+.rt-TableHeader .rt-TableColumnHeaderCell {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--brand-charcoal-grey-600);
+  background-color: var(--brand-charcoal-grey-25);
+}
+.rt-TableBody .rt-TableRow:hover {
+  background-color: #f9fff6;
+}
+
+/* Smartphone Ergonomics: prevent iOS zoom on focus & improve tap comfort */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .rt-TextFieldInput,
+  .rt-SelectTrigger {
+    font-size: 16px !important;
+  }
+  .rt-Button:not(.rt-IconButton) {
+    min-height: 40px;
+  }
+}
+
+/* Safe area padding for iOS/Android gesture bars */
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 

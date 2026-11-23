@@ -8,29 +8,34 @@ export default function FinancialPageHeader({
   actions
 }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 mb-4">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-2 mb-4 border-b border-[#e3e3e3]">
       <div className="flex items-center gap-3 min-w-0">
         {Icon && (
-          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center shrink-0 border border-slate-200/60">
-            <Icon size={18} />
+          <div className="w-10 h-10 rounded-xl bg-[#e8fedf] text-[#004227] flex items-center justify-center shrink-0 border border-[#b3f4cb]">
+            <Icon size={19} strokeWidth={2.2} />
           </div>
         )}
         <div className="min-w-0">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-none">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1b1b1b] tracking-tight leading-tight">
               {title}
             </h1>
             {badge && (
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/60">
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#f0fdf4] text-[#006a43] border border-[#b3f4cb]">
                 {badge}
               </span>
             )}
             {description && (
-              <span title={description} className="text-slate-400 hover:text-slate-600 cursor-help transition-colors">
+              <span title={description} className="text-[#8a8a8a] hover:text-[#1b1b1b] cursor-help transition-colors">
                 <Info size={14} />
               </span>
             )}
           </div>
+          {description && (
+            <p className="text-xs text-[#696969] mt-0.5 truncate hidden sm:block">
+              {description}
+            </p>
+          )}
         </div>
       </div>
 

@@ -1,52 +1,52 @@
 :root {
   /* ==========================================================================
-     WEBFIX — FLAT OPERATIVO AZUL (OPCIÓN A)
+     WEBFIX — BREVO MODERN DESIGN SYSTEM (MINT & FOREST GREEN + CHARCOAL)
      ========================================================================== */
 
-  /* Primary Brand Accent (WebFix Blue) */
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --primary-light: #EFF6FF;
-  --primary-muted: #DBEAFE;
+  /* Primary Brand Accent (Brevo Forest Green) */
+  --primary: #0B996F;
+  --primary-hover: #02835C;
+  --primary-light: #F0FDF4;
+  --primary-muted: #E8FEDF;
 
   /* Surfaces & Backgrounds */
-  --surface-bg: #F8FAFC;
+  --surface-bg: #FAFAFA;
   --surface-card: #FFFFFF;
   --surface-sidebar: #FFFFFF;
-  --surface-hover: #EFF6FF;
-  --surface-muted: #F1F5F9;
+  --surface-hover: #F0FDF4;
+  --surface-muted: #F5F5F5;
 
   /* Hairline Borders */
-  --border-default: #DCE3EB;
-  --border-strong: #A8B6C8;
-  --border-focus: #2563EB;
+  --border-default: #E3E3E3;
+  --border-strong: #CCCCCC;
+  --border-focus: #0B996F;
 
-  /* Typography Colors (High Contrast Monochromatic) */
-  --text-heading: #172033;
-  --text-primary: #243247;
-  --text-secondary: #526176;
-  --text-muted: #617087;
+  /* Typography Colors (Brevo High-Contrast Charcoal) */
+  --text-heading: #1B1B1B;
+  --text-primary: #2C2C2C;
+  --text-secondary: #474747;
+  --text-muted: #696969;
 
-  /* Semantic Status Colors (Semantic states) */
-  --success: #15803D;
+  /* Semantic Status Colors (Brevo Palette) */
+  --success: #0B996F;
   --success-light: #F0FDF4;
-  --success-text: #166534;
-  --success-border: #BBE4C7;
+  --success-text: #004227;
+  --success-border: #B3F4CB;
 
-  --warning: #A16207;
-  --warning-light: #FFFBEB;
-  --warning-text: #854D0E;
-  --warning-border: #F5D990;
+  --warning: #DCA718;
+  --warning-light: #FCFBE7;
+  --warning-text: #866308;
+  --warning-border: #F7F29B;
 
-  --error: #DC2626;
-  --error-light: #FEF2F2;
-  --error-text: #B91C1C;
-  --error-border: #FECACA;
+  --error: #D9306B;
+  --error-light: #FFF0F5;
+  --error-text: #851B40;
+  --error-border: #FBC6D9;
 
-  --info: #2563EB;
-  --info-light: #EFF6FF;
-  --info-text: #1D4ED8;
-  --info-border: #BFDBFE;
+  --info: #6459DE;
+  --info-light: #F7F6FD;
+  --info-text: #463F9D;
+  --info-border: #CBC7F8;
 
   /* Status Badges */
   --status-authorized-bg: var(--success-light);
@@ -73,15 +73,15 @@
   --status-cancelled-text: var(--text-muted);
   --status-cancelled-border: var(--border-default);
 
-  /* Precise Border Radius (Flat standard) */
-  --radius-xs: 4px;
-  --ui-radius-sm: 4px;
-  --ui-radius-md: 6px;
-  --ui-radius-lg: 6px;
-  --radius-button: 6px;
-  --ui-radius-card: 6px;
-  --ui-radius-input: 6px;
-  --ui-radius-badge: 4px;
+  /* Precise Border Radius (Brevo Clean Standard) */
+  --radius-xs: 6px;
+  --ui-radius-sm: 6px;
+  --ui-radius-md: 10px;
+  --ui-radius-lg: 12px;
+  --radius-button: 10px;
+  --ui-radius-card: 12px;
+  --ui-radius-input: 8px;
+  --ui-radius-badge: 999px;
 
   /* Typography Scale */
   --ui-text-xs: 12px;

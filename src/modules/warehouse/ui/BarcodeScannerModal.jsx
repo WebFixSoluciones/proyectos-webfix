@@ -37,7 +37,8 @@ export default function BarcodeScannerModal({
   subtitle = 'Usa tu lector láser USB/Bluetooth o activa la cámara del dispositivo.',
   continuous = false
 }) {
-  const [mode, setMode] = useState('usb'); // 'usb' | 'camera'
+  const [mode, setMode] = useState(() => (typeof window !== 'undefined' && window.innerWidth < 768 ? 'camera' : 'usb')); // 'usb' | 'camera'
+  const [isContinuous, setIsContinuous] = useState(Boolean(continuous));
   const [manualCode, setManualCode] = useState('');
   const [lastScanned, setLastScanned] = useState('');
   const [cameraError, setCameraError] = useState('');
@@ -70,12 +71,15 @@ export default function BarcodeScannerModal({
     lastScanTimeRef.current = now;
     setLastScanned(clean);
     playBeep(soundEnabled);
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try { navigator.vibrate(25); } catch { /* ignore */ }
+    }
     onScan?.(clean);
-    if (!continuous) {
+    if (!isContinuous) {
       stopCamera();
       onClose?.();
     }
-  }, [continuous, lastScanned, onClose, onScan, soundEnabled, stopCamera]);
+  }, [isContinuous, lastScanned, onClose, onScan, soundEnabled, stopCamera]);
 
   // Autofocus en modo USB/Teclado sin robar foco de otros elementos cuando el modal está cerrado
   useEffect(() => {
@@ -166,24 +170,39 @@ export default function BarcodeScannerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[320] flex items-center justify-center bg-black/55 p-3 sm:p-4">
-      <div className="w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-2xl border border-slate-200 bg-white">
+    <div className="fixed inset-0 z-[320] flex items-end sm:items-center justify-center bg-black/55 p-0 sm:p-4">
+      <div className="w-full max-w-lg max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-[#e3e3e3] bg-white pb-safe">
+        <div className="sm:hidden flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 rounded-full bg-[#cccccc]" />
+        </div>
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-[#e3e3e3] px-5 py-3.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
               <ScanBarcode size={19} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm font-bold text-slate-900 truncate">{title}</h3>
-              <p className="text-xs text-slate-500 truncate">{subtitle}</p>
+              <h3 className="text-sm font-bold text-[#1b1b1b] truncate">{title}</h3>
+              <p className="text-xs text-[#696969] truncate">{subtitle}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
+              onClick={() => setIsContinuous((v) => !v)}
+              className={`h-8 px-2.5 rounded-lg border text-[11px] font-bold cursor-pointer transition-colors ${
+                isContinuous
+                  ? 'bg-[#e8fedf] text-[#004227] border-[#b3f4cb]'
+                  : 'bg-white text-[#5c5c5c] border-[#e3e3e3] hover:bg-[#f5f5f5]'
+              }`}
+              title="Mantener el escáner abierto tras cada lectura (modo ráfaga)"
+            >
+              {isContinuous ? 'Ráfaga: ON' : '1 lectura'}
+            </button>
+            <button
+              type="button"
               onClick={() => setSoundEnabled((v) => !v)}
-              className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded-lg border border-[#e3e3e3] text-[#474747] hover:bg-[#f5f5f5] flex items-center justify-center cursor-pointer"
               title={soundEnabled ? 'Silenciar pitido' : 'Activar pitido'}
             >
               {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
@@ -191,7 +210,7 @@ export default function BarcodeScannerModal({
             <button
               type="button"
               onClick={() => { stopCamera(); onClose?.(); }}
-              className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded-lg border border-[#e3e3e3] text-[#474747] hover:bg-[#f5f5f5] flex items-center justify-center cursor-pointer"
             >
               <X size={16} />
             </button>

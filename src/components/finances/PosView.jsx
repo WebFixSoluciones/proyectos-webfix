@@ -260,6 +260,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
   
   // Nuevos estados para flujo Inline Bsale y encabezado compacto
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
+  const [mobilePosTab, setMobilePosTab] = useState('catalog'); // 'catalog' | 'cart' en smartphones (< lg)
   const [isDocTypeDropdownOpen, setIsDocTypeDropdownOpen] = useState(false);
   const [isOptionsDropdownOpen, setIsOptionsDropdownOpen] = useState(false);
 
@@ -1180,6 +1181,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
       });
       setIsCheckoutOpen(false);
       setCheckoutStep(1);
+      setMobilePosTab('catalog');
       setShowPaymentScreen(false);
       
       setTimeout(() => {
@@ -1669,8 +1671,8 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           </UiBox>
 
           {/* INFO LOCAL Y BOTONES DE AJUSTE */}
-          <UiBox {...{"className":"flex items-center gap-3"}}>
-            <UiBox {...{"className":"select-none"}}>
+          <UiBox {...{"className":"flex items-center gap-2 sm:gap-3"}}>
+            <UiBox {...{"className":"select-none hidden md:block"}}>
               <UiText {...{"weight":"bold","color":"gray","highContrast":true}}>
                 {activeSession?.branch || 'MATRIZ QUITO'} : 
               </UiText>
@@ -1993,26 +1995,31 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     <UiBox {...{"className":"space-y-6"}}>
                       <UiBox {...{"className":"flex flex-col gap-2"}}>
                         <UiLabel {...{"size":"1","weight":"bold","color":"gray"}}>Dinero Recibido</UiLabel>
-                        <UiBox {...{"className":"relative"}}>
-                          <UiText {...{"size":"4","weight":"regular","color":"gray","className":"absolute left-4 top-1/2 -translate-y-1/2"}}>$</UiText>
-                          <UiInput
-                            type="number"
-                            placeholder="0.00"
-                            value={receivedAmount}
-                            onChange={e => setReceivedAmount(e.target.value)}
-                            {...{"size":"3","color":"gray","className":"w-full"}}
-                          />
-                        </UiBox>
+                        <UiInput
+                          type="number"
+                          inputMode="decimal"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={receivedAmount}
+                          onChange={e => setReceivedAmount(e.target.value)}
+                          iconPrefix={<UiText size="3" weight="bold" color="gray">$</UiText>}
+                          size="3"
+                          color="gray"
+                          className="w-full"
+                        />
                       </UiBox>
 
                       {/* Billetes Rápidos */}
                       <UiBox {...{"className":"space-y-2"}}>
                         <UiText {...{"size":"1","weight":"bold","color":"gray"}}>Vuelto Rápido (Billetes)</UiText>
-                        <UiBox {...{"className":"grid grid-cols-4 gap-2"}}>
+                        <UiBox {...{"className":"grid grid-cols-3 sm:grid-cols-4 gap-2"}}>
                           <UiButton
                             type="button"
                             onClick={() => setReceivedAmount(Number(getTotal().toFixed(2)))}
-                            {...{"variant":"soft","color":"gray","size":"2"}}
+                            variant="soft"
+                            color="blue"
+                            size="2"
+                            className="min-h-[42px]"
                           >
                             Exacto
                           </UiButton>
@@ -2021,7 +2028,10 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                               type="button"
                               key={bill}
                               onClick={() => setReceivedAmount(bill)}
-                              {...{"variant":"surface","size":"2","color":"gray"}}
+                              variant="surface"
+                              size="2"
+                              color="gray"
+                              className="min-h-[42px]"
                             >
                               ${bill}.00
                             </UiButton>
@@ -2117,18 +2127,21 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               </UiBox>
 
               {/* Botón Finalizar Checkout */}
-              <UiBox {...{"className":"mt-8 max-w-2xl mx-auto w-full"}}>
+              <UiBox {...{"className":"mt-6 sm:mt-8 max-w-2xl mx-auto w-full sticky bottom-0 pt-2 pb-safe bg-[var(--gray-2)]"}}>
                 <UiButton
                   type="button"
                   onClick={handleFinalCheckout}
                   disabled={isProcessing}
-                  {...{"variant":"solid","color":"gray","size":"2","className":"w-full flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"}}
+                  variant="solid"
+                  color="blue"
+                  size="3"
+                  className="w-full min-h-[48px] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <CheckCircle2 size={18} />
                   <UiText>
                     {isProcessing ? 'Procesando...' : 
-                      posDocType === 'factura' ? 'Revisar factura (F12)' :
-                      posDocType === 'nota_venta' ? 'Revisar venta (F12)' :
+                      posDocType === 'factura' ? 'Emitir Factura (F12)' :
+                      posDocType === 'nota_venta' ? 'Emitir Venta (F12)' :
                       'Guardar Cotización (F12)'
                     }
                   </UiText>
@@ -2138,10 +2151,10 @@ export default function PosView({ products, thirdParties, transactions = [], dis
           </UiBox>
         ) : (
           /* POS MAIN AREA (PRODUCTS + CART) */
-          <UiBox {...mergeThemeProps({"className":"flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden min-h-0"}, {}, (posConfig.cartPosition === 'left' ? {"className":"lg:flex-row-reverse"} : {}))}>
+          <UiBox {...mergeThemeProps({"className":"flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 relative"}, {}, (posConfig.cartPosition === 'left' ? {"className":"lg:flex-row-reverse"} : {}))}>
         
         {/* LADO IZQUIERDO: SELECCIÓN Y FILTRO DE PRODUCTOS */}
-        <UiBox {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex-1 flex flex-col pt-[7px] px-3 sm:px-4 lg:px-6 pb-6 min-w-0"})}>
+        <UiBox {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":`flex-1 flex-col pt-[7px] px-3 sm:px-4 lg:px-6 pb-24 lg:pb-6 min-w-0 min-h-0 overflow-hidden ${mobilePosTab === 'cart' ? 'hidden lg:flex' : 'flex'}`})}>
           
           {/* BARRA DE FILTROS SUPER MINIMALISTA (SIN SOMBRAS) */}
           <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex items-center justify-between gap-4 py-2 mb-4 select-none shrink-0"}}>
@@ -2320,25 +2333,67 @@ export default function PosView({ products, thirdParties, transactions = [], dis
 
           {/* LEYENDA DE STOCK AL PIE DEL CATÁLOGO */}
           {posConfig.showStock && (
-            <UiBox {...mergeThemeProps({"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"mt-4 pt-3 flex items-center gap-4 shrink-0"}, {}, {"style":{"color":"var(--blue-12)"}})}>
+            <UiBox {...mergeThemeProps({"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"mt-3 pt-2.5 hidden sm:flex items-center gap-4 shrink-0 text-xs"}, {}, {"style":{"color":"var(--gray-11)"}})}>
               <UiText {...{"className":"flex items-center gap-1.5"}}>
-                <UiText {...{"className":"w-2.5 h-2.5"}}></UiText>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0b996f] inline-block" />
                 En Stock
               </UiText>
               <UiText {...{"className":"flex items-center gap-1.5"}}>
-                <UiText {...{"className":"w-2.5 h-2.5 animate-pulse"}}></UiText>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#dca718] animate-pulse inline-block" />
                 Bajo Stock
               </UiText>
               <UiText {...{"className":"flex items-center gap-1.5"}}>
-                <UiText {...{"className":"w-2.5 h-2.5"}}></UiText>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#d9306b] inline-block" />
                 Sin Stock / Servicio
               </UiText>
             </UiBox>
           )}
         </UiBox>
 
-        {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO) */}
-        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full lg:w-[32rem] xl:w-[38rem] flex flex-col shrink-0"})}>
+        {/* BARRA FLOTANTE INFERIOR EN SMARTPHONES (< lg) PARA VER CARRITO Y COBRAR */}
+        {mobilePosTab === 'catalog' && (
+          <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-[#e3e3e3] px-3 pt-2.5 pb-safe flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsCameraScannerOpen(true)}
+              className="h-12 px-3.5 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] font-bold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-transform"
+              title="Escanear código de barras"
+            >
+              <Barcode size={18} />
+              <span>Escanear</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobilePosTab('cart')}
+              className="flex-1 h-12 px-4 rounded-xl bg-[#0b996f] hover:bg-[#02835c] text-white font-bold text-sm flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all"
+            >
+              <span className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full bg-white/20 text-xs font-bold tabular-nums">
+                  {cart.reduce((acc, it) => acc + it.quantity, 0)}
+                </span>
+                <span>Ver Carrito</span>
+              </span>
+              <span className="font-mono font-bold tabular-nums">${getTotal().toFixed(2)} →</span>
+            </button>
+          </div>
+        )}
+
+        {/* LADO DERECHO: DETALLE DEL PEDIDO (CHECKOUT FIJO EN ESCRITORIO / TAB DEDICADO EN SMARTPHONE) */}
+        <UiCard {...mergeThemeProps({"style":{"backgroundColor":"var(--color-panel-solid)"},"className":`w-full lg:w-[32rem] xl:w-[38rem] flex-col shrink-0 h-full overflow-hidden ${mobilePosTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`})}>
+          {/* Volver al catálogo en Smartphone (< lg) */}
+          <div className="lg:hidden flex items-center justify-between px-3 py-2 border-b border-[#e3e3e3] bg-[#fafafa] shrink-0">
+            <button
+              type="button"
+              onClick={() => setMobilePosTab('catalog')}
+              className="flex items-center gap-1.5 text-xs font-bold text-[#004227] bg-[#e8fedf] border border-[#b3f4cb] px-3 py-1.5 rounded-full cursor-pointer"
+            >
+              <ArrowLeft size={14} />
+              <span>Seguir agregando</span>
+            </button>
+            <span className="text-xs font-bold text-[#1b1b1b] font-mono">
+              Total: ${getTotal().toFixed(2)}
+            </span>
+          </div>
 
 
           

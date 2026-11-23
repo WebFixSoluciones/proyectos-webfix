@@ -2,7 +2,7 @@ import { UiButton } from '../ui/controls';
 import { invoiceDescription, invoiceLineAmounts } from '../../services/invoiceLine';
 import { useState, useEffect } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
-import { X, Printer, FileText, FileCode } from 'lucide-react';
+import { X, Printer, FileText, FileCode, MessageCircle } from 'lucide-react';
 import { doc, getDoc } from '../../services/financeStore.js';
 import { db as defaultDb, getAppId } from '../../firebase';
 import { downloadFiscalXml } from '../../services/sriAuthorization';
@@ -319,6 +319,29 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
     window.print();
   };
 
+  const handleShareWhatsApp = () => {
+    const rawPhone = String(client?.phone || client?.telefono || tx.thirdParty?.phone || tx.thirdParty?.telefono || '').replace(/\D/g, '');
+    const ecPhone = rawPhone.startsWith('0') && rawPhone.length === 10 ? `593${rawPhone.slice(1)}` : rawPhone;
+    const companyName = emisor.nombreComercial || emisor.razonSocial || 'WebFix';
+    const docLabel = getDocTypeLabel();
+    const docNum = tx.documentNumber || tx.id || '';
+    const totalStr = `$${Number(taxDetails.total || tx.total || 0).toFixed(2)}`;
+    const appOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const appKey = tx.tenantId || tx.appId || getAppId();
+    const publicLink = (tx.claveAcceso && appOrigin && appKey)
+      ? `${appOrigin}/factura/${encodeURIComponent(appKey)}/${encodeURIComponent(tx.id)}?clave=${encodeURIComponent(tx.claveAcceso)}`
+      : '';
+    const lines = [
+      `Hola ${client?.name || tx.thirdPartyName || ''},`,
+      `Te compartimos tu *${docLabel}* N° *${docNum}* de *${companyName}* por un total de *${totalStr}*.`,
+      tx.claveAcceso ? `Clave de acceso SRI: ${tx.claveAcceso}` : '',
+      publicLink ? `Ver / descargar RIDE: ${publicLink}` : '',
+      'Gracias por tu preferencia.'
+    ].filter(Boolean);
+    const url = `https://wa.me/${ecPhone}?text=${encodeURIComponent(lines.join('\n'))}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   if (typeof document === 'undefined') return null;
 
   const modalJSX = (
@@ -490,8 +513,16 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
             )}
 
             <UiButton
+              onClick={handleShareWhatsApp}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-[#0b996f] hover:bg-[#02835c] text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
+              title="Enviar comprobante y link RIDE por WhatsApp"
+            >
+              <MessageCircle size={13} /> WhatsApp
+            </UiButton>
+
+            <UiButton
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-[#1b1b1b] hover:bg-[#2c2c2c] text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
             >
               <Printer size={12} /> Imprimir / PDF
             </UiButton>

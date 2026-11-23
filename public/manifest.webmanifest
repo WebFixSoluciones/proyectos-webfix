@@ -1,0 +1,18 @@
+{
+  "name": "WebFix ERP — Gestión Empresarial y SRI",
+  "short_name": "WebFix ERP",
+  "description": "Sistema ERP completo con POS táctil, facturación electrónica SRI Ecuador, inventario, bodegas y finanzas.",
+  "start_url": "/app",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAFAFA",
+  "theme_color": "#0B996F",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
