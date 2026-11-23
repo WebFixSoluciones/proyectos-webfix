@@ -75,9 +75,47 @@ export async function actualizarCuenta(db, id, data, usuario) {
   registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: id, accion: 'actualizar', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { nuevo: payload }, modulo: 'finanzas' });
 }
 
-export async function eliminarCuenta(db, id, usuario) {
+export async function desactivarCuenta(db, id, usuario = {}) {
   await updateDoc(doc(db, COLLECTION_BANCOS, id), { estado: 'inactivo', updatedAt: serverTimestamp() });
-  registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: id, accion: 'eliminar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { antes: { id } }, modulo: 'finanzas' });
+  registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: id, accion: 'desactivar', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { estado: 'inactivo' }, modulo: 'finanzas' });
+}
+
+export async function reactivarCuenta(db, id, usuario = {}) {
+  await updateDoc(doc(db, COLLECTION_BANCOS, id), { estado: 'activo', updatedAt: serverTimestamp() });
+  registrarAuditoria(db, { coleccion: COLLECTION_BANCOS, documentoId: id, accion: 'reactivar', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { estado: 'activo' }, modulo: 'finanzas' });
+}
+
+export async function eliminarCuenta(db, id, usuario = {}, { anularMovimientos = false } = {}) {
+  const q = query(collection(db, COLLECTION_MOV_BANCARIOS), where('cuentaId', '==', id));
+  const snap = await getDocs(q);
+  const movs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const activos = movs.filter(m => m.estado !== 'anulado');
+
+  if (activos.length > 0 && !anularMovimientos) {
+    const montoActivo = activos.reduce((s, m) => s + (m.tipo === 'credito' ? Number(m.monto) || 0 : -(Number(m.monto) || 0)), 0);
+    throw new Error(
+      `No se puede eliminar la cuenta porque tiene ${activos.length} movimiento(s) activo(s) (efecto neto $${montoActivo.toFixed(2)}). Primero anula o elimina esos movimientos, o desactiva la cuenta.`
+    );
+  }
+
+  for (const mov of activos) {
+    await anularMovimientoBancario(db, mov.id, 'Anulado al eliminar cuenta bancaria', usuario);
+  }
+
+  // Eliminar movimientos anulados de la cuenta y luego la cuenta definitivamente
+  for (const mov of movs) {
+    await deleteDoc(doc(db, COLLECTION_MOV_BANCARIOS, mov.id));
+  }
+  await deleteDoc(doc(db, COLLECTION_BANCOS, id));
+  registrarAuditoria(db, {
+    coleccion: COLLECTION_BANCOS,
+    documentoId: id,
+    accion: 'eliminar_definitivo',
+    usuario: usuario?.uid || '',
+    usuarioEmail: usuario?.email || '',
+    cambios: { antes: { id, movimientosRemovidos: movs.length } },
+    modulo: 'finanzas'
+  });
 }
 
 export async function getMovimientosBancarios(db, cuentaId, filtros = {}) {
@@ -318,21 +356,94 @@ export async function registrarOperacionBancariaDirecta(db, data, usuario = {}) 
   return ref.id;
 }
 
-export async function eliminarMovimientoBancario(db, id, usuario) {
-  const existing = (await getDoc(doc(db, COLLECTION_MOV_BANCARIOS, id))).data();
-  if (existing?.conciliado || existing?.movimientoId) throw new Error('No se puede eliminar un movimiento vinculado.');
-  await deleteDoc(doc(db, COLLECTION_MOV_BANCARIOS, id));
-  registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: id, accion: 'eliminar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { antes: { id } }, modulo: 'finanzas' });
+export async function anularMovimientoBancario(db, id, motivo = '', usuario = {}) {
+  const movRef = doc(db, COLLECTION_MOV_BANCARIOS, id);
+  const snap = await getDoc(movRef);
+  if (!snap.exists()) throw new Error('Movimiento bancario no encontrado.');
+  const existing = snap.data();
+  if (existing.estado === 'anulado') return;
+
+  const updates = {
+    estado: 'anulado',
+    conciliado: false,
+    motivoAnulacion: (motivo || '').trim() || 'Anulado manualmente desde Bancos y Caja',
+    anuladoPor: usuario?.uid || '',
+    anuladoEn: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  await updateDoc(movRef, updates);
+
+  // Si estaba vinculado a un movimiento financiero, liberar la conciliación bancaria
+  if (existing.movimientoId) {
+    try {
+      const finRef = doc(db, 'fin_movimientos', existing.movimientoId);
+      const finSnap = await getDoc(finRef);
+      if (finSnap.exists() && finSnap.data()?.conciliacionBancariaId === id) {
+        await updateDoc(finRef, { conciliacionBancariaId: null, actualizadoEn: serverTimestamp() });
+      }
+    } catch {
+      // No bloquear la anulación bancaria si el movimiento financiero ya no existe
+    }
+  }
+
+  // Si forma parte de una transferencia interna Caja <-> Banco, anular ambas puntas
+  if (existing.transferenciaId) {
+    const qTrf = query(collection(db, COLLECTION_MOV_BANCARIOS), where('transferenciaId', '==', existing.transferenciaId));
+    const trfSnap = await getDocs(qTrf);
+    for (const d of trfSnap.docs) {
+      if (d.id !== id && d.data()?.estado !== 'anulado') {
+        await updateDoc(doc(db, COLLECTION_MOV_BANCARIOS, d.id), updates);
+      }
+    }
+  }
+
+  if (existing.cuentaId) {
+    try {
+      await updateDoc(doc(db, COLLECTION_BANCOS, existing.cuentaId), { updatedAt: serverTimestamp() });
+    } catch { /* ignore */ }
+  }
+
+  registrarAuditoria(db, {
+    coleccion: COLLECTION_MOV_BANCARIOS,
+    documentoId: id,
+    accion: 'anular',
+    usuario: usuario?.uid || '',
+    usuarioEmail: usuario?.email || '',
+    cambios: { motivo: updates.motivoAnulacion, monto: existing.monto, tipo: existing.tipo },
+    modulo: 'finanzas'
+  });
 }
 
-export async function conciliarMovimiento(db, movBancarioId, movimientoId, usuario) {
+export async function eliminarMovimientoBancario(db, id, usuario = {}) {
+  const movRef = doc(db, COLLECTION_MOV_BANCARIOS, id);
+  const snap = await getDoc(movRef);
+  if (!snap.exists()) return;
+  const existing = snap.data();
+  const estaVinculado = Boolean(existing?.conciliado || existing?.movimientoId || existing?.origenId || existing?.pagoId || existing?.transferenciaId);
+  if (existing?.estado !== 'anulado' && estaVinculado) {
+    throw new Error('Este movimiento está vinculado a un comprobante u operación del ERP. Anúlalo primero para revertir su efecto en el saldo.');
+  }
+  await deleteDoc(movRef);
+  registrarAuditoria(db, {
+    coleccion: COLLECTION_MOV_BANCARIOS,
+    documentoId: id,
+    accion: 'eliminar',
+    usuario: usuario?.uid || '',
+    usuarioEmail: usuario?.email || '',
+    cambios: { antes: { id, monto: existing?.monto, descripcion: existing?.descripcion } },
+    modulo: 'finanzas'
+  });
+}
+
+export async function conciliarMovimiento(db, movBancarioId, movimientoId, usuario = {}) {
   await reconcileBankMovement(db, movBancarioId, movimientoId);
-  registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: movBancarioId, accion: 'conciliar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: { movimientoId }, modulo: 'finanzas' });
+  registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: movBancarioId, accion: 'conciliar', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: { movimientoId }, modulo: 'finanzas' });
 }
 
-export async function desconciliarMovimiento(db, movBancarioId, usuario) {
+export async function desconciliarMovimiento(db, movBancarioId, usuario = {}) {
   await reconcileBankMovement(db, movBancarioId, null);
-  registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: movBancarioId, accion: 'desconciliar', usuario: usuario.uid, usuarioEmail: usuario.email, cambios: {}, modulo: 'finanzas' });
+  registrarAuditoria(db, { coleccion: COLLECTION_MOV_BANCARIOS, documentoId: movBancarioId, accion: 'desconciliar', usuario: usuario?.uid || '', usuarioEmail: usuario?.email || '', cambios: {}, modulo: 'finanzas' });
 }
 
 export function calcularSaldoDesdeMovimientos(saldoInicial, movimientos = []) {

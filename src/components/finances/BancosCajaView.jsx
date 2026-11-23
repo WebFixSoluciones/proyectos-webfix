@@ -4,11 +4,10 @@ import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiSelect, UiInput, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect, useCallback } from 'react';
-import { Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Link2, Link2Off, Trash2, X, Edit2, Sparkles, CheckCircle } from 'lucide-react';
-import { getCuentas, crearCuenta, actualizarCuenta, eliminarCuenta, getMovimientosBancarios, registrarMovimientoBancario, transferirEntreCuentas, eliminarMovimientoBancario, conciliarMovimiento, desconciliarMovimiento, getResumenBancos, conciliacionAutomatica } from '../../services/bancosService';
+import { Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Link2, Link2Off, Trash2, X, Edit2, Sparkles, CheckCircle, RotateCcw, Ban, AlertTriangle } from 'lucide-react';
+import { getCuentas, crearCuenta, actualizarCuenta, eliminarCuenta, desactivarCuenta, reactivarCuenta, getMovimientosBancarios, registrarMovimientoBancario, transferirEntreCuentas, anularMovimientoBancario, eliminarMovimientoBancario, conciliarMovimiento, desconciliarMovimiento, getResumenBancos, conciliacionAutomatica } from '../../services/bancosService';
 import { getMovimientos } from '../../services/movimientoService';
 import FinancialPageHeader from './FinancialPageHeader';
-import confirmAction from '../../services/confirmDialog';
 import { Badge } from '../ui/badge';
 
 const TIPO_BADGES = {
@@ -43,6 +42,8 @@ export default function BancosCajaView({ db, usuario, showToast }) {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingCuenta, setEditingCuenta] = useState(null);
   const [conciliarModal, setConciliarModal] = useState(null);
+  const [movActionModal, setMovActionModal] = useState(null);
+  const [deleteCuentaModal, setDeleteCuentaModal] = useState(null);
   const [movsFinDisponibles, setMovsFinDisponibles] = useState([]);
   const [sugerenciasConciliacion, setSugerenciasConciliacion] = useState(null);
   const [loadingConciliacion, setLoadingConciliacion] = useState(false);
@@ -91,10 +92,60 @@ export default function BancosCajaView({ db, usuario, showToast }) {
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   };
 
-  const handleEliminarCuenta = async (id) => {
-    if (!await confirmAction('¿Eliminar esta cuenta? Esta acción no se puede deshacer.')) return;
-    try { await eliminarCuenta(db, id, usuario); showToast('Cuenta eliminada', 'success'); setCuentaActiva(null); cargarCuentas(); }
-    catch (e) { showToast('Error: ' + e.message, 'error'); }
+  const handleOpenDeleteCuenta = async (cuenta) => {
+    try {
+      const movsCuenta = await getMovimientosBancarios(db, cuenta.id, {});
+      const activos = movsCuenta.filter(m => m.estado !== 'anulado');
+      setDeleteCuentaModal({
+        cuenta,
+        totalMovs: movsCuenta.length,
+        activosCount: activos.length,
+        saving: false,
+      });
+    } catch (e) {
+      showToast('Error al verificar la cuenta: ' + e.message, 'error');
+    }
+  };
+
+  const handleReactivarCuenta = async (cuenta) => {
+    try {
+      await reactivarCuenta(db, cuenta.id, usuario);
+      showToast(`Cuenta "${cuenta.nombre}" reactivada`, 'success');
+      await cargarCuentas();
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  const handleConfirmDeleteCuenta = async (modo) => {
+    if (!deleteCuentaModal?.cuenta) return;
+    const { cuenta } = deleteCuentaModal;
+    setDeleteCuentaModal(prev => ({ ...prev, saving: true }));
+    try {
+      if (modo === 'desactivar') {
+        await desactivarCuenta(db, cuenta.id, usuario);
+        showToast(`Cuenta "${cuenta.nombre}" marcada como inactiva`, 'info');
+      } else if (modo === 'eliminar_con_anulacion') {
+        await eliminarCuenta(db, cuenta.id, usuario, { anularMovimientos: true });
+        showToast(`Cuenta "${cuenta.nombre}" y sus registros bancarios eliminados`, 'success');
+        if (cuentaActiva?.id === cuenta.id) {
+          setCuentaActiva(null);
+          setMovimientos([]);
+        }
+      } else {
+        await eliminarCuenta(db, cuenta.id, usuario, { anularMovimientos: false });
+        showToast(`Cuenta "${cuenta.nombre}" eliminada definitivamente`, 'success');
+        if (cuentaActiva?.id === cuenta.id) {
+          setCuentaActiva(null);
+          setMovimientos([]);
+        }
+      }
+      setDeleteCuentaModal(null);
+      await cargarCuentas();
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+      setDeleteCuentaModal(prev => (prev ? { ...prev, saving: false } : null));
+    }
   };
 
   const handleRegistrarMov = async (data) => {
@@ -106,10 +157,38 @@ export default function BancosCajaView({ db, usuario, showToast }) {
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   };
 
-  const handleEliminarMov = async (id) => {
-    if (!await confirmAction('¿Eliminar este movimiento?')) return;
-    try { await eliminarMovimientoBancario(db, id, usuario); showToast('Movimiento eliminado', 'success'); cargarCuentas(); cargarMovimientos(); }
-    catch (e) { showToast('Error: ' + e.message, 'error'); }
+  const handleOpenMovAction = (mov) => {
+    setMovActionModal({ mov, motivo: '', saving: false });
+  };
+
+  const handleAnularMov = async () => {
+    if (!movActionModal?.mov) return;
+    setMovActionModal(prev => ({ ...prev, saving: true }));
+    try {
+      await anularMovimientoBancario(db, movActionModal.mov.id, movActionModal.motivo, usuario);
+      showToast('Movimiento bancario anulado. Saldo actualizado.', 'success');
+      setMovActionModal(null);
+      await cargarCuentas();
+      await cargarMovimientos();
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+      setMovActionModal(prev => (prev ? { ...prev, saving: false } : null));
+    }
+  };
+
+  const handleEliminarMovDefinitivo = async () => {
+    if (!movActionModal?.mov) return;
+    setMovActionModal(prev => ({ ...prev, saving: true }));
+    try {
+      await eliminarMovimientoBancario(db, movActionModal.mov.id, usuario);
+      showToast('Movimiento eliminado definitivamente', 'success');
+      setMovActionModal(null);
+      await cargarCuentas();
+      await cargarMovimientos();
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+      setMovActionModal(prev => (prev ? { ...prev, saving: false } : null));
+    }
   };
 
   const handleConciliar = async (mov) => {
@@ -311,9 +390,14 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                     <UiBox {...mergeThemeProps({}, {}, ((cuenta.saldoActual || 0) >= 0 ? {"style":{"color":"var(--green-12)"}} : {"style":{"color":"var(--red-12)"}}))}>{formatCurrency(cuenta.saldoActual)}</UiBox>
                     <UiBox {...{"style":{"color":"var(--gray-11)"}}}>Saldo inicial: {formatCurrency(cuenta.saldoInicial)}</UiBox>
                   </UiBox>
-                  <UiBox {...{"className":"flex gap-1"}} onClick={e => e.stopPropagation()}>
+                  <UiBox {...{"className":"flex gap-1 items-center"}} onClick={e => e.stopPropagation()}>
+                    {cuenta.estado === 'inactivo' && (
+                      <UiButton size="1" variant="soft" color="green" title="Reactivar cuenta" onClick={() => handleReactivarCuenta(cuenta)} className="flex items-center gap-1">
+                        <RotateCcw size={12} /> Reactivar
+                      </UiButton>
+                    )}
                     <UiButton iconOnly title="Editar cuenta" onClick={() => { setEditingCuenta(cuenta); setShowFormCuenta(true); }} {...{"variant":"surface","color":"gray","className":"w-7"}}><Edit2 size={13} /></UiButton>
-                    <UiButton iconOnly title="Eliminar cuenta" onClick={() => handleEliminarCuenta(cuenta.id)} {...{"variant":"surface","color":"gray","className":"w-7"}}><Trash2 size={13} /></UiButton>
+                    <UiButton iconOnly title="Eliminar o desactivar cuenta" onClick={() => handleOpenDeleteCuenta(cuenta)} {...{"variant":"surface","color":"red","className":"w-7"}}><Trash2 size={13} /></UiButton>
                   </UiBox>
                 </UiBox>
               </UiBox>
@@ -350,10 +434,14 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                 {...{"size":"2","color":"gray"}}>
                 <option value="all">Todos</option><option value="true">Conciliados</option><option value="false">Pendientes</option>
               </UiSelect>
-              <UiInput type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
-                {...{"size":"2","color":"gray"}} />
-              <UiInput type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
-                {...{"size":"2","color":"gray"}} />
+              <UiBox className="w-36">
+                <UiInput type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
+                  {...{"size":"2","color":"gray"}} />
+              </UiBox>
+              <UiBox className="w-36">
+                <UiInput type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
+                  {...{"size":"2","color":"gray"}} />
+              </UiBox>
               <UiButton onClick={handleExportCSV} {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1"}}><Download size={12} />CSV</UiButton>
               <UiButton onClick={handleConciliacionAutomatica} disabled={loadingConciliacion}
                 {...{"size":"2","variant":"solid","color":"purple","className":"disabled:opacity-50 flex items-center gap-1"}}>
@@ -422,9 +510,16 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                           {!isAnulado && mov.conciliado && !mov.pagoId && mov.origen !== 'transferencia' && (
                             <UiButton iconOnly variant="soft" color="gray" size="1" onClick={() => handleDesconciliar(mov.id)} title="Desconciliar"><Link2Off size={13} /></UiButton>
                           )}
-                          {!isAnulado && !mov.conciliado && !mov.movimientoId && (
-                            <UiButton iconOnly variant="soft" color="red" size="1" onClick={() => handleEliminarMov(mov.id)} title="Eliminar"><Trash2 size={13} /></UiButton>
-                          )}
+                          <UiButton
+                            iconOnly
+                            variant="soft"
+                            color="red"
+                            size="1"
+                            onClick={() => handleOpenMovAction(mov)}
+                            title={isAnulado ? 'Eliminar registro anulado' : 'Anular o eliminar movimiento'}
+                          >
+                            {isAnulado ? <Trash2 size={13} /> : <Ban size={13} />}
+                          </UiButton>
                         </UiBox>
                       </UiTableCell>
                     </UiTableRow>
@@ -570,6 +665,187 @@ export default function BancosCajaView({ db, usuario, showToast }) {
                 </UiButton>
               </UiBox>
             </form>
+          </UiCard>
+        </UiBox>
+      )}
+
+      {/* MODAL GUIADO: ANULAR O ELIMINAR MOVIMIENTO BANCARIO */}
+      {movActionModal && createThemedPortal(
+        <UiBox className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4" onClick={() => setMovActionModal(null)}>
+          <UiCard style={{ backgroundColor: 'var(--color-panel-solid)' }} className="w-full max-w-md max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex items-center justify-between px-5 py-3">
+              <UiHeading as="h3" color="gray" weight="bold" highContrast className="flex items-center gap-2">
+                <AlertTriangle size={16} style={{ color: 'var(--amber-11)' }} />
+                {movActionModal.mov.estado === 'anulado' ? 'Eliminar Registro Anulado' : 'Anular o Eliminar Movimiento'}
+              </UiHeading>
+              <UiButton iconOnly onClick={() => setMovActionModal(null)} variant="surface" color="gray"><X size={16} /></UiButton>
+            </UiBox>
+            <UiBox className="p-5 space-y-4">
+              <UiBox style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a6)', borderRadius: 'var(--radius-3)' }} className="p-3 space-y-1 text-xs">
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Descripción:</UiText>
+                  <UiText weight="bold" color="gray" highContrast>{movActionModal.mov.descripcion || 'Sin descripción'}</UiText>
+                </UiBox>
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Monto:</UiText>
+                  <UiText weight="bold" color={movActionModal.mov.tipo === 'credito' ? 'green' : 'red'}>
+                    {movActionModal.mov.tipo === 'credito' ? '+' : '-'}{formatCurrency(movActionModal.mov.monto)}
+                  </UiText>
+                </UiBox>
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Fecha / Ref:</UiText>
+                  <UiText color="gray">{formatDate(movActionModal.mov.fecha)} · {movActionModal.mov.referencia || '—'}</UiText>
+                </UiBox>
+              </UiBox>
+
+              {movActionModal.mov.estado === 'anulado' ? (
+                <UiBox className="space-y-3">
+                  <UiText size="2" color="gray" className="block">
+                    Este registro ya se encuentra <strong>anulado</strong> (no afecta el saldo). Puedes eliminarlo definitivamente del historial bancario.
+                  </UiText>
+                  <UiBox className="flex justify-end gap-2">
+                    <UiButton type="button" onClick={() => setMovActionModal(null)} size="2" color="gray" variant="outline">Cancelar</UiButton>
+                    <UiButton type="button" disabled={movActionModal.saving} onClick={handleEliminarMovDefinitivo} size="2" variant="solid" color="red">
+                      {movActionModal.saving ? 'Eliminando...' : 'Eliminar Definitivamente'}
+                    </UiButton>
+                  </UiBox>
+                </UiBox>
+              ) : (() => {
+                const m = movActionModal.mov;
+                const vinculado = Boolean(m.conciliado || m.movimientoId || m.origenId || m.pagoId || m.transferenciaId);
+                return (
+                  <UiBox className="space-y-3">
+                    <UiBox style={{ backgroundColor: 'var(--amber-3)', border: '1px solid var(--gray-a6)', borderRadius: 'var(--radius-3)' }} className="p-3 text-xs space-y-1.5">
+                      <UiText weight="bold" color="amber" className="block">¿Cómo funciona la reversión bancaria?</UiText>
+                      {vinculado ? (
+                        <UiText color="gray" highContrast className="block">
+                          Este movimiento proviene de un comprobante u operación del ERP. <strong>Anularlo aquí</strong> descuenta inmediatamente el monto del saldo bancario y libera la conciliación (sin borrar la factura fiscal; si deseas anular la venta completa, hazlo también en <em>Ventas → Historial de Ventas</em>).
+                        </UiText>
+                      ) : (
+                        <UiText color="gray" highContrast className="block">
+                          Este es un registro manual sin comprobante vinculado. Puedes <strong>Anularlo</strong> (conservando historial auditable en $0.00) o <strong>Eliminarlo definitivamente</strong>.
+                        </UiText>
+                      )}
+                    </UiBox>
+                    <UiBox>
+                      <UiLabel size="1" weight="medium" color="gray" highContrast className="block mb-1">Motivo de anulación (opcional)</UiLabel>
+                      <UiInput
+                        type="text"
+                        value={movActionModal.motivo}
+                        onChange={e => setMovActionModal(prev => ({ ...prev, motivo: e.target.value }))}
+                        placeholder="Ej: Factura de prueba PRU001 / Depósito mal asignado"
+                        size="2"
+                        color="gray"
+                        className="w-full"
+                      />
+                    </UiBox>
+                    <UiBox className="flex flex-wrap justify-end gap-2 pt-1">
+                      <UiButton type="button" onClick={() => setMovActionModal(null)} size="2" color="gray" variant="outline">Cancelar</UiButton>
+                      {!vinculado && (
+                        <UiButton type="button" disabled={movActionModal.saving} onClick={handleEliminarMovDefinitivo} size="2" variant="soft" color="red">
+                          Eliminar definitivamente
+                        </UiButton>
+                      )}
+                      <UiButton type="button" disabled={movActionModal.saving} onClick={handleAnularMov} size="2" variant="solid" color="red">
+                        {movActionModal.saving ? 'Anulando...' : 'Anular y Revertir Saldo'}
+                      </UiButton>
+                    </UiBox>
+                  </UiBox>
+                );
+              })()}
+            </UiBox>
+          </UiCard>
+        </UiBox>
+      )}
+
+      {/* MODAL GUIADO: DESACTIVAR O ELIMINAR CUENTA BANCARIA */}
+      {deleteCuentaModal && createThemedPortal(
+        <UiBox className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4" onClick={() => setDeleteCuentaModal(null)}>
+          <UiCard style={{ backgroundColor: 'var(--color-panel-solid)' }} className="w-full max-w-md max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <UiBox style={{ borderBottom: '1px solid var(--gray-a6)' }} className="flex items-center justify-between px-5 py-3">
+              <UiHeading as="h3" color="gray" weight="bold" highContrast className="flex items-center gap-2">
+                <AlertTriangle size={16} style={{ color: 'var(--red-11)' }} />
+                Gestionar Eliminación de Cuenta
+              </UiHeading>
+              <UiButton iconOnly onClick={() => setDeleteCuentaModal(null)} variant="surface" color="gray"><X size={16} /></UiButton>
+            </UiBox>
+            <UiBox className="p-5 space-y-4">
+              <UiBox style={{ backgroundColor: 'var(--gray-2)', border: '1px solid var(--gray-a6)', borderRadius: 'var(--radius-3)' }} className="p-3 space-y-1 text-xs">
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Cuenta:</UiText>
+                  <UiText weight="bold" color="gray" highContrast>{deleteCuentaModal.cuenta.nombre}</UiText>
+                </UiBox>
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Estado actual:</UiText>
+                  <UiText weight="bold" color={deleteCuentaModal.cuenta.estado === 'activo' ? 'green' : 'gray'}>{deleteCuentaModal.cuenta.estado}</UiText>
+                </UiBox>
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Saldo actual:</UiText>
+                  <UiText weight="bold">{formatCurrency(deleteCuentaModal.cuenta.saldoActual)}</UiText>
+                </UiBox>
+                <UiBox className="flex justify-between">
+                  <UiText color="gray">Movimientos activos:</UiText>
+                  <UiText weight="bold" color={deleteCuentaModal.activosCount > 0 ? 'amber' : 'green'}>{deleteCuentaModal.activosCount}</UiText>
+                </UiBox>
+              </UiBox>
+
+              {deleteCuentaModal.activosCount > 0 ? (
+                <UiBox style={{ backgroundColor: 'var(--amber-3)', border: '1px solid var(--gray-a6)', borderRadius: 'var(--radius-3)' }} className="p-3 text-xs space-y-1.5">
+                  <UiText weight="bold" color="amber" className="block">
+                    Esta cuenta todavía tiene {deleteCuentaModal.activosCount} movimiento(s) activo(s)
+                  </UiText>
+                  <UiText color="gray" highContrast className="block">
+                    <strong>Opción A (Conservar historial):</strong> Déjala como <em>Inactiva</em> (no suma al saldo general ni aparece en ventas/compras).
+                  </UiText>
+                  <UiText color="gray" highContrast className="block">
+                    <strong>Opción B (Eliminar definitivamente):</strong> Anula primero sus movimientos activos y borra la cuenta por completo de Bancos y Caja.
+                  </UiText>
+                </UiBox>
+              ) : (
+                <UiText size="2" color="gray" className="block">
+                  Esta cuenta no tiene movimientos activos. Puedes eliminarla definitivamente ahora mismo sin afectar saldos.
+                </UiText>
+              )}
+
+              <UiBox className="flex flex-col sm:flex-row justify-end gap-2 pt-1">
+                <UiButton type="button" onClick={() => setDeleteCuentaModal(null)} size="2" color="gray" variant="outline">Cancelar</UiButton>
+                {deleteCuentaModal.cuenta.estado === 'activo' && (
+                  <UiButton
+                    type="button"
+                    disabled={deleteCuentaModal.saving}
+                    onClick={() => handleConfirmDeleteCuenta('desactivar')}
+                    size="2"
+                    variant="soft"
+                    color="amber"
+                  >
+                    Solo Desactivar
+                  </UiButton>
+                )}
+                {deleteCuentaModal.activosCount > 0 ? (
+                  <UiButton
+                    type="button"
+                    disabled={deleteCuentaModal.saving}
+                    onClick={() => handleConfirmDeleteCuenta('eliminar_con_anulacion')}
+                    size="2"
+                    variant="solid"
+                    color="red"
+                  >
+                    {deleteCuentaModal.saving ? 'Eliminando...' : 'Anular Movimientos y Eliminar'}
+                  </UiButton>
+                ) : (
+                  <UiButton
+                    type="button"
+                    disabled={deleteCuentaModal.saving}
+                    onClick={() => handleConfirmDeleteCuenta('eliminar')}
+                    size="2"
+                    variant="solid"
+                    color="red"
+                  >
+                    {deleteCuentaModal.saving ? 'Eliminando...' : 'Eliminar Definitivamente'}
+                  </UiButton>
+                )}
+              </UiBox>
+            </UiBox>
           </UiCard>
         </UiBox>
       )}
