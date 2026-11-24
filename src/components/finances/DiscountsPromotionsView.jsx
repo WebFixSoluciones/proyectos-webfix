@@ -1,7 +1,8 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiText, UiHeading, UiLabel } from '../ui/layout';
-import { UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiInput, UiSelect } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiInput, UiSelect } from '../ui/controls';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 import { useState, useEffect } from 'react';
 import { 
   Plus, Edit2, Trash2, Calendar, ShieldAlert, 
@@ -290,20 +291,14 @@ export default function DiscountsPromotionsView({
       </UiBox>
 
       {/* TABS */}
-      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex gap-6"}}>
-        <UiButton
-          onClick={() => setActiveTab('discounts')}
-          {...mergeThemeProps({"size":"2","className":"cursor-pointer"}, {}, (activeTab === 'discounts' ? {"color":"blue"} : {"color":"gray"}))}
-        >
-          Descuentos Maestros ({discounts.length})
-        </UiButton>
-        <UiButton
-          onClick={() => setActiveTab('promotions')}
-          {...mergeThemeProps({"size":"2","className":"cursor-pointer"}, {}, (activeTab === 'promotions' ? {"color":"blue"} : {"color":"gray"}))}
-        >
-          Reglas de Promociones ({promotions.length})
-        </UiButton>
-      </UiBox>
+      <UiSegmentedTabs
+        value={activeTab}
+        onChange={setActiveTab}
+        items={[
+          { value: 'discounts', label: 'Descuentos Maestros', count: discounts.length },
+          { value: 'promotions', label: 'Reglas de Promociones', count: promotions.length }
+        ]}
+      />
 
       {/* DISCOUNTS TAB */}
       {activeTab === 'discounts' && (
@@ -484,9 +479,7 @@ export default function DiscountsPromotionsView({
               <UiHeading as="h3" size="2" weight="bold" color="gray" highContrast>
                 {editingDiscount ? 'Editar Descuento Maestro' : 'Nuevo Descuento Maestro'}
               </UiHeading>
-              <UiButton iconOnly onClick={() => setIsDiscountModalOpen(false)} color="gray" className="cursor-pointer">
-                <X size={16} />
-              </UiButton>
+              <UiModalCloseButton onClick={() => setIsDiscountModalOpen(false)} />
             </UiBox>
             <form onSubmit={handleSaveDiscount} {...{"style":{"color":"var(--gray-12)"},"className":"p-5 space-y-4"}}>
               {/* Nombre */}
@@ -710,9 +703,7 @@ export default function DiscountsPromotionsView({
               <UiHeading as="h3" size="2" weight="bold" color="gray" highContrast>
                 {editingPromo ? 'Editar Promoción' : 'Nueva Promoción'}
               </UiHeading>
-              <UiButton iconOnly onClick={() => setIsPromoModalOpen(false)} color="gray" className="cursor-pointer">
-                <X size={16} />
-              </UiButton>
+              <UiModalCloseButton onClick={() => setIsPromoModalOpen(false)} />
             </UiBox>
             <form onSubmit={handleSavePromo} {...{"style":{"color":"var(--gray-12)"},"className":"p-5 space-y-4"}}>
               {/* Nombre */}

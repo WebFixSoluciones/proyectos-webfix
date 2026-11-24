@@ -2,7 +2,8 @@ import FiscalDocuments from './FiscalDocuments';
 import { downloadFiscalXml, sriDocumentLinks } from '../../services/sriAuthorization';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiHeading, UiText, UiLabel } from '../ui/layout';
-import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 import { cancelInternalSale } from '../../services/cancelSale';
 import { reserveSriEmission, saveSriResult } from '../../services/sriEmission';
 import { consultarAutorizacionSRI, reintentarDocumentoSRI } from '../../services/sriService';
@@ -2066,16 +2067,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <span className="text-[11px] font-mono text-slate-500">Clave SRI: {formData.claveAcceso}</span>
           ) : <div />}
 
-          <button
-            type="button"
+          <UiModalCloseButton
             onClick={closeTransaction}
             disabled={isSaving || isEmitting}
-            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-950 flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 border border-slate-200/80 shadow-none active:scale-95"
             title="Cerrar / Cancelar"
             aria-label="Cerrar"
-          >
-            <X size={18} strokeWidth={2.2} />
-          </button>
+          />
         </div>
       )}
 
@@ -2088,23 +2085,25 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             {formData.recoveryNote || formData.sriLastError || 'La clave y el secuencial se conservan aunque falle la conexión.'}
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
-            <button
+            <UiButton
               type="button"
+              variant="brand"
+              size="md"
               disabled={isEmitting || isSaving}
               onClick={() => recoverSriEmission()}
-              className="rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white px-4 py-2 text-xs font-semibold shadow-none cursor-pointer transition-all disabled:opacity-50"
             >
               {isEmitting ? 'Consultando…' : 'Consultar autorización SRI'}
-            </button>
+            </UiButton>
             {formData.sriStatus === 'pendiente_sri' && formData.xml && (
-              <button
+              <UiButton
                 type="button"
+                variant="secondary"
+                size="md"
                 disabled={isEmitting || isSaving}
                 onClick={() => recoverSriEmission(true)}
-                className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold shadow-none cursor-pointer transition-all disabled:opacity-50"
               >
                 Reintentar envío del XML guardado
-              </button>
+              </UiButton>
             )}
           </div>
           <FiscalDocuments transaction={formData} tenantId={appId} />
@@ -2227,9 +2226,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <div className={`bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-none space-y-4 ${mobileTab === 'cliente' ? 'block' : 'hidden lg:block'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                        <User size={16} />
-                      </div>
+                      <UiIconBadge level="kpi" tone="brand" icon={User} />
                       <h3 className="text-base font-bold text-slate-900 tracking-tight">
                         {formData.type === 'ingreso' ? 'Datos de Cliente' : 'Datos de Proveedor'}
                       </h3>
@@ -2293,8 +2290,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   </div>
                   
                   {isEditable && (
-                    <button
+                    <UiButton
                       type="button"
+                      iconOnly
+                      variant="soft"
+                      size="lg"
                       onClick={() => {
                         setQuickAddFormData({
                           name: '', ruc: '', email: '', tipoIdentificacion: 'ruc',
@@ -2302,11 +2302,11 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         });
                         setIsQuickAddOpen(true);
                       }}
-                      className="w-9 h-9 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white flex items-center justify-center shrink-0 cursor-pointer transition-all border-none"
                       title="Crear Contacto Rápido"
+                      aria-label="Crear Contacto Rápido"
                     >
-                      <Plus size={16} />
-                    </button>
+                      <Plus size={16} strokeWidth={2.2} />
+                    </UiButton>
                   )}
                 </div>
 
@@ -2357,17 +2357,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                         setFormData(prev => ({ ...prev, documentType: newDocType, secuencial: nextSec }));
                       }} 
                       style={hasSelectedDocType ? {
-                        backgroundColor: '#1C40F2',
-                        color: '#ffffff',
-                        borderColor: '#1C40F2'
+                        backgroundColor: '#E8FEDF',
+                        color: '#004227',
+                        borderColor: '#0B996F'
                       } : {
-                        backgroundColor: '#eff6ff',
-                        color: '#1d4ed8',
-                        borderColor: '#bfdbfe'
+                        backgroundColor: '#F0FDF4',
+                        color: '#004227',
+                        borderColor: '#B3F4CB'
                       }}
                       className={hasSelectedDocType 
-                        ? "w-full font-bold !text-white !bg-[#1C40F2] border-[#1C40F2] cursor-pointer shadow-none rounded-xl text-xs h-9 transition-all"
-                        : "w-full font-semibold !text-blue-700 !bg-blue-50 border border-blue-200 cursor-pointer hover:bg-blue-100 shadow-none rounded-xl text-xs h-9 transition-all"
+                        ? "w-full font-bold !text-[#004227] !bg-[#E8FEDF] border border-[#0B996F] cursor-pointer shadow-none rounded-[10px] text-xs h-9 transition-all"
+                        : "w-full font-semibold !text-[#004227] !bg-[#F0FDF4] border border-[#B3F4CB] cursor-pointer hover:bg-[#E8FEDF] shadow-none rounded-[10px] text-xs h-9 transition-all"
                       }
                     >
                       {formData.documentType === 'nota_credito' ? (
@@ -2592,9 +2592,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   {/* Encabezado claro de la sección de productos */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                        <ShoppingCart size={16} />
-                      </div>
+                      <UiIconBadge level="kpi" tone="brand" icon={ShoppingCart} />
                       <h3 className="text-base font-bold text-slate-900 tracking-tight">
                         Productos y Servicios
                       </h3>
@@ -2671,21 +2669,24 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     {/* Search action buttons */}
                     {isEditable && (
                       <>
-                        <button
+                        <UiButton
                           type="button"
+                          variant="secondary"
+                          size="md"
                           onClick={() => {
                             setAdvSearchTerm(productSearchTerm);
                             setIsAdvancedSearchOpen(true);
                           }}
                           title="Añadir Productos"
-                          className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
                         >
                           <Search size={14} />
                           <span>Añadir</span>
-                        </button>
+                        </UiButton>
                         
-                        <button
-                          type="button" 
+                        <UiButton
+                          type="button"
+                          variant="primary"
+                          size="md"
                           onClick={() => {
                             setQuickAddProductFormData({
                               name: '', sku: '', codigoBarras: '', price: '', baseCost: '', ivaCategory: 15, stock: ''
@@ -2694,11 +2695,10 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                           }}
                           title="Crear Producto"
                           aria-label="Crear Producto"
-                          className="rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white px-4 py-2 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer border-none"
                         >
                           <Package size={14} />
                           <span>Crear</span>
-                        </button>
+                        </UiButton>
                       </>
                     )}
                   </div>
@@ -3045,17 +3045,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                                   ${subtotalLine.toFixed(2)}
                                 </UiTableCell>
 
-                                {/* Eliminar: Sin bordes, fondo sutil rojo, w-7 h-7 */}
+                                {/* Eliminar: estándar Brevo 30x30px */}
                                 {isEditable && (
                                   <UiTableCell justify="center" className="px-1 py-1.5 text-center w-10">
-                                    <button 
-                                      type="button" 
-                                      onClick={() => handleRemoveItem(index)} 
-                                      className="w-7 h-7 flex items-center justify-center rounded bg-[var(--red-3)] hover:bg-[var(--red-4)] text-[var(--red-11)] transition-colors cursor-pointer border-none mx-auto"
+                                    <UiButton
+                                      type="button"
+                                      iconOnly
+                                      variant="danger"
+                                      size="sm"
+                                      onClick={() => handleRemoveItem(index)}
+                                      className="mx-auto"
                                       title="Quitar este ítem de la factura"
+                                      aria-label="Quitar ítem"
                                     >
-                                      <Trash2 size={12} />
-                                    </button>
+                                      <Trash2 size={14} strokeWidth={2} />
+                                    </UiButton>
                                   </UiTableCell>
                                 )}
                               </UiTableRow>
@@ -3080,16 +3084,14 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                   className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors cursor-pointer bg-transparent border-none"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                      <FileText size={16} />
-                    </div>
+                    <UiIconBadge level="kpi" tone="neutral" icon={FileText} />
                     <div>
                       <h4 className="text-sm font-bold text-slate-900 tracking-tight">
                         Datos Adicionales del Comprobante (Opcional)
                       </h4>
                     </div>
                     {(formData.referencia || formData.description) && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E8FEDF] text-[#004227] border border-[#B3F4CB]">
                         Con información
                       </span>
                     )}
@@ -3535,77 +3537,79 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       {/* Emit SRI (Factura / NC / Retención / Liquidación / Guía) */}
                       {(formData.type === 'ingreso' || ['retencion', 'liquidacion', 'nota_credito', 'guia_remision'].includes(formData.documentType)) && formData.documentType !== 'nota_venta' && (
                         <>
-                          <button
-                            type="button" 
-                            onClick={handleEmitirSRI} 
+                          <UiButton
+                            type="button"
+                            variant="brand"
+                            size="lg"
+                            onClick={handleEmitirSRI}
                             disabled={isUploading || isEmitting || isSaving}
-                            className={`w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
-                              isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
+                            className="w-full"
                           >
-                            <Sparkles size={15} className="text-[#c0ffa5]" />
+                            <Sparkles size={15} />
                             <span>
                               {formData.claveAcceso && !isAuthorized
                                 ? 'Corregir y Reemitir Factura Electrónica (SRI)'
                                 : 'Emitir Factura Electrónica (SRI)'}
                             </span>
-                          </button>
+                          </UiButton>
                           {formData.claveAcceso && !isAuthorized && (
-                            <button
+                            <UiButton
                               type="button"
+                              variant="soft-amber"
+                              size="md"
                               onClick={() => recoverSriEmission(false)}
                               disabled={isUploading || isEmitting || isSaving}
-                              className="w-full py-2 px-4 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                              className="w-full"
                             >
-                              <RefreshCw size={12} className={isEmitting ? "animate-spin" : ""} />
+                              <RefreshCw size={14} className={isEmitting ? "animate-spin" : ""} />
                               <span>Consultar Autorización en SRI</span>
-                            </button>
+                            </UiButton>
                           )}
                         </>
                       )}
 
                       {/* Register Nota de Venta / Recibo */}
                       {formData.type === 'ingreso' && formData.documentType === 'nota_venta' && (
-                        <button
-                          type="button" 
-                          onClick={() => handleSave({ isFinalizingNotaVenta: true })} 
+                        <UiButton
+                          type="button"
+                          variant="primary"
+                          size="lg"
+                          onClick={() => handleSave({ isFinalizingNotaVenta: true })}
                           disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
-                            isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
+                          className="w-full"
                         >
-                          <CheckCircle2 size={15} className="text-[#c0ffa5]" />
+                          <CheckCircle2 size={15} />
                           <span>Registrar Nota de Venta</span>
-                        </button>
+                        </UiButton>
                       )}
 
                       {/* Register Purchase / Gasto */}
                       {formData.type !== 'ingreso' && (
-                        <button
-                          type="button" 
-                          onClick={handleSave} 
+                        <UiButton
+                          type="button"
+                          variant="primary"
+                          size="lg"
+                          onClick={handleSave}
                           disabled={isUploading || isEmitting || isSaving}
-                          className={`w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-none ${
-                            isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
+                          className="w-full"
                         >
-                          <CheckCircle2 size={15} className="text-[#c0ffa5]" />
+                          <CheckCircle2 size={15} />
                           <span>Registrar Compra / Gasto</span>
-                        </button>
+                        </UiButton>
                       )}
 
                       {/* Save Draft (Guardar Borrador) */}
-                      <button
-                        type="button" 
-                        onClick={() => handleSave({ isDraft: true })} 
+                      <UiButton
+                        type="button"
+                        variant="secondary"
+                        size="md"
+                        onClick={() => handleSave({ isDraft: true })}
                         disabled={isUploading || isEmitting || isSaving}
-                        className={`w-full py-2 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                          isUploading || isEmitting || isSaving ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className="w-full"
                       >
-                        <CheckCircle2 size={13} className="text-slate-500" />
+                        <CheckCircle2 size={14} />
                         <span>Guardar Borrador</span>
-                      </button>
+                      </UiButton>
                     </>
                   ) : (
                     <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-center gap-2 font-medium">
@@ -3649,9 +3653,9 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 {/* Left: Document type, code, clave de acceso, enlace RIDE */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-blue-600 rounded-full inline-block" />
+                    <span className="w-1.5 h-4 bg-[#0B996F] rounded-full inline-block" />
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-                      Tipo de Documento: <strong className="text-blue-600">{getDocTypeLabel()}</strong>
+                      Tipo de Documento: <strong className="text-[#004227]">{getDocTypeLabel()}</strong>
                     </span>
                   </div>
                   
@@ -3669,14 +3673,17 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       <span className="font-mono text-slate-800 break-all bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-lg select-all">
                         {formData.claveAcceso}
                       </span>
-                      <button
+                      <UiButton
                         type="button"
+                        iconOnly
+                        variant="secondary"
+                        size="sm"
                         onClick={handleCopyClave}
-                        className="p-1 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors cursor-pointer"
                         title="Copiar Clave de Acceso"
+                        aria-label="Copiar Clave de Acceso"
                       >
-                        {hasCopiedClave ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                      </button>
+                        {hasCopiedClave ? <Check size={14} className="text-[#0B996F]" /> : <Copy size={14} />}
+                      </UiButton>
                     </div>
                   )}
 
@@ -3687,18 +3694,21 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       href={currentRideUrl} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-blue-600 hover:text-blue-700 underline truncate max-w-xs sm:max-w-md font-mono"
+                      className="text-[#004227] hover:text-[#0B996F] underline truncate max-w-xs sm:max-w-md font-mono"
                     >
                       {currentRideUrl}
                     </a>
-                    <button
+                    <UiButton
                       type="button"
+                      iconOnly
+                      variant="secondary"
+                      size="sm"
                       onClick={handleCopyRideUrl}
-                      className="p-1 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors cursor-pointer"
                       title="Copiar enlace de comprobante"
+                      aria-label="Copiar enlace de comprobante"
                     >
-                      {hasCopiedUrl ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                    </button>
+                      {hasCopiedUrl ? <Check size={14} className="text-[#0B996F]" /> : <Copy size={14} />}
+                    </UiButton>
                   </div>
 
                   <p className="text-[11px] text-slate-400">
@@ -3710,84 +3720,91 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                 <div className="flex flex-wrap items-center gap-2 shrink-0 self-start lg:self-center">
                   {/* Descarga XML oficial */}
                   {(formData.claveAcceso || formData.xml || formData.xmlAutorizado) && (
-                    <button
+                    <UiButton
                       type="button"
+                      variant="secondary"
+                      size="md"
                       onClick={downloadXMLFile}
-                      className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                       title="Descargar archivo XML oficial"
                     >
-                      <Download size={14} className="text-slate-700" />
+                      <Download size={14} />
                       <span>XML</span>
-                    </button>
+                    </UiButton>
                   )}
 
                   {/* Ver / Descargar PDF RIDE */}
-                  <button
+                  <UiButton
                     type="button"
+                    variant="secondary"
+                    size="md"
                     onClick={handleOpenRide}
-                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     title="Ver o descargar PDF / RIDE oficial"
                   >
-                    <FileDown size={14} className="text-slate-700" />
+                    <FileDown size={14} />
                     <span>PDF / RIDE</span>
-                  </button>
+                  </UiButton>
 
                   {/* Impresión Directa */}
-                  <button
+                  <UiButton
                     type="button"
+                    variant="secondary"
+                    size="md"
                     onClick={() => handleDirectPrint(printFormat || 'ride')}
-                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     title="Impresión directa (Asistente del navegador / Windows)"
                   >
-                    <Printer size={14} className="text-slate-700" />
+                    <Printer size={14} />
                     <span>Imprimir</span>
-                  </button>
+                  </UiButton>
 
                   {/* Enviar WhatsApp */}
-                  <button
+                  <UiButton
                     type="button"
+                    variant="soft"
+                    size="md"
                     onClick={handleShareWhatsApp}
-                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     title="Compartir comprobante por WhatsApp"
                   >
-                    <MessageCircle size={14} className="text-slate-700" />
+                    <MessageCircle size={14} />
                     <span>WhatsApp</span>
-                  </button>
+                  </UiButton>
 
                   {/* Editar / Corregir si no está autorizado */}
                   {!isAuthorized && !isAnulado && (
-                    <button
+                    <UiButton
                       type="button"
+                      variant="soft-amber"
+                      size="md"
                       onClick={() => setCurrentStep(1)}
-                      className="py-2 px-3 sm:px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                       title="Volver al formulario para editar cliente, productos o pagos"
                     >
-                      <Edit2 size={14} className="text-amber-700" />
+                      <Edit2 size={14} />
                       <span>Editar y Corregir Factura</span>
-                    </button>
+                    </UiButton>
                   )}
 
                   {/* Nueva Venta */}
-                  <button
+                  <UiButton
                     type="button"
+                    variant="secondary"
+                    size="md"
                     onClick={handleStartNewSale}
-                    className="py-2 px-3 sm:px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     title="Registrar una nueva venta"
                   >
-                    <Plus size={14} className="text-slate-700" />
+                    <Plus size={14} />
                     <span>Nueva Venta</span>
-                  </button>
+                  </UiButton>
 
                   {/* Volver al Historial */}
-                  <button
+                  <UiButton
                     type="button"
+                    variant="primary"
+                    size="md"
                     onClick={closeTransaction}
-                    className="py-2 px-4 rounded-xl bg-[#1b1b1b] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-none transition-all"
                     title="Volver al historial de comprobantes"
                   >
                     <ArrowLeft size={14} />
                     <span>Volver al Historial</span>
-                  </button>
+                  </UiButton>
                 </div>
               </div>
             </div>
@@ -4205,7 +4222,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                               showToast(err.message || 'No se pudo generar el despacho de bodega.', 'error');
                             }
                           }}
-                          className="w-full py-2 px-3 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="w-full py-2 px-3 rounded-[10px] border border-[#B3F4CB] bg-[#E8FEDF] hover:bg-[#d7facc] text-[#004227] font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <Package size={14} />
                           <span>Enviar a Despacho de Bodega</span>
@@ -4339,20 +4356,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                  <User size={16} />
-                </div>
+                <UiIconBadge level="modal" tone="brand" icon={User} />
                 <h3 className="text-base font-bold text-slate-900 tracking-tight">
                   Seguimiento de Cuenta por Cobrar
                 </h3>
               </div>
-              <button
-                type="button" 
-                onClick={() => setIsCreditModalOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X size={15} />
-              </button>
+              <UiModalCloseButton onClick={() => setIsCreditModalOpen(false)} />
             </div>
 
             <div className="space-y-3">
@@ -4496,20 +4505,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                  <User size={16} />
-                </div>
+                <UiIconBadge level="modal" tone="brand" icon={User} />
                 <h3 className="text-base font-bold text-slate-900 tracking-tight">
                   Nuevo {formData.type === 'ingreso' ? 'Cliente' : 'Proveedor'} (Rápido)
                 </h3>
               </div>
-              <button 
-                type="button" 
-                onClick={() => setIsQuickAddOpen(false)} 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X size={15} />
-              </button>
+              <UiModalCloseButton onClick={() => setIsQuickAddOpen(false)} />
             </div>
             
             <form onSubmit={handleQuickAddSave} className="space-y-3.5">
@@ -4537,15 +4538,18 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                       className="w-full rounded-xl bg-white" 
                       placeholder="1790000000001" 
                     />
-                    <button
+                    <UiButton
                       type="button"
+                      iconOnly
+                      variant="soft"
+                      size="lg"
                       disabled={isQueryingSri}
                       onClick={queryQuickAddSRI}
-                      className="px-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold shrink-0 cursor-pointer flex items-center justify-center"
                       title="Consultar SRI"
+                      aria-label="Consultar SRI"
                     >
-                      {isQueryingSri ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                    </button>
+                      {isQueryingSri ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    </UiButton>
                   </div>
                 </div>
               </div>
@@ -4701,20 +4705,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             {/* Header */}
             <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                  <Search size={16} />
-                </div>
+                <UiIconBadge level="modal" tone="brand" icon={Search} />
                 <h3 className="text-base font-bold text-slate-900 tracking-tight">
                   Búsqueda Avanzada de Productos
                 </h3>
               </div>
-              <button 
-                type="button" 
-                onClick={() => setIsAdvancedSearchOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X size={15} />
-              </button>
+              <UiModalCloseButton onClick={() => setIsAdvancedSearchOpen(false)} />
             </div>
 
             {/* Search and category filter row */}
@@ -4843,20 +4839,12 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
           <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                  <Package size={16} />
-                </div>
+                <UiIconBadge level="modal" tone="brand" icon={Package} />
                 <h3 className="text-base font-bold text-slate-900 tracking-tight">
                   Crear Producto (Rápido)
                 </h3>
               </div>
-              <button 
-                type="button" 
-                onClick={() => setIsQuickAddProductOpen(false)} 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X size={15} />
-              </button>
+              <UiModalCloseButton onClick={() => setIsQuickAddProductOpen(false)} />
             </div>
             
             <form onSubmit={handleQuickAddProductSave} className="space-y-3.5">
@@ -4989,9 +4977,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
             <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl flex flex-col animate-in zoom-in-95 duration-200 space-y-4">
               <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                    <Tag size={16} />
-                  </div>
+                  <UiIconBadge level="modal" tone="brand" icon={Tag} />
                   <div>
                     <h3 className="text-base font-bold text-slate-900 tracking-tight">
                       Descuento / Promo de Ítem
@@ -5001,13 +4987,7 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedLineItemForDiscount(null)} 
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <X size={15} />
-                </button>
+                <UiModalCloseButton onClick={() => setSelectedLineItemForDiscount(null)} />
               </div>
 
               <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
@@ -5169,21 +5149,13 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="w-full max-w-sm bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xl flex flex-col animate-in zoom-in-95 duration-200 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-200/80">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                  <ShieldAlert size={16} />
-                </div>
+              <div className="flex items-center gap-2.5">
+                <UiIconBadge level="modal" tone="danger" icon={ShieldAlert} />
                 <h3 className="text-base font-bold text-slate-900 tracking-tight">
                   Autorización Requerida
                 </h3>
               </div>
-              <button
-                type="button"
-                onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X size={15} />
-              </button>
+              <UiModalCloseButton onClick={() => { authDialog.onCancel?.(); setAuthDialog(null); }} />
             </div>
             
             <p className="text-xs text-slate-600 leading-relaxed">

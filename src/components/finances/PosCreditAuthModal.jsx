@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
-import { UiButton, UiInput } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 import { mergeThemeProps } from '../ui/themeProps';
 import {  ShieldAlert, KeyRound, CheckCircle2, X } from 'lucide-react';
 import { verifySupervisorPin } from '../../modules/rbac/application/rbacService.js';
@@ -65,13 +66,7 @@ export default function PosCreditAuthModal({ isOpen, onClose, client, totalAmoun
           )}
         >
           <UiBox className="flex items-center gap-3">
-            <UiBox
-              {...mergeThemeProps(
-                { "style": { "borderRadius": "var(--radius-3)", "backgroundColor": "var(--amber-9)", "color": "white" }, "className": "w-9 h-9 flex items-center justify-center shadow-sm" }
-              )}
-            >
-              <ShieldAlert size={20} />
-            </UiBox>
+            <UiIconBadge level="modal" tone="warning" icon={ShieldAlert} />
             <UiBox>
               <UiHeading as="h3" {...mergeThemeProps({ "size": "3", "weight": "bold", "color": "gray", "highContrast": true })}>
                 Autorización de Crédito
@@ -81,9 +76,7 @@ export default function PosCreditAuthModal({ isOpen, onClose, client, totalAmoun
               </UiText>
             </UiBox>
           </UiBox>
-          <UiButton iconOnly onClick={onClose} {...mergeThemeProps({ "variant": "surface", "color": "gray", "size": "2" })}>
-            <X size={16} />
-          </UiButton>
+          <UiModalCloseButton onClick={onClose} />
         </UiBox>
 
         <form onSubmit={handleAuthorize} className="p-5 space-y-4">

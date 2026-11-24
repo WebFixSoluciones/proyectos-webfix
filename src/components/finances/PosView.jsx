@@ -4,7 +4,8 @@ import { resolveThemeProps } from '../ui/themeProps';
 import { mergeThemeProps } from '../ui/themeProps';
 import PosProductCard from './PosProductCard';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
-import { UiInput, UiSelect, UiTextarea, UiButton } from '../ui/controls';
+import { UiInput, UiSelect, UiTextarea, UiButton, UiModalCloseButton } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 import { makeCartItem, validateCartStock, isSellable, productKind } from '../../services/productModel';
 import { settlePayments, cashSessionTotals } from '../../services/paymentModel';
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -1801,14 +1802,12 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                 </UiBox>
 
                 {/* Tipo de Documento Seleccionado */}
-                <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--blue-3)"},"className":"p-4"}}>
-                  <UiBox {...{"className":"flex items-center gap-3"}}>
-                    <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-9)","color":"var(--color-background)"},"className":"w-10 h-10 flex items-center justify-center shrink-0"}}>
-                      <FileText size={20} />
-                    </UiBox>
+                <UiBox className="p-4 rounded-[12px] border border-[#B3F4CB] bg-[#F0FDF4]">
+                  <UiBox className="flex items-center gap-3">
+                    <UiIconBadge level="header" tone="brand" icon={FileText} />
                     <UiBox>
-                      <UiText {...{"size":"1","weight":"bold","color":"gray"}}>Documento a Emitir</UiText>
-                      <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>
+                      <UiText size="1" weight="bold" color="gray">Documento a Emitir</UiText>
+                      <UiHeading as="h3" size="2" weight="bold" color="gray" highContrast>
                         {posDocType === 'factura' ? 'Factura Electrónica' : posDocType === 'nota_venta' ? 'Nota de Venta' : 'Cotización / Proforma'}
                       </UiHeading>
                     </UiBox>
@@ -2910,7 +2909,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                     <UiText {...(checkoutStep === 3 ? {"color":"blue"} : {"color":"gray"})}>3. Emisión</UiText>
                   </UiBox>
                 )}
-                <UiButton iconOnly onClick={() => setIsCheckoutOpen(false)} {...{"variant":"surface","color":"blue"}}><X size={17}/></UiButton>
+                <UiModalCloseButton onClick={() => setIsCheckoutOpen(false)} />
               </UiBox>
             </UiBox>
 
@@ -3691,7 +3690,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
               <UiHeading as="h3" {...{"size":"2","weight":"bold","className":"flex items-center gap-2"}}>
                 <Keyboard size={16} {...{"style":{"color":"var(--blue-12)"}}} /> Guía de Atajos de Teclado
               </UiHeading>
-              <UiButton iconOnly onClick={() => setIsShortcutsOpen(false)} {...{"color":"gray"}}><X size={16} /></UiButton>
+              <UiModalCloseButton onClick={() => setIsShortcutsOpen(false)} />
             </UiBox>
             
             <UiBox {...{"className":"space-y-3.5"}}>
@@ -3744,13 +3743,7 @@ export default function PosView({ products, thirdParties, transactions = [], dis
                   <UiText as="p" {...{"size":"1","color":"gray"}}>Sesión de caja activa</UiText>
                 </UiBox>
               </UiBox>
-              <UiButton iconOnly
-                type="button"
-                onClick={() => setIsHistoryOpen(false)} 
-                {...{"variant":"surface","color":"gray"}}
-              >
-                <X size={16} />
-              </UiButton>
+              <UiModalCloseButton onClick={() => setIsHistoryOpen(false)} />
             </UiBox>
 
             {/* List */}

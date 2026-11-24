@@ -1,4 +1,5 @@
-import { UiButton } from '../ui/controls';
+import { UiButton, UiModalCloseButton } from '../ui/controls';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 import { invoiceDescription, invoiceLineAmounts } from '../../services/invoiceLine';
 import { useState, useEffect } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
@@ -477,59 +478,46 @@ export default function RidePreviewModal({ tx, onClose, thirdParties, db, appId,
             </h3>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             {/* Selector de formato */}
-            <div className="flex p-0.5 rounded-md border bg-white border-border-strong">
-              <UiButton
-                onClick={() => setViewFormat('ride')}
-                className={`px-3 py-1 rounded text-xs font-bold transition-all ${
-                  viewFormat === 'ride' 
-                    ? 'bg-primary text-white' 
-                    : 'text-text-primary hover:text-text-heading'
-                }`}
-              >
-                RIDE Oficial (A4)
-              </UiButton>
-              <UiButton
-                onClick={() => setViewFormat('ticket')}
-                className={`px-3 py-1 rounded text-xs font-bold transition-all ${
-                  viewFormat === 'ticket' 
-                    ? 'bg-primary text-white' 
-                    : 'text-text-primary hover:text-text-heading'
-                }`}
-              >
-                Ticket POS (80mm)
-              </UiButton>
-            </div>
+            <UiSegmentedTabs
+              value={viewFormat}
+              onChange={setViewFormat}
+              items={[
+                { value: 'ride', label: 'RIDE Oficial (A4)' },
+                { value: 'ticket', label: 'Ticket POS (80mm)' }
+              ]}
+            />
 
             {(tx.xmlAutorizado || tx.xml) && (
               <UiButton
+                variant="secondary"
+                size="sm"
                 onClick={() => downloadFiscalXml(tx.xmlAutorizado || tx.xml, `${tx.documentNumber || tx.claveAcceso || 'factura'}.xml`)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
                 title="Descargar archivo XML oficial firmado / autorizado"
               >
-                <FileCode size={13} /> XML
+                <FileCode size={14} /> XML
               </UiButton>
             )}
 
             <UiButton
+              variant="brand"
+              size="sm"
               onClick={handleShareWhatsApp}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-[#0b996f] hover:bg-[#02835c] text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
               title="Enviar comprobante y link RIDE por WhatsApp"
             >
-              <MessageCircle size={13} /> WhatsApp
+              <MessageCircle size={14} /> WhatsApp
             </UiButton>
 
             <UiButton
+              variant="primary"
+              size="sm"
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-[#1b1b1b] hover:bg-[#2c2c2c] text-white font-bold text-xs uppercase transition-transform hover:-translate-y-0.5"
             >
-              <Printer size={12} /> Imprimir / PDF
+              <Printer size={14} /> Imprimir / PDF
             </UiButton>
 
-            <UiButton onClick={onClose} className="p-1 rounded-md hover:bg-white/10 text-text-secondary hover:text-white transition-colors">
-              <X size={16} />
-            </UiButton>
+            <UiModalCloseButton onClick={onClose} />
           </div>
         </div>
 

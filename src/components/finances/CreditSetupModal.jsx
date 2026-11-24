@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
-import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 import { mergeThemeProps } from '../ui/themeProps';
 import { ShieldCheck, CreditCard, X, CheckCircle2, UserCheck } from 'lucide-react';
 
@@ -79,13 +80,7 @@ export default function CreditSetupModal({ isOpen, onClose, client, onSave, show
           )}
         >
           <UiBox className="flex items-center gap-3">
-            <UiBox
-              {...mergeThemeProps(
-                { "style": { "borderRadius": "var(--radius-3)", "backgroundColor": "var(--blue-9)", "color": "white" }, "className": "w-9 h-9 flex items-center justify-center shadow-sm" }
-              )}
-            >
-              <ShieldCheck size={20} />
-            </UiBox>
+            <UiIconBadge level="modal" tone="brand" icon={ShieldCheck} />
             <UiBox>
               <UiHeading as="h3" {...mergeThemeProps({ "size": "3", "weight": "bold", "color": "gray", "highContrast": true })}>
                 Apertura y Control de Crédito
@@ -95,9 +90,7 @@ export default function CreditSetupModal({ isOpen, onClose, client, onSave, show
               </UiText>
             </UiBox>
           </UiBox>
-          <UiButton iconOnly onClick={onClose} {...mergeThemeProps({ "variant": "surface", "color": "gray", "size": "2" })}>
-            <X size={16} />
-          </UiButton>
+          <UiModalCloseButton onClick={onClose} />
         </UiBox>
 
         {/* Content Form */}

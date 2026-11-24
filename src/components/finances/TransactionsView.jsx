@@ -1,7 +1,9 @@
 
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { createThemedPortal } from '../ui/themePortal';
-import { UiInput, UiButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
+import { UiInput, UiButton, UiModalCloseButton, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { DropdownMenu } from '@radix-ui/themes';
 import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, Sparkles, AlertTriangle, Eye, Mail, Loader2, Truck, Clock, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Printer, FileMinus, MessageCircle, MoreHorizontal, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -901,8 +903,8 @@ export default function TransactionsView({ transactions, thirdParties, products 
           onClick={() => fileInputRef.current?.click()}
           className={`relative p-5 flex flex-col items-center justify-center cursor-pointer overflow-hidden border border-dashed rounded-2xl transition-all ${
             isDragging 
-              ? 'border-indigo-400 bg-indigo-50/50 scale-[1.01]' 
-              : 'border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50'
+              ? 'border-[#0B996F] bg-[#E8FEDF]/60 scale-[1.01]' 
+              : 'border-[#E3E3E3] hover:border-[#0B996F] bg-[#FAFAFA] hover:bg-[#F0FDF4]/50'
           }`}
         >
           <UiInput
@@ -915,16 +917,14 @@ export default function TransactionsView({ transactions, thirdParties, products 
           
           {isAnalyzing ? (
             <UiBox className="flex flex-col items-center justify-center py-3 space-y-2">
-              <div className="animate-spin h-7 w-7 border-2 border-indigo-600 border-t-transparent rounded-full" />
-              <p className="text-xs font-bold text-indigo-600 animate-pulse">Gemini IA está extrayendo información del comprobante...</p>
+              <Loader2 size={24} className="animate-spin text-[#0B996F]" />
+              <p className="text-xs font-bold text-[#004227] animate-pulse">Gemini IA está extrayendo información del comprobante...</p>
             </UiBox>
           ) : (
             <UiBox className="flex flex-col items-center justify-center text-center space-y-1.5 py-1">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
-                <Sparkles size={20} />
-              </div>
-              <p className="text-xs font-bold text-slate-800">Cargar comprobante (PDF, XML, Imagen)</p>
-              <p className="text-[11px] text-slate-500">Arrastra tu archivo aquí o haz clic para seleccionarlo</p>
+              <UiIconBadge level="header" tone="brand" icon={Sparkles} />
+              <p className="text-xs font-bold text-[#1B1B1B]">Cargar comprobante (PDF, XML, Imagen)</p>
+              <p className="text-[11px] text-[#696969]">Arrastra tu archivo aquí o haz clic para seleccionarlo</p>
             </UiBox>
           )}
         </UiBox>
@@ -932,37 +932,26 @@ export default function TransactionsView({ transactions, thirdParties, products 
 
       {/* TABS DE TIPO DE DOCUMENTO SRI */}
       {!forcedDocType && !isPreventaTab && (
-        <div className="inline-flex h-9 items-center justify-start p-1 gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap bg-slate-100 rounded-xl border border-slate-200/80">
-          {docTypeTabs.map(tab => {
-            const isActive = filterDocType === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setFilterDocType(tab.id)}
-                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer select-none ${
-                  isActive ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-medium'
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+        <UiSegmentedTabs
+          value={filterDocType}
+          onChange={setFilterDocType}
+          items={docTypeTabs.map(tab => ({ value: tab.id, label: tab.label }))}
+        />
       )}
 
       {/* FILA DE ACCIONES A LA IZQ Y FILTROS A LA DERECHA (MISMA FILA) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-slate-200/90 rounded-2xl">
         {/* IZQUIERDA: Botón de acciones */}
         <div className="flex items-center gap-2">
-          <button
+          <UiButton
             type="button"
+            variant="primary"
+            size="md"
             onClick={handleOpenRegister}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1b1b1b] hover:bg-slate-800 rounded-xl transition-colors cursor-pointer shadow-none"
           >
             <Plus size={14} /> 
             <span>Registrar {getRegisterLabel()}</span>
-          </button>
+          </UiButton>
         </div>
 
         {/* DERECHA: Búsqueda y Filtros en la misma fila */}
@@ -1122,120 +1111,141 @@ export default function TransactionsView({ transactions, thirdParties, products 
                   )}
                   <UiTableCell className="px-6 py-2.5 text-right">
                     {isDraftTx(tx) ? (
-                      <div className="flex items-center justify-end gap-1 flex-nowrap">
+                      <div className="flex items-center justify-end gap-1.5 flex-nowrap">
                         {/* Botón principal: Emitir Borrador */}
-                        <button
+                        <UiButton
                           type="button"
+                          variant="brand"
+                          size="sm"
                           onClick={() => onOpenForm?.(tx)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-[#1b1b1b] text-white hover:bg-slate-800 transition-colors cursor-pointer shadow-none"
                           title="Completar y emitir comprobante al SRI"
                         >
-                          <Sparkles size={12} className="text-amber-300" />
+                          <Sparkles size={13} />
                           <span>Emitir</span>
-                        </button>
+                        </UiButton>
 
                         {/* Editar datos del borrador */}
-                        <button
+                        <UiButton
                           type="button"
+                          iconOnly
+                          variant="secondary"
+                          size="sm"
                           onClick={() => onOpenForm?.(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                           title="Editar borrador"
+                          aria-label="Editar borrador"
                         >
-                          <Edit2 size={13} />
-                        </button>
+                          <Edit2 size={14} />
+                        </UiButton>
 
                         {/* Eliminar borrador */}
-                        <button
+                        <UiButton
                           type="button"
+                          iconOnly
+                          variant="danger"
+                          size="sm"
                           onClick={() => handleDelete(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Eliminar borrador"
+                          aria-label="Eliminar borrador"
                         >
-                          <Trash2 size={13} />
-                        </button>
+                          <Trash2 size={14} />
+                        </UiButton>
                       </div>
                     ) : isRejectedSriTx(tx) ? (
-                      <div className="flex items-center justify-end gap-1 flex-nowrap">
+                      <div className="flex items-center justify-end gap-1.5 flex-nowrap">
                         {/* Botón principal: Corregir Rechazo SRI */}
-                        <button
+                        <UiButton
                           type="button"
+                          variant="danger-solid"
+                          size="sm"
                           onClick={() => setRejectionModalTx(tx)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 transition-colors cursor-pointer shadow-none"
                           title="Ver motivo del rechazo del SRI y corregir"
                         >
-                          <AlertTriangle size={12} />
+                          <AlertTriangle size={13} />
                           <span>Corregir</span>
-                        </button>
+                        </UiButton>
 
                         {/* Editar comprobante */}
-                        <button
+                        <UiButton
                           type="button"
+                          iconOnly
+                          variant="secondary"
+                          size="sm"
                           onClick={() => onOpenForm?.({ ...tx, forceEdit: true, viewDetails: false })}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                           title="Editar comprobante"
+                          aria-label="Editar comprobante"
                         >
-                          <Edit2 size={13} />
-                        </button>
+                          <Edit2 size={14} />
+                        </UiButton>
 
                         {/* Más opciones para rechazados */}
                         <DropdownMenu.Root>
                           <DropdownMenu.Trigger>
-                            <button
+                            <UiButton
                               type="button"
-                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                              iconOnly
+                              variant="secondary"
+                              size="sm"
                               title="Más opciones"
+                              aria-label="Más opciones"
                             >
                               <MoreHorizontal size={14} />
-                            </button>
+                            </UiButton>
                           </DropdownMenu.Trigger>
                           <DropdownMenu.Content size="1" variant="solid" color="gray" align="end" className="min-w-[190px]">
                             <DropdownMenu.Item onClick={() => setRejectionModalTx(tx)} className="cursor-pointer gap-2 text-rose-600">
-                              <AlertTriangle size={13} />
+                              <AlertTriangle size={14} />
                               <span>Ver Motivo de Rechazo</span>
                             </DropdownMenu.Item>
                             <DropdownMenu.Item onClick={() => onOpenForm?.({ ...tx, forceEdit: true, viewDetails: false })} className="cursor-pointer gap-2">
-                              <Edit2 size={13} className="text-slate-600" />
+                              <Edit2 size={14} className="text-slate-600" />
                               <span>Editar Datos</span>
                             </DropdownMenu.Item>
                             <DropdownMenu.Separator />
                             <DropdownMenu.Item color="red" onClick={() => handleDelete(tx)} className="cursor-pointer gap-2 text-rose-600">
-                              <Trash2 size={13} />
+                              <Trash2 size={14} />
                               <span>Eliminar Registro</span>
                             </DropdownMenu.Item>
                           </DropdownMenu.Content>
                         </DropdownMenu.Root>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-end gap-1 flex-nowrap">
+                      <div className="flex items-center justify-end gap-1.5 flex-nowrap">
                         {/* Consultar SRI si está pendiente */}
                         {(tx.claveAcceso && isPendingSriTx(tx)) && (
-                          <button
+                          <UiButton
                             type="button"
+                            variant="soft-amber"
+                            size="sm"
                             onClick={() => verifySriTransaction(tx)}
                             disabled={verifyingTxId === tx.id}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-colors cursor-pointer disabled:opacity-60"
                             title="Consultar estado de autorización en el SRI ahora"
                           >
-                            <RefreshCw size={12} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
+                            <RefreshCw size={13} className={verifyingTxId === tx.id ? "animate-spin" : ""} />
                             <span>{verifyingTxId === tx.id ? "Consultando..." : "Consultar SRI"}</span>
-                          </button>
+                          </UiButton>
                         )}
 
                         {/* Editar comprobante si está pendiente */}
                         {isPendingSriTx(tx) && (
-                          <button
+                          <UiButton
                             type="button"
+                            iconOnly
+                            variant="secondary"
+                            size="sm"
                             onClick={() => onOpenForm?.({ ...tx, forceEdit: true, viewDetails: false })}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                             title="Editar y corregir datos del comprobante"
+                            aria-label="Editar comprobante"
                           >
-                            <Edit2 size={13} />
-                          </button>
+                            <Edit2 size={14} />
+                          </UiButton>
                         )}
 
                         {/* 1. Ver Detalles de Factura / Comprobante */}
-                        <button
+                        <UiButton
                           type="button"
+                          iconOnly
+                          variant="secondary"
+                          size="sm"
                           onClick={() => {
                             if (onOpenForm) {
                               onOpenForm({ ...tx, type: tx.type || 'ingreso', viewDetails: true });
@@ -1243,16 +1253,25 @@ export default function TransactionsView({ transactions, thirdParties, products 
                               setSelectedRideTx(tx);
                             }
                           }}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                           title={tx.documentType === 'nota_venta' ? "Ver detalles del Recibo" : "Ver detalles de la Factura"}
+                          aria-label="Ver detalles"
                         >
                           <Eye size={14} />
-                        </button>
+                        </UiButton>
 
                         {/* Enviar a Despacho Posterior de Bodega (solo ventas físicas activas) */}
                         {tx.type === 'ingreso' && tx.sriStatus !== 'anulado' && Array.isArray(tx.items) && tx.items.some(i => i && i.type !== 'SERVICE' && i.inventoryType !== 'VIRTUAL') && (
-                          <button
+                          <UiButton
                             type="button"
+                            iconOnly
+                            variant={
+                              tx.dispatchStatus === 'ENTREGADO' || tx.dispatchStatus === 'DESPACHADO'
+                                ? 'soft'
+                                : tx.dispatchId
+                                ? 'soft-amber'
+                                : 'secondary'
+                            }
+                            size="sm"
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
@@ -1272,56 +1291,56 @@ export default function TransactionsView({ transactions, thirdParties, products 
                                 showToast?.(err.message || 'No se pudo generar despacho.', 'error');
                               }
                             }}
-                            className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
-                              tx.dispatchStatus === 'ENTREGADO' || tx.dispatchStatus === 'DESPACHADO'
-                                ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
-                                : tx.dispatchId
-                                ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
-                                : 'text-slate-700 hover:text-blue-700 hover:bg-blue-50'
-                            }`}
                             title={
                               tx.dispatchStatus
                                 ? `Despacho Bodega: ${tx.dispatchStatus}`
                                 : 'Generar orden de despacho posterior de bodega'
                             }
+                            aria-label="Despacho Bodega"
                           >
                             <Truck size={14} />
-                          </button>
+                          </UiButton>
                         )}
 
                         {/* 2. Impresión Directa (asistente de Windows / navegador) */}
-                        <button
+                        <UiButton
                           type="button"
+                          iconOnly
+                          variant="secondary"
+                          size="sm"
                           onClick={() => handleDirectPrint(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                           title="Impresión directa (Asistente de impresión)"
+                          aria-label="Imprimir"
                         >
                           <Printer size={14} />
-                        </button>
+                        </UiButton>
 
                         {/* 3. Enviar por WhatsApp al Cliente */}
-                        <button
+                        <UiButton
                           type="button"
+                          iconOnly
+                          variant="secondary"
+                          size="sm"
                           onClick={() => handleShareWhatsApp(tx)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                           title="Enviar comprobante al cliente por WhatsApp"
+                          aria-label="WhatsApp"
                         >
                           <MessageCircle size={14} />
-                        </button>
-
-                        {/* Divisor vertical sutil */}
-                        <div className="h-4 w-px bg-slate-200 mx-0.5" />
+                        </UiButton>
 
                         {/* 4. Menú de Más Opciones (...) */}
                         <DropdownMenu.Root>
                           <DropdownMenu.Trigger>
-                            <button
+                            <UiButton
                               type="button"
-                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-800 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
+                              iconOnly
+                              variant="secondary"
+                              size="sm"
                               title="Más opciones"
+                              aria-label="Más opciones"
                             >
                               <MoreHorizontal size={14} />
-                            </button>
+                            </UiButton>
                           </DropdownMenu.Trigger>
                           <DropdownMenu.Content size="1" variant="solid" color="gray" align="end" className="min-w-[190px]">
                             {/* Emitir Nota de Crédito */}
@@ -1447,16 +1466,17 @@ export default function TransactionsView({ transactions, thirdParties, products 
         <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}}>
           <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"},"className":"w-full max-w-md p-6 space-y-4 scale-100"}}>
             {/* Header */}
-            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center gap-3 pb-2"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2"}}>
-                <Mail size={18} />
-              </UiBox>
-              <UiBox>
-                <UiHeading as="h3" {...{"size":"2","weight":"bold"}}>Reenviar Comprobante</UiHeading>
-                <UiText as="p" {...{"size":"1","color":"gray","weight":"medium","className":"leading-none mt-1"}}>
-                  Documento N°: {emailModalTx.documentNumber || '-'}
-                </UiText>
-              </UiBox>
+            <UiBox className="flex items-center justify-between gap-3 pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-3">
+                <UiIconBadge level="modal" tone="brand" icon={Mail} />
+                <UiBox>
+                  <UiHeading as="h3" size="2" weight="bold">Reenviar Comprobante</UiHeading>
+                  <UiText as="p" size="1" color="gray" weight="medium" className="leading-none mt-1">
+                    Documento N°: {emailModalTx.documentNumber || '-'}
+                  </UiText>
+                </UiBox>
+              </div>
+              <UiModalCloseButton onClick={() => setEmailModalTx(null)} disabled={isSendingEmail} />
             </UiBox>
 
             {/* Content / Form */}
@@ -1523,18 +1543,19 @@ export default function TransactionsView({ transactions, thirdParties, products 
         <UiBox className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4">
           <UiCard style={{ backgroundColor: 'var(--color-panel-solid)', color: 'var(--gray-12)' }} className="w-full max-w-lg p-6 space-y-4 scale-100 shadow-2xl rounded-2xl">
             {/* Header */}
-            <div className="flex items-start gap-3 pb-3 border-b border-slate-200">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
-                <AlertTriangle size={20} />
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200">
+              <div className="flex items-start gap-3 min-w-0">
+                <UiIconBadge level="modal" tone="danger" icon={AlertTriangle} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-bold text-slate-900 leading-tight">
+                    {rejectionModalTx.sriStatus === 'devuelto' ? 'Comprobante Devuelto por el SRI' : 'Comprobante No Autorizado por el SRI'}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    {getDocumentTypeLabel(rejectionModalTx.documentType, rejectionModalTx.type)} • N°: {rejectionModalTx.documentNumber || 'Borrador'} • {rejectionModalTx.date || ''}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-slate-900 leading-tight">
-                  {rejectionModalTx.sriStatus === 'devuelto' ? 'Comprobante Devuelto por el SRI' : 'Comprobante No Autorizado por el SRI'}
-                </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {getDocumentTypeLabel(rejectionModalTx.documentType, rejectionModalTx.type)} • N°: {rejectionModalTx.documentNumber || 'Borrador'} • {rejectionModalTx.date || ''}
-                </p>
-              </div>
+              <UiModalCloseButton onClick={() => setRejectionModalTx(null)} />
             </div>
 
             {/* Motivo del SRI */}
@@ -1593,18 +1614,19 @@ export default function TransactionsView({ transactions, thirdParties, products 
               >
                 Cerrar
               </UiButton>
-              <button
+              <UiButton
                 type="button"
+                variant="danger-solid"
+                size="md"
                 onClick={() => {
                   const txToEdit = rejectionModalTx;
                   setRejectionModalTx(null);
                   if (onOpenForm) onOpenForm({ ...txToEdit, forceEdit: true, viewDetails: false });
                 }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors cursor-pointer shadow-none"
               >
-                <Edit2 size={13} />
+                <Edit2 size={14} />
                 <span>Editar y Corregir Comprobante</span>
-              </button>
+              </UiButton>
             </div>
           </UiCard>
         </UiBox>
