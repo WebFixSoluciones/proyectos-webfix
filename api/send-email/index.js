@@ -1,5 +1,17 @@
+import crypto from 'node:crypto';
 import nodemailer from 'nodemailer';
 import { escapeHtml, isSafeExternalUrl } from '../../server/domains/mailerGuard.js';
+
+export function resolveSenderDomain(smtpUser = '', smtpHost = '') {
+  const userStr = String(smtpUser || '').trim();
+  const atIndex = userStr.lastIndexOf('@');
+  if (atIndex !== -1) {
+    const domain = userStr.slice(atIndex + 1).toLowerCase().replace(/[^a-z0-9.-]/g, '');
+    if (domain && domain.includes('.')) return domain;
+  }
+  const host = String(smtpHost || '').trim().toLowerCase().replace(/^(mail|smtp)\./, '').replace(/[^a-z0-9.-]/g, '');
+  return host && host.includes('.') ? host : 'localhost';
+}
 
 /**
  * Normaliza y valida la configuración SMTP:
@@ -55,7 +67,7 @@ export function invoiceEmailRecipients(to, emitterEmail) {
 
 export async function deliverInvoiceMessages(transporter, recipients, buildMailOptions) {
   const deliveries = {};
-  await Promise.all(recipients.map(async ({ role, address }) => {
+  for (const { role, address } of recipients) {
     try {
       const info = await transporter.sendMail(buildMailOptions(address, role === 'emitter'));
       const accepted = !Array.isArray(info.accepted) || info.accepted.some(item => String(item).toLowerCase() === address.toLowerCase());
@@ -65,7 +77,7 @@ export async function deliverInvoiceMessages(transporter, recipients, buildMailO
     } catch (error) {
       deliveries[role] = { status: 'failed', address, error: error.message || 'Falló el envío SMTP.' };
     }
-  }));
+  }
   return deliveries;
 }
 
@@ -93,11 +105,8 @@ export default async function handler(req, res) {
     companyName,
     // eslint-disable-next-line no-unused-vars
     logoUrl,
-    // eslint-disable-next-line no-unused-vars
     companyRuc,
-    // eslint-disable-next-line no-unused-vars
     companyAddress,
-    // eslint-disable-next-line no-unused-vars
     companyPhone,
     claveAcceso,
     // eslint-disable-next-line no-unused-vars
@@ -123,8 +132,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Configurar el transportador SMTP
+    const senderDomain = resolveSenderDomain(smtpConfig.user, smtpConfig.host);
+
+    // 1. Configurar el transportador SMTP con EHLO coherente con el dominio del remitente
     const transporter = nodemailer.createTransport({
+      name: senderDomain,
       host: smtpConfig.host,
       port: smtpConfig.port,
       secure: smtpConfig.secure,
@@ -291,147 +303,131 @@ export default async function handler(req, res) {
     if (resolvedPdfUrl && resolvedPdfUrl.startsWith('/')) {
       resolvedPdfUrl = `${originBase}${resolvedPdfUrl}`;
     }
+    const safePdfHref = /^https?:\/\//i.test(resolvedPdfUrl) ? resolvedPdfUrl.replace(/["'<>]/g, '') : '';
+    const safeXmlHref = (!String(documentType || '').toLowerCase().includes('nota_venta') && /^https?:\/\//i.test(String(xmlUrl || ''))) ? String(xmlUrl).replace(/["'<>]/g, '') : '';
 
     const isNotaVenta = String(documentType || '').toLowerCase() === 'nota_venta';
+    const formattedTotal = `$${Number(total || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const safeClientDisplay = String(clientName || 'Cliente').trim();
+    const safeCompanyDisplay = String(cleanCompanyName || 'Emisor').trim();
 
-    const buildMailOptions = (address, isDirectToEmitter) => ({
-      from: fromAddress,
-      to: address,
-      subject: isDirectToEmitter 
-        ? (isNotaVenta 
+    const buildMailOptions = (address, isDirectToEmitter) => {
+      const subject = isDirectToEmitter
+        ? (isNotaVenta
             ? `Emitiste comprobante de venta: ${documentNumber || ''}`
             : `Emitiste ${docTypeLabel.toLowerCase()} electrónica: ${documentNumber || ''}`)
-        : (isNotaVenta 
+        : (isNotaVenta
             ? `Comprobante de Venta: ${documentNumber || ''}`
-            : `Comprobante Electrónico Autorizado: ${documentNumber || ''}`),
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-          <style>
-            body {
-              font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-            }
-          </style>
-        </head>
-        <body style="margin: 0; padding: 0; background-color: #F2F4FF; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <table style="width: 100%; border-collapse: collapse; border: none; background-color: #F2F4FF; padding: 40px 0; margin: 0;">
-            <tr>
-              <td align="center" style="padding: 40px 20px; border: none;">
-                
-                <!-- Main Container Box -->
-                <div style="max-width: 600px; width: 100%; background-color: #ffffff; border: 1px solid #CAD1F4; border-radius: 8px; overflow: hidden; text-align: left;">
-                  
-                  <!-- Header / Branding -->
-                  <div style="background-color: #1C40F2; padding: 32px 24px; text-align: center; border: none;">
-                    <h1 style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 800; color: #ffffff; margin: 0 0 10px 0; line-height: 1.2;">
-                      ${isDirectToEmitter ? `¡Hola, ${escapeHtml(String(cleanCompanyName || 'Emisor').toUpperCase())}!` : `¡Hola, ${escapeHtml(String(clientName || 'Cliente').toUpperCase())}!`}
-                    </h1>
-                    <p style="font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 400; color: #ffffff; margin: 0; line-height: 1.2;">
-                      ${isDirectToEmitter ? 'Copia de Respaldo - Nuevo Comprobante Emitido' : (isNotaVenta ? 'Nuevo Comprobante de Venta' : 'Nuevo Comprobante Electrónico Autorizado')}
-                    </p>
-                  </div>
+            : `Comprobante Electrónico Autorizado: ${documentNumber || ''}`);
 
-                  <!-- Body Content -->
-                  <div style="padding: 30px 24px; background-color: #ffffff;">
-                    <p style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: #000000; margin: 0 0 24px 0; line-height: 1.5; text-transform: uppercase;">
-                      ${isDirectToEmitter ? `Has emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico'} para ${escapeHtml(String(clientName || 'Consumidor Final').toUpperCase())}.` : `${escapeHtml(String(cleanCompanyName || 'EMISOR').toUpperCase())} ha emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico'} a su nombre.`}
-                    </p>
+      const plainLines = [
+        isDirectToEmitter ? `Hola, ${safeCompanyDisplay}:` : `Estimado/a ${safeClientDisplay}:`,
+        '',
+        isDirectToEmitter
+          ? `Se ha emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico autorizado'} para ${safeClientDisplay}.`
+          : `${safeCompanyDisplay} le informa que se ha emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico autorizado por el SRI'} a su nombre.`,
+        '',
+        `Tipo de documento: ${docTypeLabel}`,
+        `Número: ${documentNumber || '-'}`,
+        `Fecha de emisión: ${date || '-'}`,
+        `Cliente: ${safeClientDisplay}`,
+        `Identificación: ${clientIdentification || '-'}`,
+        `Total: ${formattedTotal}`,
+        ...(claveAcceso ? [`Clave de acceso SRI: ${claveAcceso}`] : []),
+        '',
+        ...(safePdfHref ? [`Ver o descargar comprobante (RIDE PDF): ${safePdfHref}`] : []),
+        ...(safeXmlHref ? [`Descargar XML autorizado: ${safeXmlHref}`] : []),
+        ...(attachments.length > 0 ? ['Los archivos del comprobante se encuentran adjuntos a este correo.'] : []),
+        '',
+        `Este documento digital tiene validez ${isNotaVenta ? 'comercial' : 'tributaria'}. Por favor consérvelo para sus registros.`,
+        '',
+        `Atentamente,`,
+        safeCompanyDisplay,
+        ...(companyPhone ? [`Teléfono: ${companyPhone}`] : []),
+        ...(companyAddress ? [`Dirección: ${companyAddress}`] : []),
+      ];
 
-                    <table style="width: 100%; border-collapse: collapse; border: none;">
-                      <tr>
-                        <!-- Left column: Document Icon -->
-                        <td style="width: 45px; vertical-align: top; padding-right: 20px; border: none;">
-                          <div style="font-size: 36px; line-height: 1; text-align: left; color: #000000; padding-top: 4px;">
-                            📄
-                          </div>
-                        </td>
-                        <!-- Right column: Details -->
-                        <td style="vertical-align: top; border: none;">
-                          <div style="font-family: 'Inter', sans-serif; font-size: 11.5px; color: #000000; line-height: 1.6; text-align: left;">
-                            
-                            ${claveAcceso ? `
-                              <div style="margin-bottom: 12px;">
-                                <strong style="font-weight: 700; display: block; color: #000000;">Clave de Acceso:</strong>
-                                <span style="font-weight: 400; display: block; color: #000000; word-break: break-all; margin-top: 2px;">${escapeHtml(claveAcceso)}</span>
-                              </div>
-                            ` : ''}
+      return {
+        from: fromAddress,
+        replyTo: issuerAddress || smtpConfig.user,
+        to: address,
+        messageId: `<${crypto.randomUUID()}@${senderDomain}>`,
+        headers: {
+          'X-Auto-Response-Suppress': 'OOF, AutoReply',
+        },
+        subject,
+        text: plainLines.join('\n'),
+        html: `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:Arial,Helvetica,sans-serif;color:#1b1b1b;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background-color:#ffffff;border:1px solid #e3e3e3;border-radius:10px;overflow:hidden;">
+          <tr>
+            <td style="background-color:#004227;padding:22px 24px;text-align:left;">
+              <p style="margin:0 0 4px 0;font-size:12px;color:#c0ffa5;font-weight:bold;">
+                ${escapeHtml(safeCompanyDisplay)}
+              </p>
+              <h1 style="margin:0;font-size:18px;font-weight:bold;color:#ffffff;line-height:1.3;">
+                ${isDirectToEmitter ? 'Copia de respaldo de comprobante emitido' : (isNotaVenta ? 'Comprobante de venta disponible' : `${escapeHtml(docTypeLabel)} electrónica autorizada`)}
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:24px;font-size:14px;line-height:1.6;color:#1b1b1b;">
+              <p style="margin:0 0 14px 0;">
+                ${isDirectToEmitter ? `Hola, <strong>${escapeHtml(safeCompanyDisplay)}</strong>:` : `Estimado/a <strong>${escapeHtml(safeClientDisplay)}</strong>:`}
+              </p>
+              <p style="margin:0 0 18px 0;color:#444444;">
+                ${isDirectToEmitter
+                  ? `Se ha emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico autorizado por el SRI'} para <strong>${escapeHtml(safeClientDisplay)}</strong>.`
+                  : `<strong>${escapeHtml(safeCompanyDisplay)}</strong> ha emitido un comprobante ${isNotaVenta ? 'de venta' : 'electrónico autorizado por el SRI'} a su nombre.`}
+              </p>
 
-                            <div style="margin-bottom: 12px;">
-                              <strong style="font-weight: 700; display: block; color: #000000;">${escapeHtml(docTypeLabel)}:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${escapeHtml(documentNumber || '')}</span>
-                            </div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e3e3e3;border-radius:8px;background-color:#fafafa;margin-bottom:18px;">
+                <tr>
+                  <td style="padding:14px 16px;font-size:13px;line-height:1.6;">
+                    <div><strong>${escapeHtml(docTypeLabel)}:</strong> ${escapeHtml(documentNumber || '-')}</div>
+                    <div><strong>Fecha de emisión:</strong> ${escapeHtml(date || '-')}</div>
+                    <div><strong>Cliente:</strong> ${escapeHtml(safeClientDisplay)}</div>
+                    <div><strong>Identificación:</strong> ${escapeHtml(clientIdentification || '-')}</div>
+                    <div><strong>Total incluido IVA:</strong> <span style="color:#004227;font-weight:bold;">${escapeHtml(formattedTotal)}</span></div>
+                    ${claveAcceso ? `<div style="margin-top:8px;font-size:11px;color:#555555;word-break:break-all;"><strong>Clave de acceso SRI:</strong> ${escapeHtml(claveAcceso)}</div>` : ''}
+                  </td>
+                </tr>
+              </table>
 
-                            <div style="margin-bottom: 12px;">
-                              <strong style="font-weight: 700; display: block; color: #000000;">Fecha Emisión:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${escapeHtml(date || '')}</span>
-                            </div>
+              ${(safePdfHref || safeXmlHref) ? `
+              <p style="margin:0 0 18px 0;text-align:center;">
+                ${safePdfHref ? `<a href="${safePdfHref}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background-color:#0b996f;color:#ffffff;text-decoration:none;font-size:13px;font-weight:bold;padding:11px 20px;border-radius:8px;margin:4px;">Ver comprobante (PDF)</a>` : ''}
+                ${safeXmlHref ? `<a href="${safeXmlHref}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background-color:#1b1b1b;color:#ffffff;text-decoration:none;font-size:13px;font-weight:bold;padding:11px 20px;border-radius:8px;margin:4px;">Descargar XML</a>` : ''}
+              </p>
+              ` : ''}
 
-                            <div style="margin-bottom: 12px;">
-                              <strong style="font-weight: 700; display: block; color: #000000;">Cliente:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${escapeHtml(String(clientName || '').toUpperCase())}</span>
-                            </div>
-
-                            <div style="margin-bottom: 12px;">
-                              <strong style="font-weight: 700; display: block; color: #000000;">Identificación:</strong>
-                              <span style="font-weight: 400; display: block; color: #000000; margin-top: 2px;">${escapeHtml(clientIdentification || '')}</span>
-                            </div>
-
-                            <!-- Total Block -->
-                            <table style="width: 240px; border-collapse: collapse; background-color: #1C40F2; border-radius: 5px; margin-top: 20px; border: none;">
-                              <tr>
-                                <td style="padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: #ffffff; text-align: left; border: none;">
-                                  Total Incl. IVA
-                                </td>
-                                <td style="padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 800; color: #ffffff; text-align: right; border: none;">
-                                  $${Number(total || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </td>
-                              </tr>
-                            </table>
-
-                          </div>
-                        </td>
-                      </tr>
-                    </table>
-                  </div>
-
-                  <!-- Buttons Bar -->
-                  <div style="border-top: 1px solid #CAD1F4; padding: 24px; text-align: center; background-color: #ffffff;">
-                    ${resolvedPdfUrl ? `
-                      <a href="${resolvedPdfUrl}" target="_blank" style="background-color: #1C40F2; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 11px; text-transform: uppercase; font-family: 'Inter', sans-serif; display: inline-block; margin-right: 12px;">
-                        ${isNotaVenta ? 'VER / DESCARGAR COMPROBANTE (PDF)' : 'VER / DESCARGAR RIDE (PDF)'}
-                      </a>
-                    ` : ''}
-                    ${!isNotaVenta && xmlUrl && !xmlUrl.startsWith('data:') ? `
-                      <a href="${xmlUrl}" target="_blank" style="background-color: #000000; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 11px; text-transform: uppercase; font-family: 'Inter', sans-serif; display: inline-block;">
-                        DESCARGAR XML
-                      </a>
-                    ` : ''}
-                  </div>
-
-                </div>
-
-                <!-- Outside text (Validity) -->
-                <p style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 400; color: #000000; text-align: center; max-width: 500px; margin: 20px auto 0 auto; line-height: 1.4; padding: 0 10px;">
-                  Le recordamos que este documento digital tiene validez ${isNotaVenta ? 'comercial' : 'tributaria'}, por lo que le sugerimos conservarlo para los fines pertinentes.
-                </p>
-
-                <!-- Outside footer -->
-                <p style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; color: #000000; text-align: center; margin: 24px 0 0 0; padding: 0 10px;">
-                  Sistema de Facturación © WebFix Soluciones. Todos los derechos reservados.
-                </p>
-
-              </td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `,
-      attachments
-    });
+              <p style="margin:0;font-size:12px;color:#666666;line-height:1.5;">
+                Este documento digital tiene validez ${isNotaVenta ? 'comercial' : 'tributaria'}. Le sugerimos conservarlo para sus registros contables.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:14px 24px;border-top:1px solid #efefef;background-color:#fafafa;font-size:11px;color:#666666;text-align:center;">
+              ${escapeHtml(safeCompanyDisplay)}${companyRuc ? ` · RUC ${escapeHtml(companyRuc)}` : ''}${companyPhone ? ` · Tel: ${escapeHtml(companyPhone)}` : ''}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+        attachments
+      };
+    };
 
     // Cada destinatario recibe su propio correo y resultado; un fallo no oculta el otro.
     const deliveries = await deliverInvoiceMessages(transporter, recipients, buildMailOptions);

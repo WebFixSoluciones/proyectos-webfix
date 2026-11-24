@@ -19,6 +19,8 @@ import {
 } from '../src/modules/sri/domain/fiscalMath.js';
 import { validarIdentificacion } from '../src/services/sriService.js';
 import { resolveAllowedSriSoapPath } from '../server/domains/sriGateway.js';
+import nodemailer from 'nodemailer';
+import sendEmailHandler, { resolveSenderDomain } from '../api/send-email/index.js';
 import {
   normalizeEmissionPoints,
   validateSequentialChange,
@@ -190,6 +192,71 @@ test('SRI SOAP Gateway allowlist: accepts Vercel rewritten paths with or without
   assert.equal(resolveAllowedSriSoapPath('comprobantes-electronicos-ws/ServicioDesconocido'), null);
   assert.equal(resolveAllowedSriSoapPath('../../etc/passwd'), null);
   assert.equal(resolveAllowedSriSoapPath(''), null);
+});
+
+test('send-email anti-spam hygiene: sets EHLO name, domain Message-ID, multipart text+html and blocks data URI links', async () => {
+  assert.equal(resolveSenderDomain('ventas@webfixsoluciones.net', 'mail.webfixsoluciones.net'), 'webfixsoluciones.net');
+  assert.equal(resolveSenderDomain('invalid', 'mail.ejemplo.ec'), 'ejemplo.ec');
+
+  let transportConfig = null;
+  const sentMessages = [];
+  const originalCreateTransport = nodemailer.createTransport;
+  nodemailer.createTransport = (cfg) => {
+    transportConfig = cfg;
+    return {
+      sendMail: async (mailOptions) => {
+        sentMessages.push(mailOptions);
+        return { accepted: [mailOptions.to], messageId: mailOptions.messageId };
+      }
+    };
+  };
+
+  let statusCode = 0;
+  let payload = null;
+  const mockRes = {
+    status(code) { statusCode = code; return this; },
+    json(data) { payload = data; return this; },
+    send(data) { payload = data; return this; }
+  };
+
+  try {
+    await sendEmailHandler({
+      method: 'POST',
+      headers: { origin: 'https://erp.webfixsoluciones.net' },
+      body: {
+        smtpHost: 'mail.webfixsoluciones.net',
+        smtpPort: 465,
+        smtpUser: 'ventas@webfixsoluciones.net',
+        smtpPass: 'secret',
+        smtpSecure: true,
+        to: 'nivusoftware@gmail.com',
+        emitterEmail: 'ventas@webfixsoluciones.net',
+        clientName: 'NIVUSOFTWARE SAS',
+        clientIdentification: '1793231882001',
+        documentNumber: '001-010-000000164',
+        total: 103.5,
+        pdfUrl: 'data:application/pdf;base64,JVBERi0xLjQK',
+        xmlContent: '<autorizacion></autorizacion>',
+        companyName: 'WebFix Soluciones',
+        documentType: 'factura',
+        date: '2026-11-23'
+      }
+    }, mockRes);
+  } finally {
+    nodemailer.createTransport = originalCreateTransport;
+  }
+
+  assert.equal(statusCode, 200);
+  assert.equal(payload.success, true);
+  assert.equal(transportConfig.name, 'webfixsoluciones.net');
+  assert.equal(sentMessages.length, 2);
+  for (const msg of sentMessages) {
+    assert.ok(msg.text && msg.text.includes('001-010-000000164'), 'Plain text alternative must be present');
+    assert.ok(msg.messageId.endsWith('@webfixsoluciones.net>'), 'Message-ID domain must match sender domain');
+    assert.equal(msg.replyTo, 'ventas@webfixsoluciones.net');
+    assert.ok(!msg.html.includes('fonts.googleapis.com'), 'Must not load remote font stylesheets');
+    assert.ok(!msg.html.includes('href="data:'), 'Must never embed data: URIs as anchor links');
+  }
 });
 
 test('SRI XML Factura: grouped IVA and RIMPE/AgenteRetencion tags emit cleanly', () => {
