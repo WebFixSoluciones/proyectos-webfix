@@ -1,8 +1,9 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiHeading, UiText } from '../ui/layout';
-import { UiButton, UiInput } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 import { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, Bot, User, X, AlertCircle } from 'lucide-react';
+import { Sparkles, Send, Bot, User, AlertCircle } from 'lucide-react';
 import { chatearConAsistenteContable } from '../../services/geminiService';
 
 export default function FinanceChat({ transactions, onClose }) {
@@ -52,40 +53,46 @@ export default function FinanceChat({ transactions, onClose }) {
   return (
     <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)","backgroundColor":"var(--color-panel-solid)"},"className":"flex flex-col h-full overflow-hidden"}}>
       {/* HEADER CHAT */}
-      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)","backgroundColor":"var(--gray-2)"},"className":"px-4 py-3 flex items-center justify-between"}}>
-        <UiBox {...{"className":"flex items-center gap-2"}}>
-          <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-11)"},"className":"p-1.5"}}>
-            <Sparkles size={16} />
-          </UiBox>
+      <UiBox className="px-4 py-3 flex items-center justify-between border-b border-[#E3E3E3] bg-[#FAFAFA]">
+        <UiBox className="flex items-center gap-2.5">
+          <UiIconBadge level="modal" tone="brand" icon={Sparkles} />
           <UiBox>
-            <UiHeading as="h4" {...{"size":"1","weight":"bold"}}>Asistente Contable AI</UiHeading>
-            <UiText as="p" {...{"size":"1","color":"gray"}}>Respuestas basadas en tu base contable</UiText>
+            <UiHeading as="h4" size="1" weight="bold">Asistente Contable AI</UiHeading>
+            <UiText as="p" size="1" color="gray">Respuestas basadas en tu base contable</UiText>
           </UiBox>
         </UiBox>
-        {onClose && (
-          <UiButton iconOnly onClick={onClose} {...{"variant":"surface","color":"gray"}}>
-            <X size={14} />
-          </UiButton>
-        )}
+        {onClose && <UiModalCloseButton onClick={onClose} />}
       </UiBox>
 
       {/* BURBUJAS DE CHAT */}
-      <UiBox ref={chatContainerRef} {...{"className":"flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar"}}>
+      <UiBox ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar">
         {messages.map((msg, i) => (
-          <UiBox key={i} {...mergeThemeProps({"className":"flex gap-2 max-w-[85%]"}, {}, (msg.role === 'user' ? {"className":"ml-auto flex-row-reverse"} : {}))}>
-            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-2 shrink-0 flex items-center justify-center h-7 w-7"}, {}, (msg.role === 'user' ? {"style":{"backgroundColor":"var(--blue-9)","color":"var(--color-background)"}} : {"style":{"backgroundColor":"var(--purple-3)","color":"var(--purple-11)"}}))}>
-              {msg.role === 'user' ? <User size={12} /> : <Bot size={12} />}
+          <UiBox key={i} className={`flex gap-2 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
+            <UiBox
+              className={`p-2 shrink-0 flex items-center justify-center h-7 w-7 rounded-[8px] border ${
+                msg.role === 'user'
+                  ? 'bg-[#1B1B1B] text-white border-[#1B1B1B]'
+                  : 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
+              }`}
+            >
+              {msg.role === 'user' ? <User size={13} /> : <Bot size={13} />}
             </UiBox>
-            <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-3 leading-relaxed whitespace-pre-line"}, {}, (msg.role === 'user' ? {"style":{"backgroundColor":"var(--blue-9)","color":"var(--color-background)","borderRadius":"var(--radius-3)"}} : {"style":{"backgroundColor":"var(--gray-2)","color":"var(--gray-12)","borderRadius":"var(--radius-3)"}}))}>
+            <UiBox
+              className={`p-3 rounded-[10px] leading-relaxed whitespace-pre-line text-xs ${
+                msg.role === 'user'
+                  ? 'bg-[#1B1B1B] text-white'
+                  : 'bg-[#FAFAFA] text-[#1B1B1B] border border-[#E3E3E3]'
+              }`}
+            >
               {msg.text}
             </UiBox>
           </UiBox>
         ))}
 
         {isLoading && (
-          <UiBox {...{"className":"flex gap-2 max-w-[80%]"}}>
-            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--purple-3)","color":"var(--purple-11)"},"className":"p-2 shrink-0 flex items-center justify-center h-7 w-7"}}>
-              <Bot size={12} />
+          <UiBox className="flex gap-2 max-w-[80%]">
+            <UiBox className="p-2 shrink-0 flex items-center justify-center h-7 w-7 rounded-[8px] bg-[#E8FEDF] text-[#004227] border border-[#B3F4CB]">
+              <Bot size={13} />
             </UiBox>
             <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--gray-11)"},"className":"p-3 flex items-center gap-1.5"}}>
               <UiText {...{"className":"w-1.5 h-1.5 animate-bounce"}} style={{ animationDelay: '0ms' }}></UiText>

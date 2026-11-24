@@ -13,6 +13,7 @@ import {
   getReporteImpuestos, getReporteAuditoria, exportarCSV, exportarPDF
 } from '../../services/reportesService';
 import FinancialPageHeader from './FinancialPageHeader';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 
 const TABS = [
   { id: 'flujo', label: 'Flujo de Caja', icon: BarChart3, color: {"style":{"color":"var(--green-11)"}} },
@@ -535,17 +536,11 @@ export default function ReportesView({ db, showToast }) {
       />
 
       {/* Tabs */}
-      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex gap-1 overflow-x-auto scrollbar-none pb-px"}}>
-        {TABS.map(t => {
-          const Icon = t.icon;
-          return (
-            <UiButton key={t.id} onClick={() => { setTab(t.id); setData(null); }}
-              {...mergeThemeProps({"size":"2","className":"flex items-center gap-1.5 whitespace-nowrap"}, {}, (tab === t.id ? mergeThemeProps({"color":"blue"}) : {"color":"gray"}))}>
-              <Icon size={13} />{t.label}
-            </UiButton>
-          );
-        })}
-      </UiBox>
+      <UiSegmentedTabs
+        value={tab}
+        onChange={(val) => { setTab(val); setData(null); }}
+        items={TABS.map(t => ({ value: t.id, label: t.label, icon: t.icon }))}
+      />
 
       {/* Filtros */}
       <FiltrosComunes filtros={filtros} setFiltros={setFiltros} tab={tab} />

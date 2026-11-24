@@ -1,10 +1,11 @@
 import { resolveThemeProps } from '../ui/themeProps';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
-import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  BookOpen, Building2, FileText, Plus, Edit2, Trash2, Save, X,
+  BookOpen, Building2, FileText, Plus, Edit2, Trash2, Save,
   ChevronRight, ChevronDown, Search, Layers, Calculator, Calendar,
   AlertCircle, CheckCircle2, XCircle, Target, FileCheck, RefreshCw
 } from 'lucide-react';
@@ -217,18 +218,11 @@ export default function ContabilidadView({ db, usuario, showToast }) {
         badge={`${cuentas.length} cuentas`}
         badgeColor="green"
         actions={
-          <UiBox className="flex items-center gap-1">
-            {TABS.map(t => (
-              <UiButton
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                {...mergeThemeProps({"size":"2"}, {}, (tab === t.id ? {"variant":"solid","color":"blue"} : {"variant":"outline","color":"gray"}))}
-              >
-                <t.icon size={14} />
-                {t.label}
-              </UiButton>
-            ))}
-          </UiBox>
+          <UiSegmentedTabs
+            value={tab}
+            onChange={setTab}
+            items={TABS.map(t => ({ value: t.id, label: t.label, icon: t.icon }))}
+          />
         }
       />
       {/* KPIs */}
@@ -486,10 +480,10 @@ function CuentaForm({ cuenta, cuentas, onSave, onCancel }) {
   const posiblesPadres = cuentas.filter(c => c.nivel < (data.nivel || 1));
 
   return (
-    <UiBox {...{"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)"},"className":"p-3 space-y-3"}}>
-      <UiBox {...{"className":"flex items-center justify-between"}}>
-        <UiHeading as="h4" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>{cuenta._new ? 'Nueva Cuenta' : 'Editar Cuenta'}</UiHeading>
-        <UiButton iconOnly onClick={onCancel} {...{"variant":"surface","color":"gray"}}><X size={14} /></UiButton>
+    <UiBox className="p-4 space-y-3 rounded-2xl border border-[#B3F4CB] bg-[#F0FDF4]">
+      <UiBox className="flex items-center justify-between">
+        <UiHeading as="h4" size="2" weight="bold" color="gray" highContrast>{cuenta._new ? 'Nueva Cuenta' : 'Editar Cuenta'}</UiHeading>
+        <UiModalCloseButton onClick={onCancel} />
       </UiBox>
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-2"}}>
         <UiInput value={data.codigo} onChange={e => setData(d => ({ ...d, codigo: e.target.value }))}
@@ -530,10 +524,10 @@ function CuentaForm({ cuenta, cuentas, onSave, onCancel }) {
 function CCForm({ centro, onSave, onCancel }) {
   const [data, setData] = useState(centro);
   return (
-    <UiBox {...{"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)"},"className":"p-3 space-y-3"}}>
-      <UiBox {...{"className":"flex items-center justify-between"}}>
-        <UiHeading as="h4" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>{centro._new ? 'Nuevo Centro' : 'Editar Centro'}</UiHeading>
-        <UiButton iconOnly onClick={onCancel} {...{"variant":"surface","color":"gray"}}><X size={14} /></UiButton>
+    <UiBox className="p-4 space-y-3 rounded-2xl border border-[#B3F4CB] bg-[#F0FDF4]">
+      <UiBox className="flex items-center justify-between">
+        <UiHeading as="h4" size="2" weight="bold" color="gray" highContrast>{centro._new ? 'Nuevo Centro' : 'Editar Centro'}</UiHeading>
+        <UiModalCloseButton onClick={onCancel} />
       </UiBox>
       <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-2"}}>
         <UiInput value={data.codigo} onChange={e => setData(d => ({ ...d, codigo: e.target.value }))}
@@ -669,10 +663,10 @@ function AsientoForm({ cuentas, centros, onSave, onCancel }) {
   };
 
   return (
-    <UiBox style={{ border: '1px solid var(--gray-a6)', borderRadius: 'var(--radius-3)', backgroundColor: 'var(--blue-2)' }} className="p-3 space-y-3">
+    <UiBox className="p-4 space-y-3 rounded-2xl border border-[#B3F4CB] bg-[#F0FDF4]">
       <UiBox className="flex items-center justify-between">
         <UiHeading as="h4" size="2" weight="bold" color="gray" highContrast>Nuevo Asiento Contable (Partida Doble)</UiHeading>
-        <UiButton iconOnly onClick={onCancel} variant="surface" color="gray"><X size={14} /></UiButton>
+        <UiModalCloseButton onClick={onCancel} />
       </UiBox>
       <UiBox className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <UiInput type="date" value={fecha} onChange={e => setFecha(e.target.value)} size="2" color="gray" className="w-full" />

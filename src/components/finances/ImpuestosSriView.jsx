@@ -14,6 +14,7 @@ import {
 import { doc, getDoc } from '../../services/financeStore.js';
 import { getAppId } from '../../firebase';
 import FinancialPageHeader from './FinancialPageHeader';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 
 const TABS = [
   { id: 'iva', label: 'IVA', icon: Percent },
@@ -201,17 +202,11 @@ export default function ImpuestosSriView({ db, appId, usuario, showToast, transa
         </UiCard>
       </UiBox>
 
-      <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex gap-1 pb-0"}}>
-        {TABS.map(t => {
-          const Icon = t.icon;
-          return (
-            <UiButton key={t.id} onClick={() => setTab(t.id)}
-              {...mergeThemeProps({"size":"2","className":"-mb-px flex items-center gap-1.5"}, {}, (tab === t.id ? {"color":"blue"} : {"color":"gray"}))}>
-              <Icon size={14} />{t.label}
-            </UiButton>
-          );
-        })}
-      </UiBox>
+      <UiSegmentedTabs
+        value={tab}
+        onChange={setTab}
+        items={TABS.map(t => ({ value: t.id, label: t.label, icon: t.icon }))}
+      />
 
       {tab === 'iva' && <IvaTab iva={iva} fmt={fmt} />}
       {tab === 'retenciones' && <RetencionesTab retenciones={retenciones} fmt={fmt} />}

@@ -2,9 +2,10 @@ import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Scan, Upload, FileText, Image, FileCode, CheckCircle2, XCircle, AlertTriangle, Sparkles, Eye, Clock, DollarSign, ShieldAlert, TrendingUp, RefreshCw } from 'lucide-react';
+import { Scan, Upload, FileText, Image, FileCode, CheckCircle2, XCircle, AlertTriangle, Sparkles, Eye, Clock, DollarSign, ShieldAlert, TrendingUp, RefreshCw, Loader2 } from 'lucide-react';
 import { getCapturas, procesarArchivoCaptura, confirmarCaptura, rechazarCaptura, getResumenCapturas } from '../../services/capturaService';
 import FinancialPageHeader from './FinancialPageHeader';
+import { UiIconBadge } from '../ui/UiIconBadge';
 
 const TIPO_ICONOS = { pdf: FileText, imagen: Image, xml: FileCode };
 const ESTADO_BADGES = {
@@ -179,30 +180,32 @@ export default function CapturaInteligenteView({ db, storage, appId, usuario, sh
       </UiBox>
 
       <UiBox
-        {...mergeThemeProps({"style":{"border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"relative p-8 text-center cursor-pointer"}, {}, (dragOver ? {"style":{"backgroundColor":"var(--blue-3)"}} : {}))}
+        className={`relative p-8 text-center cursor-pointer rounded-2xl border border-dashed transition-all ${
+          dragOver
+            ? 'border-[#0B996F] bg-[#E8FEDF]/60'
+            : 'border-[#E3E3E3] bg-[#FAFAFA] hover:border-[#0B996F] hover:bg-[#F0FDF4]/50'
+        }`}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
       >
         {procesando ? (
-          <UiBox {...{"className":"flex flex-col items-center gap-3"}}>
-            <UiBox className="animate-spin h-10 w-10 rounded-full border-2 border-[var(--gray-5)] border-t-[var(--blue-9)]"></UiBox>
-            <UiText as="p" {...{"size":"2","color":"gray","weight":"medium"}}>Procesando documento con IA...</UiText>
+          <UiBox className="flex flex-col items-center gap-3">
+            <Loader2 size={28} className="animate-spin text-[#0B996F]" />
+            <UiText as="p" size="2" color="gray" weight="medium">Procesando documento con IA...</UiText>
           </UiBox>
         ) : (
-          <UiBox {...{"className":"flex flex-col items-center gap-3"}}>
-            <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-3"}}>
-              <Upload size={28} />
-            </UiBox>
+          <UiBox className="flex flex-col items-center gap-3">
+            <UiIconBadge level="header" tone="brand" icon={Upload} />
             <UiBox>
-              <UiText as="p" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>Arrastra tu documento aqui o haz clic para seleccionar</UiText>
-              <UiText as="p" {...{"size":"1","color":"gray","className":"mt-1"}}>PDF, Imagen (JPG, PNG, WEBP) o XML - Max 10 MB</UiText>
+              <UiText as="p" size="2" weight="bold" color="gray" highContrast>Arrastra tu documento aquí o haz clic para seleccionar</UiText>
+              <UiText as="p" size="1" color="gray" className="mt-1">PDF, Imagen (JPG, PNG, WEBP) o XML - Máx 10 MB</UiText>
             </UiBox>
-            <UiBox {...{"className":"flex gap-2 mt-1"}}>
-              <UiText {...{"color":"red","size":"1","weight":"bold","className":"px-2 py-0.5"}}>PDF</UiText>
-              <UiText {...{"color":"blue","size":"1","weight":"bold","className":"px-2 py-0.5"}}>Imagen</UiText>
-              <UiText {...{"color":"green","size":"1","weight":"bold","className":"px-2 py-0.5"}}>XML</UiText>
+            <UiBox className="flex gap-2 mt-1">
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FFF0F5] text-[#851B40] border border-[#FBC6D9]">PDF</span>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FAFAFA] text-[#1B1B1B] border border-[#E3E3E3]">Imagen</span>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8FEDF] text-[#004227] border border-[#B3F4CB]">XML</span>
             </UiBox>
           </UiBox>
         )}
