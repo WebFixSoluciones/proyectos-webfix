@@ -5,7 +5,7 @@ import { UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody,
 import { useState, useEffect } from 'react';
 import { 
   CreditCard, DollarSign, Landmark, ShoppingBag, Plus, 
-  Trash2, X, 
+  Trash2, X, Loader2,
   ArrowUpCircle, History
 } from 'lucide-react';
 import { doc, setDoc, collection, onSnapshot, deleteDoc } from '../../services/financeStore.js';
@@ -235,8 +235,8 @@ export default function GastosCreditosModule({ showToast, transactions = [], thi
       <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"flex flex-1 overflow-hidden min-h-0"}}>
         <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"flex-1 overflow-y-auto px-8 py-6 custom-scrollbar"}}>
           {loading ? (
-            <UiBox {...{"className":"flex justify-center items-center h-64"}}>
-              <UiBox className="animate-spin h-8 w-8 rounded-full border-2 border-[var(--gray-5)] border-t-[var(--blue-9)]"></UiBox>
+            <UiBox className="flex justify-center items-center h-64">
+              <Loader2 size={28} className="animate-spin text-[#0B996F]" />
             </UiBox>
           ) : (
             <>

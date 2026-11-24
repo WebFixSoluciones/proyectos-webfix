@@ -1,7 +1,8 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiHeading, UiText, UiLabel, UiCard } from '../ui/layout';
-import { UiButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput, UiSelect, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell, UiTextarea } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { 
   X, Plus, Search, Upload, Package, FileText,
@@ -504,9 +505,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         <div className="shrink-0 px-5 py-3.5 border-b border-[#efefef] space-y-3 bg-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
-                <ShoppingBag size={16} />
-              </div>
+              <UiIconBadge level="modal" tone="brand" icon={ShoppingBag} />
               <div>
                 <h2 className="text-base font-bold text-[#1b1b1b] leading-tight">
                   {tx?.id ? 'Editar Compra' : 'Nueva Compra'}
@@ -516,14 +515,7 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 rounded-xl border border-[#e3e3e3] bg-[#fafafa] hover:bg-[#efefef] text-[#444444] flex items-center justify-center cursor-pointer"
-              aria-label="Cerrar"
-            >
-              <X size={16} />
-            </button>
+            <UiModalCloseButton onClick={onClose} />
           </div>
           {/* Stepper dots */}
           <div className="flex items-center gap-2">

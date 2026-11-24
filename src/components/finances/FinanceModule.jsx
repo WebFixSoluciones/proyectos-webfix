@@ -1,12 +1,13 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiText } from '../ui/layout';
-import { UiButton } from '../ui/controls';
+import { UiButton, UiModalCloseButton } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 import { useState, useEffect, useRef } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
-  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator, Shield,
+  ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator, Shield,
   KeyRound, Loader2, CheckCircle2
 } from 'lucide-react';
 import { getEcuadorDateString, consultarAutorizacionSRI } from '../../services/sriService';
@@ -439,8 +440,8 @@ export default function FinanceModule({
       <UiBox {...{"style":{"backgroundColor":"transparent"},"className":"flex flex-1 overflow-hidden min-h-0"}}>
         <div className={`flex-1 min-w-0 overflow-y-auto bg-white custom-scrollbar ${isFormActive ? 'pt-0 pb-6' : 'py-4'}`}>
           {isLoading ? (
-            <UiBox {...{"className":"flex justify-center items-center h-64"}}>
-              <UiBox className="animate-spin h-8 w-8 rounded-full border-2 border-[var(--gray-5)] border-t-[var(--blue-9)]"></UiBox>
+            <UiBox className="flex justify-center items-center h-64">
+              <Loader2 size={28} className="animate-spin text-[#0B996F]" />
             </UiBox>
           ) : (
             <>
@@ -711,9 +712,7 @@ export default function FinanceModule({
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#efefef] shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
-                  <ShoppingBag size={18} />
-                </div>
+                <UiIconBadge level="modal" tone="brand" icon={ShoppingBag} />
                 <div>
                   <h3 className="text-base font-bold text-[#1b1b1b] leading-tight">Registrar Compra</h3>
                   <p className="text-xs text-[#666666]">
@@ -723,15 +722,10 @@ export default function FinanceModule({
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
+              <UiModalCloseButton
                 disabled={Boolean(purchaseImportLoading)}
                 onClick={() => setShowPurchaseMethodSelect(false)}
-                className="w-8 h-8 rounded-xl border border-[#e3e3e3] bg-[#fafafa] hover:bg-[#efefef] text-[#444444] flex items-center justify-center cursor-pointer disabled:opacity-50"
-                aria-label="Cerrar"
-              >
-                <X size={16} />
-              </button>
+              />
             </div>
 
             <div className="p-5 space-y-4 overflow-y-auto">

@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Truck, PackageCheck, ScanBarcode, Printer, Plus, Search,
-  CheckCircle2, Clock, AlertCircle, X
+  CheckCircle2, Clock, AlertCircle
 } from 'lucide-react';
+import { UiButton, UiModalCloseButton } from '../../../components/ui/controls.jsx';
+import { UiIconBadge } from '../../../components/ui/UiIconBadge.jsx';
+import { UiSegmentedTabs } from '../../../components/ui/UiSegmentedTabs.jsx';
 import {
   DISPATCH_STATUS,
   DISPATCH_STATUS_META,
@@ -259,9 +262,7 @@ export default function WarehouseDispatchView({
       {/* Cabecera */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center shrink-0">
-            <Truck size={20} />
-          </div>
+          <UiIconBadge level="header" tone="brand" icon={Truck} />
           <div>
             <h2 className="text-base font-bold text-slate-900">Despachos Posteriores de Bodega</h2>
             <p className="text-xs text-slate-500">
@@ -270,15 +271,16 @@ export default function WarehouseDispatchView({
           </div>
         </div>
 
-        <button
+        <UiButton
           type="button"
+          variant="primary"
+          size="md"
           disabled={!canDispatch}
           onClick={() => setShowCreateFromSale(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1b1b1b] text-white text-xs font-semibold hover:bg-black disabled:opacity-40 cursor-pointer"
         >
-          <Plus size={15} />
+          <Plus size={14} />
           <span>Nueva Orden desde Venta ({eligibleSales.length})</span>
-        </button>
+        </UiButton>
       </div>
 
       {/* KPIs rápidos */}
@@ -319,26 +321,17 @@ export default function WarehouseDispatchView({
               className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs"
             />
           </div>
-          <div className="flex flex-wrap gap-1">
-            {[
-              { id: 'ALL', label: 'Todos' },
-              { id: DISPATCH_STATUS.PENDIENTE, label: 'Pendientes' },
-              { id: DISPATCH_STATUS.DESPACHADO_PARCIAL, label: 'Parciales' },
-              { id: DISPATCH_STATUS.DESPACHADO, label: 'Despachados' },
-              { id: DISPATCH_STATUS.ENTREGADO, label: 'Entregados' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setStatusFilter(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
-                  statusFilter === tab.id ? 'bg-[#c0ffa5] text-[#004227]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <UiSegmentedTabs
+            value={statusFilter}
+            onChange={setStatusFilter}
+            items={[
+              { value: 'ALL', label: 'Todos' },
+              { value: DISPATCH_STATUS.PENDIENTE, label: 'Pendientes' },
+              { value: DISPATCH_STATUS.DESPACHADO_PARCIAL, label: 'Parciales' },
+              { value: DISPATCH_STATUS.DESPACHADO, label: 'Despachados' },
+              { value: DISPATCH_STATUS.ENTREGADO, label: 'Entregados' }
+            ]}
+          />
         </div>
 
         <div className="overflow-x-auto border border-slate-100 rounded-xl">
@@ -381,21 +374,25 @@ export default function WarehouseDispatchView({
                     </td>
                     <td className="py-2.5 px-3 text-right">
                       <div className="inline-flex items-center gap-1.5">
-                        <button
+                        <UiButton
                           type="button"
+                          variant={order.status === DISPATCH_STATUS.ENTREGADO ? 'secondary' : 'soft'}
+                          size="sm"
                           onClick={() => openOrder(order)}
-                          className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100 font-semibold cursor-pointer"
                         >
                           {order.status === DISPATCH_STATUS.ENTREGADO ? 'Ver Detalle' : 'Despachar'}
-                        </button>
-                        <button
+                        </UiButton>
+                        <UiButton
                           type="button"
+                          iconOnly
+                          variant="secondary"
+                          size="sm"
                           onClick={() => handlePrintSlip(order)}
-                          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer"
                           title="Imprimir Nota de Entrega"
+                          aria-label="Imprimir Nota de Entrega"
                         >
                           <Printer size={14} />
-                        </button>
+                        </UiButton>
                       </div>
                     </td>
                   </tr>
@@ -422,13 +419,7 @@ export default function WarehouseDispatchView({
                 <h3 className="text-sm font-bold text-slate-900">Generar Orden de Despacho desde Venta</h3>
                 <p className="text-xs text-slate-500">Selecciona una factura o nota de venta con productos físicos.</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowCreateFromSale(false)}
-                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-              >
-                <X size={16} />
-              </button>
+              <UiModalCloseButton onClick={() => setShowCreateFromSale(false)} />
             </div>
             <div className="p-4 border-b border-slate-100 shrink-0">
               <input
@@ -484,25 +475,19 @@ export default function WarehouseDispatchView({
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {activeOrder.status !== DISPATCH_STATUS.ENTREGADO && (
-                  <button
+                  <UiButton
                     type="button"
+                    variant="soft"
+                    size="sm"
                     onClick={() => {
-                      // Iniciar en 0 para conteo por escaneo si se desea, o ir sumando
                       setIsScannerOpen(true);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs font-semibold hover:bg-emerald-100 cursor-pointer"
                   >
                     <ScanBarcode size={14} />
                     <span>Escanear Ítems</span>
-                  </button>
+                  </UiButton>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setActiveOrder(null)}
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                >
-                  <X size={16} />
-                </button>
+                <UiModalCloseButton onClick={() => setActiveOrder(null)} />
               </div>
             </div>
 

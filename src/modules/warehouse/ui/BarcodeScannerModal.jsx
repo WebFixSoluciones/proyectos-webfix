@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Camera, Keyboard, ScanBarcode, X, CheckCircle2, AlertCircle, Volume2, VolumeX } from 'lucide-react';
+import { Camera, Keyboard, ScanBarcode, CheckCircle2, AlertCircle, Volume2, VolumeX } from 'lucide-react';
+import { UiButton, UiModalCloseButton } from '../../../components/ui/controls.jsx';
+import { UiIconBadge } from '../../../components/ui/UiIconBadge.jsx';
+import { UiSegmentedTabs } from '../../../components/ui/UiSegmentedTabs.jsx';
 
 let sharedAudioCtx = null;
 
@@ -178,69 +181,48 @@ export default function BarcodeScannerModal({
         {/* Header */}
         <div className="flex items-center justify-between gap-3 border-b border-[#e3e3e3] px-5 py-3.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
-              <ScanBarcode size={19} />
-            </div>
+            <UiIconBadge level="modal" tone="brand" icon={ScanBarcode} />
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-[#1b1b1b] truncate">{title}</h3>
               <p className="text-xs text-[#696969] truncate">{subtitle}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            <button
+            <UiButton
               type="button"
+              variant={isContinuous ? 'soft' : 'secondary'}
+              size="sm"
               onClick={() => setIsContinuous((v) => !v)}
-              className={`h-8 px-2.5 rounded-lg border text-[11px] font-bold cursor-pointer transition-colors ${
-                isContinuous
-                  ? 'bg-[#e8fedf] text-[#004227] border-[#b3f4cb]'
-                  : 'bg-white text-[#5c5c5c] border-[#e3e3e3] hover:bg-[#f5f5f5]'
-              }`}
               title="Mantener el escáner abierto tras cada lectura (modo ráfaga)"
             >
               {isContinuous ? 'Ráfaga: ON' : '1 lectura'}
-            </button>
-            <button
+            </UiButton>
+            <UiButton
               type="button"
+              iconOnly
+              variant="secondary"
+              size="md"
               onClick={() => setSoundEnabled((v) => !v)}
-              className="w-8 h-8 rounded-lg border border-[#e3e3e3] text-[#474747] hover:bg-[#f5f5f5] flex items-center justify-center cursor-pointer"
               title={soundEnabled ? 'Silenciar pitido' : 'Activar pitido'}
+              aria-label={soundEnabled ? 'Silenciar pitido' : 'Activar pitido'}
             >
               {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
-            </button>
-            <button
-              type="button"
-              onClick={() => { stopCamera(); onClose?.(); }}
-              className="w-8 h-8 rounded-lg border border-[#e3e3e3] text-[#474747] hover:bg-[#f5f5f5] flex items-center justify-center cursor-pointer"
-            >
-              <X size={16} />
-            </button>
+            </UiButton>
+            <UiModalCloseButton onClick={() => { stopCamera(); onClose?.(); }} />
           </div>
         </div>
 
         {/* Selector de Modo */}
         <div className="p-4 sm:p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100">
-            <button
-              type="button"
-              onClick={() => setMode('usb')}
-              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                mode === 'usb' ? 'bg-white text-slate-900 border border-slate-200' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Keyboard size={15} />
-              <span>Lector USB / Manual</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('camera')}
-              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                mode === 'camera' ? 'bg-white text-slate-900 border border-slate-200' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Camera size={15} />
-              <span>Cámara (Móvil / Webcam)</span>
-            </button>
-          </div>
+          <UiSegmentedTabs
+            value={mode}
+            onChange={setMode}
+            className="w-full"
+            items={[
+              { value: 'usb', label: 'Lector USB / Manual', icon: Keyboard },
+              { value: 'camera', label: 'Cámara (Móvil / Webcam)', icon: Camera }
+            ]}
+          />
 
           {mode === 'usb' ? (
             <form onSubmit={handleManualSubmit} className="space-y-3">
