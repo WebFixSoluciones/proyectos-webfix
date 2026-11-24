@@ -4,18 +4,11 @@ import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
 import { UiButton, UiSelect, UiInput, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
 import { useState, useEffect, useCallback } from 'react';
-import { Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Link2, Link2Off, Trash2, X, Edit2, Sparkles, CheckCircle, RotateCcw, Ban, AlertTriangle } from 'lucide-react';
+import { Download, Plus, Building2, Wallet, ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Link2, Link2Off, Trash2, X, Edit2, Sparkles, CheckCircle, RotateCcw, Ban, AlertTriangle, Calendar } from 'lucide-react';
 import { getCuentas, crearCuenta, actualizarCuenta, eliminarCuenta, desactivarCuenta, reactivarCuenta, getMovimientosBancarios, registrarMovimientoBancario, transferirEntreCuentas, anularMovimientoBancario, eliminarMovimientoBancario, conciliarMovimiento, desconciliarMovimiento, getResumenBancos, conciliacionAutomatica } from '../../services/bancosService';
 import { getMovimientos } from '../../services/movimientoService';
 import FinancialPageHeader from './FinancialPageHeader';
 import { Badge } from '../ui/badge';
-
-const TIPO_BADGES = {
-  banco: {"style":{"backgroundColor":"var(--blue-3)","color":"var(--blue-11)"}},
-  caja: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
-  ahorros: {"style":{"backgroundColor":"var(--green-3)","color":"var(--green-11)"}},
-  inversion: {"style":{"backgroundColor":"var(--purple-3)","color":"var(--purple-11)"}},
-};
 
 const TIPO_LABELS = { banco: 'Corriente', caja: 'Caja', ahorros: 'Ahorros', inversion: 'Inversión' };
 
@@ -336,122 +329,239 @@ export default function BancosCajaView({ db, usuario, showToast }) {
           </UiBox>
         }
       />
-      <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-3 gap-4"}}>
-        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><Building2 size={14} {...{"style":{"color":"var(--blue-11)"}}} />Total en Bancos</UiBox>
-          <UiBox {...{"style":{"color":"var(--blue-12)"}}}>{formatCurrency(resumen.totalBancos)}</UiBox>
-        </UiCard>
-        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><Wallet size={14} {...{"style":{"color":"var(--amber-11)"}}} />Total en Caja</UiBox>
-          <UiBox {...{"style":{"color":"var(--amber-12)"}}}>{formatCurrency(resumen.totalCaja)}</UiBox>
-        </UiCard>
-        <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-          <UiBox {...{"style":{"color":"var(--gray-11)"},"className":"flex items-center gap-2 mb-1"}}><Building2 size={14} {...{"style":{"color":"var(--blue-12)"}}} />Total General</UiBox>
-          <UiBox {...{"style":{"color":"var(--blue-12)"}}}>{formatCurrency(resumen.totalGeneral)}</UiBox>
-        </UiCard>
-      </UiBox>
+      {/* KPIs principales (Brevo Flat) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#666666] block">Total en Bancos</span>
+            <div className="text-2xl font-extrabold font-mono tabular-nums text-[#1b1b1b] tracking-tight">
+              {formatCurrency(resumen.totalBancos)}
+            </div>
+            <span className="text-[11px] text-[#666666] font-medium block">Corriente, ahorros e inversión</span>
+          </div>
+          <div className="w-11 h-11 rounded-2xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
+            <Building2 size={20} />
+          </div>
+        </div>
 
-      <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"p-4"}}>
-        <UiBox {...{"className":"flex flex-wrap items-center justify-between gap-3 mb-3"}}>
-          <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true,"className":"flex items-center gap-1"}}><Building2 size={14} />Cuentas</UiHeading>
-          <UiBox {...{"className":"flex items-center gap-2"}}>
-            <UiSelect value={filtros.tipo} onChange={e => setFiltros(f => ({ ...f, tipo: e.target.value }))}
-              {...{"size":"2","color":"gray"}}>
-              <option value="all">Todas</option><option value="banco">Banco</option><option value="caja">Caja</option><option value="ahorros">Ahorros</option><option value="inversion">Inversión</option>
-            </UiSelect>
-          </UiBox>
-        </UiBox>
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#666666] block">Total en Caja</span>
+            <div className="text-2xl font-extrabold font-mono tabular-nums text-[#866308] tracking-tight">
+              {formatCurrency(resumen.totalCaja)}
+            </div>
+            <span className="text-[11px] text-[#666666] font-medium block">Efectivo y caja chica activa</span>
+          </div>
+          <div className="w-11 h-11 rounded-2xl bg-[#fcfbe7] text-[#866308] border border-[#f0df8a] flex items-center justify-center shrink-0">
+            <Wallet size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#666666] block">Disponibilidad Total</span>
+            <div className={`text-2xl font-extrabold font-mono tabular-nums tracking-tight ${(resumen.totalGeneral || 0) >= 0 ? 'text-[#004227]' : 'text-[#851b40]'}`}>
+              {formatCurrency(resumen.totalGeneral)}
+            </div>
+            <span className="text-[11px] text-[#666666] font-medium block">
+              {cuentas.filter(c => c.estado === 'activo').length} cuenta(s) activa(s)
+            </span>
+          </div>
+          <div className="w-11 h-11 rounded-2xl bg-[#e8fedf] text-[#0b996f] border border-[#b3f4cb] flex items-center justify-center shrink-0">
+            <ArrowLeftRight size={20} />
+          </div>
+        </div>
+      </div>
+
+      {/* Lista de Cuentas */}
+      <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Building2 size={15} className="text-[#0b996f]" />
+            <h3 className="text-sm font-bold text-[#1b1b1b]">Cuentas Registradas</h3>
+            <span className="text-xs text-[#666666] hidden sm:inline">· Selecciona una cuenta para ver sus movimientos</span>
+          </div>
+          <div className="flex items-center gap-1 bg-[#f4f4f5] p-1 rounded-xl">
+            {[
+              { id: 'all', label: 'Todas' },
+              { id: 'banco', label: 'Banco' },
+              { id: 'caja', label: 'Caja' },
+              { id: 'ahorros', label: 'Ahorros' },
+              { id: 'inversion', label: 'Inversión' },
+            ].map(tab => {
+              const active = filtros.tipo === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setFiltros(f => ({ ...f, tipo: tab.id }))}
+                  className={`py-1 px-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                    active
+                      ? 'bg-[#e8fedf] text-[#004227] border border-[#b3f4cb]'
+                      : 'text-[#666666] hover:text-[#1b1b1b] border border-transparent'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {cuentas.length === 0 ? (
-          <UiBox {...{"className":"text-center py-8"}}>
-            <Building2 size={40} {...{"style":{"color":"var(--gray-11)"},"className":"mx-auto mb-3"}} />
-            <UiText as="p" {...{"color":"gray"}}>No hay cuentas registradas</UiText>
-          </UiBox>
+          <div className="text-center py-10 space-y-2">
+            <Building2 size={36} className="mx-auto text-[#999999]" />
+            <p className="text-sm font-semibold text-[#1b1b1b]">No hay cuentas registradas</p>
+            <p className="text-xs text-[#666666]">Crea tu primera cuenta bancaria o caja chica con el botón &quot;Nueva Cuenta&quot;.</p>
+          </div>
         ) : (
-          <UiBox {...{"className":"space-y-2"}}>
-            {cuentas.map(cuenta => (
-              <UiBox key={cuenta.id}
-                {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between p-3 cursor-pointer"}, {}, (cuentaActiva?.id === cuenta.id ? {"style":{"backgroundColor":"var(--blue-3)"}} : {}))}
-                onClick={() => setCuentaActiva(cuenta)}>
-                <UiBox {...{"className":"flex items-center gap-3"}}>
-                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"p-1.5"}, {}, (cuenta.tipo === 'caja' ? {"style":{"backgroundColor":"var(--amber-3)"}} : {"style":{"backgroundColor":"var(--blue-3)"}}))}>
-                    {cuenta.tipo === 'caja' ? <Wallet size={16} {...{"style":{"color":"var(--amber-11)"}}} /> : <Building2 size={16} {...{"style":{"color":"var(--blue-11)"}}} />}
-                  </UiBox>
-                  <UiBox>
-                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{cuenta.nombre}</UiBox>
-                    <UiBox {...{"className":"flex items-center gap-2 mt-0.5"}}>
-                      <UiText {...mergeThemeProps({"size":"1","weight":"medium","className":"inline-flex px-1.5 py-0.5"}, {}, resolveThemeProps(TIPO_BADGES[cuenta.tipo]))}>{TIPO_LABELS[cuenta.tipo]}</UiText>
-                      <UiText {...mergeThemeProps({"size":"1"}, {}, (cuenta.estado === 'activo' ? {"color":"green"} : {"color":"gray"}))}>{cuenta.estado}</UiText>
-                    </UiBox>
-                  </UiBox>
-                </UiBox>
-                <UiBox {...{"className":"flex items-center gap-3"}}>
-                  <UiBox {...{"className":"text-right"}}>
-                    <UiBox {...mergeThemeProps({}, {}, ((cuenta.saldoActual || 0) >= 0 ? {"style":{"color":"var(--green-12)"}} : {"style":{"color":"var(--red-12)"}}))}>{formatCurrency(cuenta.saldoActual)}</UiBox>
-                    <UiBox {...{"style":{"color":"var(--gray-11)"}}}>Saldo inicial: {formatCurrency(cuenta.saldoInicial)}</UiBox>
-                  </UiBox>
-                  <UiBox {...{"className":"flex gap-1 items-center"}} onClick={e => e.stopPropagation()}>
-                    {cuenta.estado === 'inactivo' && (
-                      <UiButton size="1" variant="soft" color="green" title="Reactivar cuenta" onClick={() => handleReactivarCuenta(cuenta)} className="flex items-center gap-1">
-                        <RotateCcw size={12} /> Reactivar
-                      </UiButton>
-                    )}
-                    <UiButton iconOnly title="Editar cuenta" onClick={() => { setEditingCuenta(cuenta); setShowFormCuenta(true); }} {...{"variant":"surface","color":"gray","className":"w-7"}}><Edit2 size={13} /></UiButton>
-                    <UiButton iconOnly title="Eliminar o desactivar cuenta" onClick={() => handleOpenDeleteCuenta(cuenta)} {...{"variant":"surface","color":"red","className":"w-7"}}><Trash2 size={13} /></UiButton>
-                  </UiBox>
-                </UiBox>
-              </UiBox>
-            ))}
-          </UiBox>
+          <div className="space-y-2">
+            {cuentas.map(cuenta => {
+              const isSelected = cuentaActiva?.id === cuenta.id;
+              return (
+                <div
+                  key={cuenta.id}
+                  onClick={() => setCuentaActiva(cuenta)}
+                  className={`flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 p-3.5 rounded-xl border transition-colors cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#f0fdf4] border-[#0b996f]'
+                      : 'bg-white border-[#e3e3e3] hover:bg-[#fafafa]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                      cuenta.tipo === 'caja'
+                        ? 'bg-[#fcfbe7] text-[#866308] border-[#f0df8a]'
+                        : 'bg-[#e8fedf] text-[#004227] border-[#b3f4cb]'
+                    }`}>
+                      {cuenta.tipo === 'caja' ? <Wallet size={16} /> : <Building2 size={16} />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-[#1b1b1b] truncate">{cuenta.nombre}</div>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#f4f4f5] text-[#444444]">
+                          {TIPO_LABELS[cuenta.tipo] || cuenta.tipo}
+                        </span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          cuenta.estado === 'activo'
+                            ? 'bg-[#e8fedf] text-[#004227]'
+                            : 'bg-[#efefef] text-[#666666]'
+                        }`}>
+                          {cuenta.estado}
+                        </span>
+                        {cuenta.banco && (
+                          <span className="text-[11px] text-[#666666] truncate">
+                            {cuenta.banco}{cuenta.numeroCuenta ? ` · ${cuenta.numeroCuenta}` : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 ml-auto">
+                    <div className="text-right">
+                      <div className={`text-base sm:text-lg font-extrabold font-mono tabular-nums ${(cuenta.saldoActual || 0) >= 0 ? 'text-[#004227]' : 'text-[#851b40]'}`}>
+                        {formatCurrency(cuenta.saldoActual)}
+                      </div>
+                      <div className="text-[11px] text-[#666666] font-mono">
+                        Inicial: {formatCurrency(cuenta.saldoInicial)}
+                      </div>
+                    </div>
+                    <div className="flex gap-1 items-center" onClick={e => e.stopPropagation()}>
+                      {cuenta.estado === 'inactivo' && (
+                        <UiButton size="1" variant="soft" color="green" title="Reactivar cuenta" onClick={() => handleReactivarCuenta(cuenta)} className="flex items-center gap-1">
+                          <RotateCcw size={12} /> Reactivar
+                        </UiButton>
+                      )}
+                      <UiButton iconOnly title="Editar cuenta" onClick={() => { setEditingCuenta(cuenta); setShowFormCuenta(true); }} variant="surface" color="gray" className="w-7"><Edit2 size={13} /></UiButton>
+                      <UiButton iconOnly title="Eliminar o desactivar cuenta" onClick={() => handleOpenDeleteCuenta(cuenta)} variant="surface" color="red" className="w-7"><Trash2 size={13} /></UiButton>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </UiCard>
+      </div>
 
       {cuentaActiva && (
-        <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"overflow-hidden"}}>
-          <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex flex-wrap items-center justify-between gap-3 p-4"}}>
-            <UiBox>
-              <UiHeading as="h3" {...{"size":"2","weight":"bold","color":"gray","highContrast":true}}>
-                Movimientos — {cuentaActiva.nombre}
-                {cuentaActiva.banco ? ` (${cuentaActiva.banco}${cuentaActiva.numeroCuenta ? ` · ${cuentaActiva.numeroCuenta}` : ''})` : ''}
-              </UiHeading>
-              <UiBox className="flex flex-wrap items-center gap-3 mt-1 text-xs">
-                <UiText color="gray">Inicial: <strong>{formatCurrency(cuentaActiva.saldoInicial)}</strong></UiText>
-                <UiText color="green">
-                  Ingresos: <strong>+{formatCurrency(movimientos.filter(m => m.estado !== 'anulado' && m.tipo === 'credito').reduce((s, m) => s + (Number(m.monto) || 0), 0))}</strong>
-                </UiText>
-                <UiText color="red">
-                  Egresos: <strong>-{formatCurrency(movimientos.filter(m => m.estado !== 'anulado' && m.tipo === 'debito').reduce((s, m) => s + (Number(m.monto) || 0), 0))}</strong>
-                </UiText>
-                <UiText color="blue">Saldo actual: <strong>{formatCurrency(cuentaActiva.saldoActual)}</strong></UiText>
-              </UiBox>
-            </UiBox>
-            <UiBox {...{"className":"flex items-center gap-2 flex-wrap"}}>
-              <UiSelect value={filtros.movTipo} onChange={e => setFiltros(f => ({ ...f, movTipo: e.target.value }))}
-                {...{"size":"2","color":"gray"}}>
-                <option value="all">Todos</option><option value="credito">Créditos</option><option value="debito">Débitos</option>
-              </UiSelect>
-              <UiSelect value={filtros.movConciliado} onChange={e => setFiltros(f => ({ ...f, movConciliado: e.target.value }))}
-                {...{"size":"2","color":"gray"}}>
-                <option value="all">Todos</option><option value="true">Conciliados</option><option value="false">Pendientes</option>
-              </UiSelect>
-              <UiBox className="w-36">
-                <UiInput type="date" value={filtros.fechaDesde} onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
-                  {...{"size":"2","color":"gray"}} />
-              </UiBox>
-              <UiBox className="w-36">
-                <UiInput type="date" value={filtros.fechaHasta} onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
-                  {...{"size":"2","color":"gray"}} />
-              </UiBox>
-              <UiButton onClick={handleExportCSV} {...{"size":"2","color":"gray","variant":"outline","className":"flex items-center gap-1"}}><Download size={12} />CSV</UiButton>
-              <UiButton onClick={handleConciliacionAutomatica} disabled={loadingConciliacion}
-                {...{"size":"2","variant":"solid","color":"purple","className":"disabled:opacity-50 flex items-center gap-1"}}>
-                {loadingConciliacion ? <UiText {...{"className":"animate-spin"}}>⚙</UiText> : <Sparkles size={12} />}
-                {loadingConciliacion ? 'Analizando...' : 'Conciliación Auto'}
-              </UiButton>
-              <UiButton onClick={() => setShowFormMov(true)}
-                {...{"size":"2","variant":"solid","color":"blue","className":"flex items-center gap-1"}}><Plus size={12} />Nuevo Movimiento</UiButton>
-            </UiBox>
-          </UiBox>
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl overflow-hidden">
+          {/* Encabezado de Movimientos + Acciones */}
+          <div className="p-4 border-b border-[#efefef] space-y-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-[#1b1b1b]">
+                  Movimientos — {cuentaActiva.nombre}
+                  {cuentaActiva.banco ? ` (${cuentaActiva.banco}${cuentaActiva.numeroCuenta ? ` · ${cuentaActiva.numeroCuenta}` : ''})` : ''}
+                </h3>
+                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs font-mono tabular-nums">
+                  <span className="text-[#666666]">Inicial: <strong className="text-[#1b1b1b]">{formatCurrency(cuentaActiva.saldoInicial)}</strong></span>
+                  <span className="text-[#0b996f]">
+                    Ingresos: <strong>+{formatCurrency(movimientos.filter(m => m.estado !== 'anulado' && m.tipo === 'credito').reduce((s, m) => s + (Number(m.monto) || 0), 0))}</strong>
+                  </span>
+                  <span className="text-[#851b40]">
+                    Egresos: <strong>-{formatCurrency(movimientos.filter(m => m.estado !== 'anulado' && m.tipo === 'debito').reduce((s, m) => s + (Number(m.monto) || 0), 0))}</strong>
+                  </span>
+                  <span className="text-[#004227]">Saldo actual: <strong>{formatCurrency(cuentaActiva.saldoActual)}</strong></span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <UiButton onClick={handleExportCSV} size="2" color="gray" variant="outline" className="flex items-center gap-1"><Download size={13} />CSV</UiButton>
+                <UiButton onClick={handleConciliacionAutomatica} disabled={loadingConciliacion}
+                  size="2" variant="soft" color="green" className="disabled:opacity-50 flex items-center gap-1.5">
+                  {loadingConciliacion ? <UiText className="animate-spin">⚙</UiText> : <Sparkles size={13} />}
+                  {loadingConciliacion ? 'Analizando...' : 'Conciliación Auto'}
+                </UiButton>
+                <UiButton onClick={() => setShowFormMov(true)}
+                  size="2" variant="solid" color="green" className="flex items-center gap-1"><Plus size={13} />Nuevo Movimiento</UiButton>
+              </div>
+            </div>
+
+            {/* Sub-barra de filtros horizontal limpia */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-[#efefef] text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <UiSelect value={filtros.movTipo} onChange={e => setFiltros(f => ({ ...f, movTipo: e.target.value }))}
+                  size="2" color="gray">
+                  <option value="all">Tipo: Todos</option>
+                  <option value="credito">Solo Ingresos</option>
+                  <option value="debito">Solo Egresos</option>
+                </UiSelect>
+                <UiSelect value={filtros.movConciliado} onChange={e => setFiltros(f => ({ ...f, movConciliado: e.target.value }))}
+                  size="2" color="gray">
+                  <option value="all">Conciliación: Todas</option>
+                  <option value="true">Conciliados</option>
+                  <option value="false">Pendientes</option>
+                </UiSelect>
+                <div className="flex flex-wrap items-center gap-1.5 text-[#666666]">
+                  <Calendar size={13} className="text-[#0b996f]" />
+                  <input
+                    type="date"
+                    value={filtros.fechaDesde}
+                    onChange={e => setFiltros(f => ({ ...f, fechaDesde: e.target.value }))}
+                    aria-label="Fecha desde"
+                    className="w-[140px] py-1.5 px-2.5 bg-[#fafafa] border border-[#e3e3e3] rounded-lg text-xs text-[#1b1b1b] focus:outline-hidden focus:border-[#0b996f]"
+                  />
+                  <span>a</span>
+                  <input
+                    type="date"
+                    value={filtros.fechaHasta}
+                    onChange={e => setFiltros(f => ({ ...f, fechaHasta: e.target.value }))}
+                    aria-label="Fecha hasta"
+                    className="w-[140px] py-1.5 px-2.5 bg-[#fafafa] border border-[#e3e3e3] rounded-lg text-xs text-[#1b1b1b] focus:outline-hidden focus:border-[#0b996f]"
+                  />
+                </div>
+              </div>
+
+              {(filtros.movTipo !== 'all' || filtros.movConciliado !== 'all' || filtros.fechaDesde || filtros.fechaHasta) && (
+                <button
+                  type="button"
+                  onClick={() => setFiltros(f => ({ ...f, movTipo: 'all', movConciliado: 'all', fechaDesde: '', fechaHasta: '' }))}
+                  className="py-1 px-2.5 rounded-lg bg-[#f4f4f5] hover:bg-[#e8fedf] text-[#1b1b1b] hover:text-[#004227] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <X size={12} /> Limpiar filtros
+                </button>
+              )}
+            </div>
+          </div>
 
           {movimientos.length === 0 ? (
             <UiBox {...{"className":"text-center py-12"}}>
@@ -529,7 +639,7 @@ export default function BancosCajaView({ db, usuario, showToast }) {
               </UiTable>
             </UiBox>
           )}
-        </UiBox>
+        </div>
       )}
 
       {/* Panel de Sugerencias de Conciliación Automática */}
