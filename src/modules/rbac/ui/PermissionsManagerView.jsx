@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Shield, Edit2, KeyRound, Lock, Save, X, CheckCircle2, UserX, UserCheck } from 'lucide-react';
+import { Shield, Edit2, KeyRound, Lock, Save, CheckCircle2, UserX, UserCheck } from 'lucide-react';
+import { UiButton, UiModalCloseButton } from '../../../components/ui/controls.jsx';
+import { UiIconBadge } from '../../../components/ui/UiIconBadge.jsx';
 import { doc, updateDoc } from 'firebase/firestore';
 import {
   MODULE_PERMISSIONS,
@@ -149,7 +151,7 @@ export default function PermissionsManagerView({
                       {presetLabel}
                     </span>
                     {u.posSupervisorPinHash && (
-                      <span className="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-semibold">
+                      <span className="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#E8FEDF] text-[#004227] border border-[#B3F4CB] text-[10px] font-semibold">
                         <KeyRound size={10} /> PIN POS
                       </span>
                     )}
@@ -173,27 +175,27 @@ export default function PermissionsManagerView({
                   </td>
                   <td className="py-2.5 px-3 text-right">
                     <div className="inline-flex items-center gap-1.5">
-                      <button
+                      <UiButton
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => openEditor(u)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-800 hover:bg-slate-100 font-semibold cursor-pointer"
                       >
-                        <Edit2 size={12} />
+                        <Edit2 size={13} />
                         <span>Permisos</span>
-                      </button>
+                      </UiButton>
                       {!isOwner && onToggleUserStatus && (
-                        <button
+                        <UiButton
                           type="button"
+                          iconOnly
+                          variant={u.status !== 'inactive' ? 'danger' : 'soft'}
+                          size="sm"
                           onClick={() => onToggleUserStatus(u)}
-                          className={`p-1.5 rounded-lg border cursor-pointer ${
-                            u.status !== 'inactive'
-                              ? 'border-rose-200 text-rose-600 hover:bg-rose-50'
-                              : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'
-                          }`}
                           title={u.status !== 'inactive' ? 'Desactivar usuario' : 'Reactivar usuario'}
+                          aria-label={u.status !== 'inactive' ? 'Desactivar usuario' : 'Reactivar usuario'}
                         >
-                          {u.status !== 'inactive' ? <UserX size={13} /> : <UserCheck size={13} />}
-                        </button>
+                          {u.status !== 'inactive' ? <UserX size={14} /> : <UserCheck size={14} />}
+                        </UiButton>
                       )}
                     </div>
                   </td>
@@ -209,17 +211,14 @@ export default function PermissionsManagerView({
         <div className="fixed inset-0 z-[280] flex items-center justify-center bg-black/55 p-3 sm:p-4">
           <div className="w-full max-w-3xl max-h-[90dvh] flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Permisos de {editingUser.name || editingUser.email}</h3>
-                <p className="text-xs text-slate-500">{editingUser.email}</p>
+              <div className="flex items-center gap-2.5">
+                <UiIconBadge level="modal" tone="brand" icon={Shield} />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Permisos de {editingUser.name || editingUser.email}</h3>
+                  <p className="text-xs text-slate-500">{editingUser.email}</p>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => { setEditingUser(null); setFormState(null); }}
-                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center cursor-pointer"
-              >
-                <X size={16} />
-              </button>
+              <UiModalCloseButton onClick={() => { setEditingUser(null); setFormState(null); }} />
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
@@ -391,22 +390,24 @@ export default function PermissionsManagerView({
                 <CheckCircle2 size={13} className="text-emerald-600" /> Los cambios aplican de inmediato sin cerrar sesión.
               </span>
               <div className="flex items-center gap-2">
-                <button
+                <UiButton
                   type="button"
+                  variant="secondary"
+                  size="md"
                   onClick={() => { setEditingUser(null); setFormState(null); }}
-                  className="px-4 py-2 rounded-lg border border-slate-300 text-xs font-semibold cursor-pointer"
                 >
                   Cancelar
-                </button>
-                <button
+                </UiButton>
+                <UiButton
                   type="button"
+                  variant="primary"
+                  size="md"
                   disabled={saving}
                   onClick={handleSave}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#1b1b1b] text-white text-xs font-semibold hover:bg-black cursor-pointer"
                 >
                   <Save size={14} />
                   <span>{saving ? 'Guardando...' : 'Guardar Permisos'}</span>
-                </button>
+                </UiButton>
               </div>
             </div>
           </div>

@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { 
-  X, Check, Search, RotateCcw, PlusCircle, ShoppingCart, FileText, 
+  Check, Search, RotateCcw, PlusCircle, ShoppingCart, FileText, 
   FileCheck, Clock, PackagePlus, Briefcase, Package, Boxes,
   Sliders, ShoppingBag, Receipt, Users, CreditCard, HandCoins, 
   Landmark, BarChart3, FileSpreadsheet, Settings, SlidersHorizontal, 
   Sparkles
 } from 'lucide-react';
 import { UiBox, UiHeading, UiText, UiCard } from '../ui/layout';
-import { UiButton, UiInput } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 import { createThemedPortal } from '../ui/themePortal';
 
 export const AVAILABLE_SHORTCUTS = [
@@ -368,16 +370,7 @@ export default function ShortcutCustomizerModal({
           className="px-5 py-4 flex items-center justify-between gap-3 shrink-0"
         >
           <UiBox className="flex items-center gap-3">
-            <UiBox
-              style={{
-                borderRadius: 'var(--radius-3)',
-                backgroundColor: 'var(--blue-9)',
-                color: 'white'
-              }}
-              className="w-9 h-9 flex items-center justify-center shadow-sm shrink-0"
-            >
-              <SlidersHorizontal size={20} />
-            </UiBox>
+            <UiIconBadge level="modal" tone="brand" icon={SlidersHorizontal} />
             <UiBox>
               <UiHeading as="h3" size="4" weight="bold" color="gray" highContrast>
                 Personalizar Accesos Directos
@@ -390,23 +383,15 @@ export default function ShortcutCustomizerModal({
 
           <UiBox className="flex items-center gap-3">
             <span
-              style={{
-                backgroundColor: selectedIds.length === 6 ? 'var(--blue-3)' : 'var(--gray-3)',
-                color: selectedIds.length === 6 ? 'var(--blue-11)' : 'var(--gray-11)',
-                border: `1px solid ${selectedIds.length === 6 ? 'var(--blue-6)' : 'var(--gray-6)'}`
-              }}
-              className="px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide"
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide border ${
+                selectedIds.length === 6
+                  ? 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
+                  : 'bg-[#F4F4F5] text-[#474747] border-[#E3E3E3]'
+              }`}
             >
               {selectedIds.length} / 9 activos
             </span>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 transition-colors cursor-pointer"
-              title="Cerrar"
-            >
-              <X size={16} strokeWidth={2.2} />
-            </button>
+            <UiModalCloseButton onClick={onClose} />
           </UiBox>
         </UiBox>
 
@@ -428,26 +413,11 @@ export default function ShortcutCustomizerModal({
             </UiBox>
 
             {/* Categorías / Tabs rápidas */}
-            <UiBox className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
-              {CATEGORIES.map(cat => {
-                const isActive = activeCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setActiveCategory(cat)}
-                    style={{
-                      backgroundColor: isActive ? 'var(--blue-9)' : 'var(--gray-3)',
-                      color: isActive ? '#ffffff' : 'var(--gray-11)',
-                      borderColor: isActive ? 'var(--blue-9)' : 'var(--gray-5)'
-                    }}
-                    className="px-3 py-1 text-xs font-medium rounded-md border transition-all cursor-pointer whitespace-nowrap hover:border-[var(--blue-8)]"
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
-            </UiBox>
+            <UiSegmentedTabs
+              value={activeCategory}
+              onChange={setActiveCategory}
+              items={CATEGORIES.map(cat => ({ value: cat, label: cat }))}
+            />
           </UiBox>
 
           <UiBox className="flex items-center justify-between text-xs text-[var(--gray-10)] px-1">
@@ -472,26 +442,14 @@ export default function ShortcutCustomizerModal({
                 <div
                   key={item.id}
                   onClick={() => handleToggle(item.id)}
-                  style={{
-                    backgroundColor: isSelected ? 'var(--blue-2)' : 'var(--color-panel-solid)',
-                    borderColor: isSelected ? 'var(--blue-9)' : 'var(--gray-a5)',
-                    boxShadow: isSelected ? '0 0 0 1px var(--blue-9)' : 'none'
-                  }}
-                  className={`group relative p-3.5 rounded-lg border transition-all duration-150 cursor-pointer select-none flex items-start gap-3 hover:border-[var(--blue-8)] hover:shadow-sm ${
-                    isSelected ? 'ring-1 ring-[var(--blue-9)]' : ''
+                  className={`group relative p-3.5 rounded-[10px] border transition-all duration-150 cursor-pointer select-none flex items-start gap-3 ${
+                    isSelected
+                      ? 'bg-[#F0FDF4] border-[#0B996F] ring-1 ring-[#0B996F]'
+                      : 'bg-white border-[#E3E3E3] hover:border-[#B3F4CB]'
                   }`}
                 >
-                  {/* Icono con badge coloreado */}
-                  <div
-                    style={{
-                      backgroundColor: item.color || 'var(--blue-9)',
-                      color: '#ffffff',
-                      borderRadius: 'var(--radius-3)'
-                    }}
-                    className="w-10 h-10 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105"
-                  >
-                    <Icon size={20} />
-                  </div>
+                  {/* Icono con badge Brevo */}
+                  <UiIconBadge level="header" tone={isSelected ? 'brand' : 'neutral'} icon={Icon} />
 
                   {/* Textos */}
                   <div className="flex-1 min-w-0 pr-6">
