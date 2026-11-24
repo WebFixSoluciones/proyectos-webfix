@@ -20,6 +20,30 @@ const ALLOWED_SRI_SERVICES = [
   'AutorizacionComprobantesOffline'
 ];
 
+export function resolveAllowedSriSoapPath(rawPath, reqUrl = '') {
+  let candidate = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath || '');
+
+  // Fallback si el router serverless no pobló req.query.path pero req.url trae la ruta
+  if (!candidate && reqUrl) {
+    const cleanUrl = String(reqUrl).split('?')[0];
+    const match = cleanUrl.match(/^\/api\/sri-ws-(?:prod|pruebas)\/(.+)$/i);
+    if (match?.[1]) {
+      candidate = decodeURIComponent(match[1]);
+    }
+  }
+
+  const normalized = candidate
+    .trim()
+    .replace(/^\/+/, '')
+    .replace(/^comprobantes-electronicos-ws\/+/i, '');
+
+  const isAllowed = ALLOWED_SRI_SERVICES.some(
+    (svc) => normalized === svc || normalized.startsWith(`${svc}?`)
+  );
+  if (!isAllowed) return null;
+  return `/comprobantes-electronicos-ws/${normalized}`;
+}
+
 export function createSriSoapHandler({ hostname, label = 'SRI' }) {
   const sriAgent = new https.Agent({
     keepAlive: true,
@@ -74,19 +98,14 @@ export function createSriSoapHandler({ hostname, label = 'SRI' }) {
       return res.status(200).end();
     }
 
-    const rawPath = req.query?.path || '';
-    const cleanPath = String(Array.isArray(rawPath) ? rawPath.join('/') : rawPath).replace(/^\/+/, '');
-
-    // Lista blanca estricta de servicios SOAP del SRI
-    const isAllowed = ALLOWED_SRI_SERVICES.some((svc) => cleanPath === svc || cleanPath.startsWith(`${svc}?`));
-    if (!isAllowed) {
+    // Lista blanca estricta de servicios SOAP del SRI (acepta con o sin prefijo comprobantes-electronicos-ws/)
+    const targetPath = resolveAllowedSriSoapPath(req.query?.path, req.url);
+    if (!targetPath) {
       return res.status(400).json({
         error: 'Servicio SRI no permitido',
         allowed: ALLOWED_SRI_SERVICES
       });
     }
-
-    const targetPath = `/comprobantes-electronicos-ws/${cleanPath}`;
 
     let body = '';
     if (typeof req.body === 'string') {

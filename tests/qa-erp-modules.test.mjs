@@ -18,6 +18,7 @@ import {
   validateSriPreFlight
 } from '../src/modules/sri/domain/fiscalMath.js';
 import { validarIdentificacion } from '../src/services/sriService.js';
+import { resolveAllowedSriSoapPath } from '../server/domains/sriGateway.js';
 import {
   normalizeEmissionPoints,
   validateSequentialChange,
@@ -167,6 +168,28 @@ test('SRI Pre-Flight & RUC validation: accepts modern SAS RUC (3rd digit 9) and 
   });
   assert.equal(preBad.valid, false);
   assert.ok(preBad.blockers.some((b) => b.code === 'BUYER_ID_INVALID'));
+});
+
+test('SRI SOAP Gateway allowlist: accepts Vercel rewritten paths with or without comprobantes-electronicos-ws prefix', () => {
+  assert.equal(
+    resolveAllowedSriSoapPath('comprobantes-electronicos-ws/AutorizacionComprobantesOffline'),
+    '/comprobantes-electronicos-ws/AutorizacionComprobantesOffline'
+  );
+  assert.equal(
+    resolveAllowedSriSoapPath(['comprobantes-electronicos-ws', 'RecepcionComprobantesOffline']),
+    '/comprobantes-electronicos-ws/RecepcionComprobantesOffline'
+  );
+  assert.equal(
+    resolveAllowedSriSoapPath('AutorizacionComprobantesOffline'),
+    '/comprobantes-electronicos-ws/AutorizacionComprobantesOffline'
+  );
+  assert.equal(
+    resolveAllowedSriSoapPath('', '/api/sri-ws-prod/comprobantes-electronicos-ws/RecepcionComprobantesOffline'),
+    '/comprobantes-electronicos-ws/RecepcionComprobantesOffline'
+  );
+  assert.equal(resolveAllowedSriSoapPath('comprobantes-electronicos-ws/ServicioDesconocido'), null);
+  assert.equal(resolveAllowedSriSoapPath('../../etc/passwd'), null);
+  assert.equal(resolveAllowedSriSoapPath(''), null);
 });
 
 test('SRI XML Factura: grouped IVA and RIMPE/AgenteRetencion tags emit cleanly', () => {
