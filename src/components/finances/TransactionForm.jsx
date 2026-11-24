@@ -1408,17 +1408,51 @@ export default function TransactionForm({ tx, onClose, thirdParties, products = 
     setCurrentStep(2);
     if (document.sriRecoveryOnly) { showToast(document.recoveryNote, 'warning'); return; }
     if (document.financialSyncStatus === 'complete') { onSaved?.(document); return; }
+
+    let inventoryOk = Boolean(document.inventarioRegistrado);
+    let financeOk = false;
+    const warnings = [];
+
+    // 1. Inventario (independiente: un error de stock/producto nunca debe bloquear el registro financiero)
     try {
       await registrarInventarioTransaccion(document);
-      if (document.type === 'ingreso' && document.documentType === 'factura') await sincronizarVenta(document, db, usuario || { uid: '', email: '' });
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', document.id), { financialSyncStatus: 'complete' }, { merge: true });
-      const complete = { ...document, inventarioRegistrado: true, financialSyncStatus: 'complete' };
-      setFormData(complete);
-      showToast('Autorización SRI confirmada y venta registrada.', 'success');
-      onSaved?.(complete);
-    } catch (error) {
-      showToast('Factura AUTORIZADA y guardada. Falta sincronizar inventario o finanzas: ' + error.message, 'warning');
+      inventoryOk = true;
+    } catch (invErr) {
+      warnings.push(`Inventario: ${invErr.message}`);
     }
+
+    // 2. Finanzas (Movimientos, CxC y Banco)
+    try {
+      const isSaleIncome = (document.type === 'ingreso' || !document.type) && ['factura', 'nota_venta', 'nota_debito'].includes(document.documentType);
+      if (isSaleIncome) {
+        try {
+          await sincronizarVenta(document, db, usuario || { uid: '', email: '' });
+        } catch (bankErr) {
+          // Si la cuenta bancaria fue desactivada/eliminada, asegurar al menos el movimiento y CxC
+          await sincronizarVenta(document, db, usuario || { uid: '', email: '' }, undefined, { allowInactiveBankFallback: true });
+          warnings.push(`Banco omitido (${bankErr.message})`);
+        }
+      }
+      financeOk = true;
+    } catch (finErr) {
+      warnings.push(`Finanzas: ${finErr.message}`);
+    }
+
+    if (financeOk) {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', document.id), {
+        financialSyncStatus: 'complete',
+        ...(inventoryOk ? { inventarioRegistrado: true } : {}),
+      }, { merge: true });
+    }
+
+    const complete = { ...document, inventarioRegistrado: inventoryOk, financialSyncStatus: financeOk ? 'complete' : 'pending' };
+    setFormData(complete);
+    if (warnings.length === 0) {
+      showToast('Autorización SRI confirmada y venta registrada en Finanzas.', 'success');
+    } else {
+      showToast(`Factura AUTORIZADA. Revisar: ${warnings.join(' · ')}`, 'warning');
+    }
+    onSaved?.(complete);
   };
 
   const recoverSriEmission = async (retry = false) => {

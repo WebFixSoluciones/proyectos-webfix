@@ -395,14 +395,28 @@ export default function TransactionsView({ transactions, thirdParties, showToast
       if (result.status === 'autorizado') {
         const fiscalApi = { doc, runTransaction };
         const saved = await saveSriResult({ db, appId, document: tx, result, api: fiscalApi });
+        let financeSynced = false;
         try {
           await registerTransactionInventory(db, appId, saved);
-          if (saved.type === 'ingreso' && saved.documentType === 'factura') {
-            await sincronizarVenta(saved, db, auth.currentUser || { uid: '', email: '' });
+        } catch (invErr) {
+          console.warn('Sincronización de inventario:', invErr);
+        }
+        try {
+          if ((saved.type === 'ingreso' || !saved.type) && ['factura', 'nota_venta', 'nota_debito'].includes(saved.documentType)) {
+            try {
+              await sincronizarVenta(saved, db, auth.currentUser || { uid: '', email: '' });
+            } catch {
+              await sincronizarVenta(saved, db, auth.currentUser || { uid: '', email: '' }, undefined, { allowInactiveBankFallback: true });
+            }
           }
+          financeSynced = true;
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_transactions', saved.id), { financialSyncStatus: 'complete' }, { merge: true });
         } catch (syncErr) {
-          console.warn('Sincronización contable/inventario:', syncErr);
+          console.warn('Sincronización financiera:', syncErr);
+          showToast(`Comprobante autorizado, pero faltó sincronizar en Movimientos: ${syncErr.message}`, 'warning');
+        }
+        if (financeSynced) {
+          saved.financialSyncStatus = 'complete';
         }
         const cliente = getTransactionParty(saved);
         try {

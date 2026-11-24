@@ -1,10 +1,14 @@
-import  { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
   Plus, Search, Download, FileText, Eye, Edit2, 
   Trash2, Wallet, DollarSign, TrendingUp, TrendingDown,
   Calendar, X, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import { getMovimientos, getResumen, anularMovimiento } from '../../services/movimientoService';
+import {
+  detectarTransaccionesSinMovimiento,
+  sincronizarTransaccionesFaltantes,
+} from '../../services/integracionFinanzasService';
 import MovimientoForm from './MovimientoForm';
 import MovimientoAbono from './MovimientoAbono';
 import MovimientoDetalle from './MovimientoDetalle';
@@ -43,32 +47,123 @@ const formatCategoria = (cat) => {
   return cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ');
 };
 
-export default function MovimientosView({ db, usuario, showToast }) {
-  const [movimientos, setMovimientos] = useState([]);
+export default function MovimientosView({ db, usuario, showToast, transactions = [] }) {
+  const [allMovimientos, setAllMovimientos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [syncErrors, setSyncErrors] = useState([]);
   const [error, setError] = useState(null);
   const [filtros, setFiltros] = useState(FILTROS_DEFAULT);
   const [showForm, setShowForm] = useState(false);
   const [editingMov, setEditingMov] = useState(null);
   const [showAbono, setShowAbono] = useState(null);
   const [showDetalle, setShowDetalle] = useState(null);
+  const autoSyncAttemptedRef = useRef(false);
 
   const cargarMovimientos = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getMovimientos(db, filtros);
-      setMovimientos(data);
+      const data = await getMovimientos(db, {});
+      setAllMovimientos(data || []);
+      return data || [];
     } catch (err) {
       setError('Error al cargar movimientos: ' + err.message);
+      return [];
     } finally {
       setLoading(false);
     }
-  }, [db, filtros]);
+  }, [db]);
 
   useEffect(() => {
     cargarMovimientos();
   }, [cargarMovimientos]);
+
+  const missingTransactions = useMemo(
+    () => detectarTransaccionesSinMovimiento(transactions, allMovimientos),
+    [transactions, allMovimientos],
+  );
+
+  const handleSincronizarFaltantes = useCallback(async (silent = false) => {
+    if (syncing || !db) return;
+    setSyncing(true);
+    setSyncErrors([]);
+    try {
+      const currentMovs = allMovimientos.length ? allMovimientos : await getMovimientos(db, {});
+      const result = await sincronizarTransaccionesFaltantes(
+        db,
+        transactions,
+        currentMovs,
+        usuario || { uid: '', email: '' },
+      );
+      if (result.synced > 0) {
+        await cargarMovimientos();
+        showToast?.(
+          `Se sincronizaron ${result.synced} movimiento(s) reciente(s) desde Ventas y Compras.`,
+          'success',
+        );
+      } else if (!silent && result.errors.length === 0) {
+        await cargarMovimientos();
+        showToast?.('Todos los comprobantes autorizados ya están reflejados en Movimientos.', 'info');
+      }
+      if (result.errors.length > 0) {
+        setSyncErrors(result.errors);
+        if (!silent) {
+          showToast?.(
+            `${result.errors.length} comprobante(s) no se pudieron sincronizar. Revisa el detalle.`,
+            'warning',
+          );
+        }
+      }
+    } catch (err) {
+      if (!silent) showToast?.('Error al sincronizar movimientos: ' + err.message, 'error');
+    } finally {
+      setSyncing(false);
+    }
+  }, [syncing, db, allMovimientos, transactions, usuario, cargarMovimientos, showToast]);
+
+  // Auto-sincronizar una sola vez al abrir Movimientos si existen ventas/compras autorizadas sin reflejar
+  useEffect(() => {
+    if (loading || syncing || autoSyncAttemptedRef.current) return;
+    if (missingTransactions.length > 0) {
+      autoSyncAttemptedRef.current = true;
+      handleSincronizarFaltantes(true);
+    }
+  }, [loading, syncing, missingTransactions.length, handleSincronizarFaltantes]);
+
+  const movimientos = useMemo(() => {
+    const toMs = (value) => {
+      if (!value) return 0;
+      if (typeof value?.toDate === 'function') return value.toDate().getTime();
+      if (value instanceof Date) return value.getTime();
+      const parsed = Date.parse(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
+    return allMovimientos.filter((m) => {
+      if (filtros.tipo !== 'all' && m.tipo !== filtros.tipo) return false;
+      if (filtros.estado !== 'all' && m.estado !== filtros.estado) return false;
+      if (filtros.metodoPago !== 'all' && m.metodoPago !== filtros.metodoPago) return false;
+      if (filtros.categoria !== 'all' && !m.partidas?.some((p) => p.categoria === filtros.categoria)) return false;
+      if (filtros.search) {
+        const s = filtros.search.toLowerCase();
+        const hit =
+          m.documento?.numero?.toLowerCase().includes(s) ||
+          m.tercero?.nombre?.toLowerCase().includes(s) ||
+          m.tercero?.ruc?.includes(s) ||
+          m.partidas?.some((p) => p.descripcion?.toLowerCase().includes(s));
+        if (!hit) return false;
+      }
+      if (filtros.fechaDesde) {
+        const desde = Date.parse(`${filtros.fechaDesde}T00:00:00`);
+        if (Number.isFinite(desde) && toMs(m.fecha) < desde) return false;
+      }
+      if (filtros.fechaHasta) {
+        const hasta = Date.parse(`${filtros.fechaHasta}T23:59:59.999`);
+        if (Number.isFinite(hasta) && toMs(m.fecha) > hasta) return false;
+      }
+      return true;
+    });
+  }, [allMovimientos, filtros]);
 
   const handleSave = () => {
     setShowForm(false);
@@ -120,8 +215,8 @@ export default function MovimientosView({ db, usuario, showToast }) {
 
   const resumen = useMemo(() => getResumen(movimientos), [movimientos]);
 
-  const countIngresos = useMemo(() => movimientos.filter(m => m.tipo === 'ingreso' && m.estado !== 'anulado').length, [movimientos]);
-  const countEgresos = useMemo(() => movimientos.filter(m => m.tipo === 'egreso' && m.estado !== 'anulado').length, [movimientos]);
+  const countIngresos = useMemo(() => allMovimientos.filter(m => m.tipo === 'ingreso' && m.estado !== 'anulado').length, [allMovimientos]);
+  const countEgresos = useMemo(() => allMovimientos.filter(m => m.tipo === 'egreso' && m.estado !== 'anulado').length, [allMovimientos]);
 
   const formatCurrency = (v) => `$${(Number(v) || 0).toFixed(2)}`;
   
@@ -188,20 +283,42 @@ export default function MovimientosView({ db, usuario, showToast }) {
         icon={DollarSign}
         title="Movimientos Financieros"
         description="Libro central de ingresos, egresos y control de tesorería general"
-        badge={`${movimientos.length} registros`}
+        badge={`${allMovimientos.length} registros`}
         badgeColor="green"
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
+              type="button"
+              onClick={() => handleSincronizarFaltantes(false)}
+              disabled={syncing}
+              className={`py-1.5 px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 ${
+                missingTransactions.length > 0
+                  ? 'border-[#0b996f] bg-[#e8fedf] text-[#004227] hover:bg-[#c0ffa5]'
+                  : 'border-[#e3e3e3] bg-white hover:bg-[#fafafa] text-[#1b1b1b]'
+              }`}
+              title="Sincronizar ventas autorizadas y compras recientes que falten en Movimientos"
+            >
+              <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
+              <span>
+                {syncing
+                  ? 'Sincronizando...'
+                  : missingTransactions.length > 0
+                    ? `Sincronizar (${missingTransactions.length})`
+                    : 'Sincronizar'}
+              </span>
+            </button>
+            <button
+              type="button"
               onClick={() => { setEditingMov(null); setShowForm(true); }}
-              className="py-1.5 px-3.5 rounded-xl bg-[#1b1b1b] hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
+              className="py-1.5 px-3.5 rounded-xl bg-[#1b1b1b] hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus size={14} />
               <span>Nuevo Movimiento</span>
             </button>
             <button
+              type="button"
               onClick={handleExportCsv}
-              className="py-1.5 px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
+              className="py-1.5 px-3.5 rounded-xl border border-[#e3e3e3] bg-white hover:bg-[#fafafa] text-[#1b1b1b] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Download size={13} />
               <span>Exportar CSV</span>
@@ -210,72 +327,104 @@ export default function MovimientosView({ db, usuario, showToast }) {
         }
       />
 
-      {/* 2. Métricas de Salud Operativa (KPIs Flat Modern) */}
+      {/* Aviso de comprobantes pendientes de sincronización o errores */}
+      {(missingTransactions.length > 0 || syncErrors.length > 0) && (
+        <div className="bg-[#fcfbe7] border border-[#f0df8a] rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-start gap-2.5 min-w-0">
+            <AlertTriangle size={16} className="text-[#866308] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              {missingTransactions.length > 0 && (
+                <div className="font-semibold text-[#1b1b1b]">
+                  Hay {missingTransactions.length} comprobante(s) autorizado(s) de Ventas/Compras pendientes de reflejarse en Movimientos.
+                </div>
+              )}
+              {syncErrors.length > 0 && (
+                <div className="text-[#851b40]">
+                  Detalle: {syncErrors.slice(0, 3).map(e => `${e.documentNumber}: ${e.error}`).join(' · ')}
+                </div>
+              )}
+            </div>
+          </div>
+          {missingTransactions.length > 0 && (
+            <button
+              type="button"
+              onClick={() => handleSincronizarFaltantes(false)}
+              disabled={syncing}
+              className="py-1.5 px-3 rounded-xl bg-[#0b996f] hover:bg-[#004227] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={12} className={syncing ? 'animate-spin' : ''} />
+              Sincronizar ahora
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* 2. Métricas de Salud Operativa (KPIs Brevo Flat) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Ingresos */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 sm:p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[#666666] uppercase tracking-wider block">
               Ingresos del Período
             </span>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-700 tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-[#004227] tracking-tight">
               {formatCurrency(resumen.totalIngresos)}
             </div>
-            <span className="text-[11px] font-medium text-emerald-600 block">
+            <span className="text-[11px] font-medium text-[#0b996f] block">
               {countIngresos} entradas registradas
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-            <TrendingUp size={22} />
+          <div className="w-11 h-11 rounded-2xl bg-[#e8fedf] text-[#0b996f] flex items-center justify-center shrink-0 border border-[#b3f4cb]">
+            <TrendingUp size={20} />
           </div>
         </div>
 
         {/* Card 2: Egresos */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 sm:p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[#666666] uppercase tracking-wider block">
               Egresos del Período
             </span>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-rose-600 tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-[#851b40] tracking-tight">
               {formatCurrency(resumen.totalEgresos)}
             </div>
-            <span className="text-[11px] font-medium text-rose-600 block">
+            <span className="text-[11px] font-medium text-[#851b40] block">
               {countEgresos} salidas y pagos registrados
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
-            <TrendingDown size={22} />
+          <div className="w-11 h-11 rounded-2xl bg-[#fff0f5] text-[#851b40] flex items-center justify-center shrink-0 border border-[#fbc6d9]">
+            <TrendingDown size={20} />
           </div>
         </div>
 
         {/* Card 3: Saldo Neto */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-[#e3e3e3] rounded-2xl p-4 sm:p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[#666666] uppercase tracking-wider block">
               Saldo Neto
             </span>
-            <div className={`text-2xl sm:text-3xl font-extrabold font-mono tracking-tight ${
-              resumen.saldoNeto >= 0 ? 'text-slate-900' : 'text-rose-600'
+            <div className={`text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight ${
+              resumen.saldoNeto >= 0 ? 'text-[#1b1b1b]' : 'text-[#851b40]'
             }`}>
               {formatCurrency(resumen.saldoNeto)}
             </div>
-            <span className="text-[11px] font-medium text-slate-500 block">
+            <span className="text-[11px] font-medium text-[#666666] block">
               {resumen.saldoNeto >= 0 ? 'Balance operacional positivo' : 'Déficit operacional del período'}
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-            <DollarSign size={22} />
+          <div className="w-11 h-11 rounded-2xl bg-[#fafafa] text-[#004227] flex items-center justify-center shrink-0 border border-[#e3e3e3]">
+            <DollarSign size={20} />
           </div>
         </div>
       </div>
 
       {/* 3. Barra de Búsqueda y Filtros Optimizada */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-4 space-y-3 shadow-xs">
+      <div className="bg-white border border-[#e3e3e3] rounded-2xl p-3 sm:p-4 space-y-3">
         {/* Pestañas tipo píldora para filtrar por Tipo */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+          <div className="flex flex-wrap items-center gap-1 bg-[#f4f4f5] p-1 rounded-xl">
             {[
-              { id: 'all', label: 'Todos', count: movimientos.length },
+              { id: 'all', label: 'Todos', count: allMovimientos.length },
               { id: 'ingreso', label: 'Ingresos', count: countIngresos, isIngreso: true },
               { id: 'egreso', label: 'Egresos', count: countEgresos, isEgreso: true },
             ].map(tab => {
@@ -283,18 +432,19 @@ export default function MovimientosView({ db, usuario, showToast }) {
               return (
                 <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setFiltros(f => ({ ...f, tipo: tab.id }))}
-                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    active 
-                      ? 'bg-white text-slate-900 shadow-xs' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    active
+                      ? 'bg-[#e8fedf] text-[#004227] border border-[#b3f4cb]'
+                      : 'text-[#666666] hover:text-[#1b1b1b] hover:bg-white/70 border border-transparent'
                   }`}
                 >
-                  {tab.isIngreso && <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />}
-                  {tab.isEgreso && <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />}
+                  {tab.isIngreso && <span className="w-2 h-2 rounded-full bg-[#0b996f] inline-block" />}
+                  {tab.isEgreso && <span className="w-2 h-2 rounded-full bg-[#be123c] inline-block" />}
                   <span>{tab.label}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    active ? 'bg-slate-100 text-slate-800' : 'bg-slate-200/70 text-slate-600'
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                    active ? 'bg-[#004227] text-white' : 'bg-[#e3e3e3] text-[#444444]'
                   }`}>
                     {tab.count}
                   </span>

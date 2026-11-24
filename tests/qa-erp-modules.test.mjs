@@ -22,6 +22,10 @@ import { resolveAllowedSriSoapPath } from '../server/domains/sriGateway.js';
 import nodemailer from 'nodemailer';
 import sendEmailHandler, { resolveSenderDomain } from '../api/send-email/index.js';
 import {
+  detectarTransaccionesSinMovimiento,
+  sincronizarTransaccionesFaltantes
+} from '../src/services/integracionFinanzasService.js';
+import {
   normalizeEmissionPoints,
   validateSequentialChange,
   validateEmissionPointInput
@@ -257,6 +261,75 @@ test('send-email anti-spam hygiene: sets EHLO name, domain Message-ID, multipart
     assert.ok(!msg.html.includes('fonts.googleapis.com'), 'Must not load remote font stylesheets');
     assert.ok(!msg.html.includes('href="data:'), 'Must never embed data: URIs as anchor links');
   }
+});
+
+test('Movimientos sync: detects unsynced authorized sales/purchases and backfills even if referenced bank is inactive', async () => {
+  const txs = [
+    {
+      id: 'tx-nivusoft',
+      type: 'ingreso',
+      documentType: 'factura',
+      documentNumber: '001-010-000000248',
+      claveAcceso: '2311202601175437690100120010100000002481234567811',
+      sriStatus: 'autorizado',
+      total: 103.5,
+      paidAmount: 103.5,
+      paymentStatus: 'pagado',
+      paymentMethod: 'transferencia',
+      paymentsBreakdown: { efectivo: 0, transferencia: 103.5, tarjeta: 0, cruce_cuentas: 0 },
+      transferenciaBankId: 'bank-inactive',
+      thirdPartyName: 'NIVUSOFTWARE SAS',
+      thirdPartyRuc: '1793231882001',
+      date: '2026-11-23'
+    },
+    {
+      id: 'tx-draft',
+      type: 'ingreso',
+      documentType: 'factura',
+      sriStatus: 'borrador',
+      total: 50
+    },
+    {
+      id: 'tx-existing',
+      type: 'ingreso',
+      documentType: 'factura',
+      sriStatus: 'autorizado',
+      total: 45
+    }
+  ];
+
+  const existingMovs = [
+    { id: 'venta_tx-existing', origenId: 'tx-existing', monto: 45 }
+  ];
+
+  const missing = detectarTransaccionesSinMovimiento(txs, existingMovs);
+  assert.equal(missing.length, 1);
+  assert.equal(missing[0].id, 'tx-nivusoft');
+
+  // In-memory Firestore mock with an inactive bank account
+  const store = new Map([
+    ['fin_bancos/bank-inactive', { nombre: 'Banco Pichincha', estado: 'inactivo' }]
+  ]);
+  const mockApi = {
+    doc: (_db, col, id) => `${col}/${id}`,
+    serverTimestamp: () => new Date(),
+    runTransaction: async (_db, fn) => {
+      const tx = {
+        get: async (key) => ({ exists: () => store.has(key), data: () => store.get(key) }),
+        set: (key, val) => store.set(key, val),
+        update: (key, val) => store.set(key, { ...(store.get(key) || {}), ...val })
+      };
+      return fn(tx);
+    }
+  };
+
+  const result = await sincronizarTransaccionesFaltantes({}, txs, existingMovs, { uid: 'u1' }, mockApi);
+  assert.equal(result.synced, 1);
+  assert.equal(result.errors.length, 0);
+  assert.ok(store.has('fin_movimientos/venta_tx-nivusoft'), 'Movement must be created');
+  assert.equal(store.get('fin_movimientos/venta_tx-nivusoft').monto, 103.5);
+  assert.ok(store.has('fin_cxc/tx-nivusoft'), 'CxC record must be created');
+  assert.equal(store.has('fin_movimientos_bancarios/mov_doc_tx-nivusoft'), false, 'Inactive bank must not receive posting');
 });
 
 test('SRI XML Factura: grouped IVA and RIMPE/AgenteRetencion tags emit cleanly', () => {

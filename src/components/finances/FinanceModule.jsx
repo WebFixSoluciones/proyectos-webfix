@@ -351,7 +351,7 @@ export default function FinanceModule({
                 <ResumenFinancieroView db={db} usuario={usuario} showToast={showToast} onNavigate={(tab) => { setActiveTab(tab); onSubTabChange?.(tab); }} />
               )}
               {activeTab === 'movimientos' && (
-                <MovimientosView db={db} usuario={usuario} showToast={showToast} />
+                <MovimientosView db={db} appId={appId} usuario={usuario} showToast={showToast} transactions={transactions} />
               )}
               {activeTab === 'dashboard' && <FinanceDashboard transactions={transactions} thirdParties={thirdParties} db={db} appId={appId} />}
               

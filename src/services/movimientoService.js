@@ -1,8 +1,7 @@
 import { postFinancialPayment, paymentBalance } from './financialTransactions.js';
 import { getAppId } from '../firebase.js';
 import { 
-  collection, runTransaction, doc, getDocs, query,
-  where, orderBy, serverTimestamp
+  collection, runTransaction, doc, getDocs, serverTimestamp
 } from './financeStore.js';
 
 const COLLECTION = 'fin_movimientos';
@@ -140,68 +139,83 @@ export async function registrarAbono(db, movimientoId, abono, usuario) {
   return postFinancialPayment(db, { collection: 'fin_movimientos', id: movimientoId }, abono, usuario, { tenantId: getAppId() });
 }
 
-export async function getMovimientos(db, filtros = {}) {
-  try {
-    const constraints = [orderBy('fecha', 'desc')];
-    
-    if (filtros.tipo && filtros.tipo !== 'all') constraints.push(where('tipo', '==', filtros.tipo));
-    if (filtros.estado && filtros.estado !== 'all') constraints.push(where('estado', '==', filtros.estado));
-    
-    const q = query(collection(db, COLLECTION), ...constraints);
-    const snap = await getDocs(q);
-    
-    let movimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    
-    if (filtros.search) {
-      const s = filtros.search.toLowerCase();
-      movimientos = movimientos.filter(m =>
-        m.documento?.numero?.toLowerCase().includes(s) ||
-        m.tercero?.nombre?.toLowerCase().includes(s) ||
-        m.tercero?.ruc?.includes(s) ||
-        m.partidas?.some(p => p.descripcion?.toLowerCase().includes(s))
-      );
-    }
-    
-    if (filtros.metodoPago && filtros.metodoPago !== 'all') {
-      movimientos = movimientos.filter(m => m.metodoPago === filtros.metodoPago);
-    }
-    
-    if (filtros.categoria && filtros.categoria !== 'all') {
-      movimientos = movimientos.filter(m =>
-        m.partidas?.some(p => p.categoria === filtros.categoria)
-      );
-    }
-    
-    if (filtros.fechaDesde) {
-      movimientos = movimientos.filter(m => {
-        const f = m.fecha?.toDate ? m.fecha.toDate() : new Date(m.fecha);
-        return f >= new Date(filtros.fechaDesde);
-      });
-    }
-    
-    if (filtros.fechaHasta) {
-      movimientos = movimientos.filter(m => {
-        const f = m.fecha?.toDate ? m.fecha.toDate() : new Date(m.fecha);
-        return f <= new Date(filtros.fechaHasta + 'T23:59:59');
-      });
-    }
-    
-    return movimientos;
-  } catch (e) {
-    if (e.code === 'failed-precondition' || e.message?.includes('index')) {
-      console.warn('[movimientoService] Índice de Firestore requerido. Usando fallback sin orderBy.');
-      const q = query(collection(db, COLLECTION));
-      const snap = await getDocs(q);
-      let movimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      movimientos.sort((a, b) => {
-        const fa = a.fecha?.toDate ? a.fecha.toDate() : new Date(a.fecha || 0);
-        const fb = b.fecha?.toDate ? b.fecha.toDate() : new Date(b.fecha || 0);
-        return fb - fa;
-      });
-      return movimientos;
-    }
-    throw e;
+function toMillis(value) {
+  if (!value) return 0;
+  if (typeof value?.toDate === 'function') {
+    const t = value.toDate().getTime();
+    return Number.isFinite(t) ? t : 0;
   }
+  if (value instanceof Date) {
+    const t = value.getTime();
+    return Number.isFinite(t) ? t : 0;
+  }
+  if (typeof value === 'object' && typeof value.seconds === 'number') {
+    return value.seconds * 1000;
+  }
+  const str = String(value).trim();
+  const dmy = str.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(.*)$/);
+  if (dmy) {
+    const iso = `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}T12:00:00`;
+    const parsed = Date.parse(iso);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  const parsed = Date.parse(str);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export async function getMovimientos(db, filtros = {}) {
+  const snap = await getDocs(collection(db, COLLECTION));
+  let movimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Orden cronológico consistente sin importar si `fecha` es Timestamp, Date o ISO string
+  movimientos.sort((a, b) => {
+    const fa = toMillis(a.fecha) || toMillis(a.creadoEn) || toMillis(a.actualizadoEn);
+    const fb = toMillis(b.fecha) || toMillis(b.creadoEn) || toMillis(b.actualizadoEn);
+    if (fb !== fa) return fb - fa;
+    const ca = toMillis(a.creadoEn) || toMillis(a.actualizadoEn);
+    const cb = toMillis(b.creadoEn) || toMillis(b.actualizadoEn);
+    return cb - ca;
+  });
+
+  if (filtros.tipo && filtros.tipo !== 'all') {
+    movimientos = movimientos.filter(m => m.tipo === filtros.tipo);
+  }
+  if (filtros.estado && filtros.estado !== 'all') {
+    movimientos = movimientos.filter(m => m.estado === filtros.estado);
+  }
+  if (filtros.search) {
+    const s = filtros.search.toLowerCase();
+    movimientos = movimientos.filter(m =>
+      m.documento?.numero?.toLowerCase().includes(s) ||
+      m.tercero?.nombre?.toLowerCase().includes(s) ||
+      m.tercero?.ruc?.includes(s) ||
+      m.partidas?.some(p => p.descripcion?.toLowerCase().includes(s))
+    );
+  }
+  if (filtros.metodoPago && filtros.metodoPago !== 'all') {
+    movimientos = movimientos.filter(m => m.metodoPago === filtros.metodoPago);
+  }
+  if (filtros.categoria && filtros.categoria !== 'all') {
+    movimientos = movimientos.filter(m =>
+      m.partidas?.some(p => p.categoria === filtros.categoria)
+    );
+  }
+  if (filtros.fechaDesde) {
+    const desdeMs = Date.parse(`${filtros.fechaDesde}T00:00:00`);
+    movimientos = movimientos.filter(m => {
+      const f = toMillis(m.fecha) || toMillis(m.creadoEn);
+      return !Number.isFinite(desdeMs) || f >= desdeMs;
+    });
+  }
+  if (filtros.fechaHasta) {
+    const hastaMs = Date.parse(`${filtros.fechaHasta}T23:59:59.999`);
+    movimientos = movimientos.filter(m => {
+      const f = toMillis(m.fecha) || toMillis(m.creadoEn);
+      return !Number.isFinite(hastaMs) || f <= hastaMs;
+    });
+  }
+
+  return movimientos;
 }
 
 export function getResumen(movimientos) {

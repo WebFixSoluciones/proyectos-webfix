@@ -134,8 +134,9 @@ function mapearCompraAMovimiento(compra) {
   };
 }
 
-async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
+async function sincronizarDocumento(data, db, usuario, venta, api = firestore, options = {}) {
   const { doc, runTransaction, serverTimestamp } = api;
+  const { allowInactiveBankFallback = false } = options || {};
   if (!data?.id || !db) throw new Error('Documento o empresa no disponible para sincronizar.');
   const user = usuario || { uid: '', email: '' };
   const collection = venta ? 'fin_cxc' : 'fin_cxp';
@@ -169,7 +170,7 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
       throw new Error('El importe transferido no coincide con el pago.');
     }
     const transfBankId = data.transferenciaBankId || data.paymentReferences?.transferenciaBankId || defaultBankId;
-    if (transferAmount > 0 && !transfBankId) {
+    if (transferAmount > 0 && !transfBankId && !allowInactiveBankFallback) {
       throw new Error('Selecciona la cuenta bancaria de la transferencia.');
     }
 
@@ -222,7 +223,9 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
     for (const bId of uniqueBankIds) {
       const bRef = doc(db, 'fin_bancos', bId);
       const bSnap = await tx.get(bRef);
-      if (!bSnap?.exists?.() || bSnap.data()?.estado === 'inactivo' || (bSnap.data()?.estado && bSnap.data()?.estado !== 'activo')) {
+      const isInactiveOrMissing = !bSnap?.exists?.() || bSnap.data()?.estado === 'inactivo' || (bSnap.data()?.estado && bSnap.data()?.estado !== 'activo');
+      if (isInactiveOrMissing) {
+        if (allowInactiveBankFallback) continue;
         throw new Error('La cuenta bancaria está inactiva o no existe.');
       }
       bankSnaps.set(bId, bRef);
@@ -265,5 +268,91 @@ async function sincronizarDocumento(data, db, usuario, venta, api = firestore) {
   return result;
 }
 
-export const sincronizarVenta = (venta, db, usuario, api) => sincronizarDocumento(venta, db, usuario, true, api);
-export const sincronizarCompra = (compra, db, usuario, api) => sincronizarDocumento(compra, db, usuario, false, api);
+export const sincronizarVenta = (venta, db, usuario, api, options) => sincronizarDocumento(venta, db, usuario, true, api, options);
+export const sincronizarCompra = (compra, db, usuario, api, options) => sincronizarDocumento(compra, db, usuario, false, api, options);
+
+/**
+ * Determina si una transacción de `finances_transactions` debe estar reflejada
+ * en el libro central `fin_movimientos`.
+ */
+export function esTransaccionSincronizable(tx) {
+  if (!tx || !tx.id) return false;
+  const total = roundMoney(tx.total);
+  if (!Number.isFinite(total) || total <= 0) return false;
+
+  const status = String(tx.status || '').toLowerCase();
+  const sriStatus = String(tx.sriStatus || '').toLowerCase();
+  if (status === 'anulado' || sriStatus === 'anulado' || sriStatus === 'borrador' || tx.isPreventa) {
+    return false;
+  }
+
+  const docType = String(tx.documentType || 'factura').toLowerCase();
+  const isEgreso = tx.type === 'egreso';
+  if (isEgreso) {
+    return !['cotizacion', 'proforma'].includes(docType);
+  }
+
+  // Ingresos (Ventas)
+  if (docType === 'factura') {
+    return sriStatus === 'autorizado';
+  }
+  if (docType === 'nota_venta') {
+    return !['pendiente_sri', 'devuelto', 'no_autorizado', 'rechazado'].includes(sriStatus);
+  }
+  return false;
+}
+
+/**
+ * Detecta qué transacciones válidas de `finances_transactions` aún no tienen su
+ * registro correspondiente en `fin_movimientos`.
+ */
+export function detectarTransaccionesSinMovimiento(transactions = [], movimientos = []) {
+  const existingOrigenIds = new Set();
+  const existingMovIds = new Set();
+  const existingClaves = new Set();
+
+  for (const m of movimientos || []) {
+    if (m.id) existingMovIds.add(String(m.id));
+    if (m.origenId) existingOrigenIds.add(String(m.origenId));
+    if (m.documento?.claveAcceso) existingClaves.add(String(m.documento.claveAcceso));
+  }
+
+  return (transactions || []).filter((tx) => {
+    if (!esTransaccionSincronizable(tx)) return false;
+    const txId = String(tx.id);
+    if (existingOrigenIds.has(txId)) return false;
+    if (existingMovIds.has(`venta_${txId}`) || existingMovIds.has(`compra_${txId}`)) return false;
+    if (tx.claveAcceso && existingClaves.has(String(tx.claveAcceso))) return false;
+    return true;
+  });
+}
+
+/**
+ * Sincroniza de forma idempotente todas las ventas autorizadas y compras vigentes
+ * que falten en `fin_movimientos` (y sus CxC/CxP/bancos asociados).
+ */
+export async function sincronizarTransaccionesFaltantes(db, transactions = [], existingMovimientos = [], usuario = {}, api = firestore) {
+  const pendientes = detectarTransaccionesSinMovimiento(transactions, existingMovimientos);
+  let synced = 0;
+  const errors = [];
+
+  for (const tx of pendientes) {
+    try {
+      const isEgreso = tx.type === 'egreso';
+      if (isEgreso) {
+        await sincronizarCompra(tx, db, usuario, api, { allowInactiveBankFallback: true });
+      } else {
+        await sincronizarVenta(tx, db, usuario, api, { allowInactiveBankFallback: true });
+      }
+      synced += 1;
+    } catch (err) {
+      errors.push({
+        id: tx.id,
+        documentNumber: tx.documentNumber || tx.id,
+        error: err?.message || 'Error al sincronizar',
+      });
+    }
+  }
+
+  return { totalChecked: pendientes.length, synced, errors };
+}
