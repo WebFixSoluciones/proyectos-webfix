@@ -17,6 +17,7 @@ import {
   resolveSriIvaCode,
   validateSriPreFlight
 } from '../src/modules/sri/domain/fiscalMath.js';
+import { validarIdentificacion } from '../src/services/sriService.js';
 import {
   normalizeEmissionPoints,
   validateSequentialChange,
@@ -125,6 +126,47 @@ test('SRI Pre-Flight & Emission Points: blocks Consumidor Final > $50, invalid 0
   const normalized = normalizeEmissionPoints({ establecimiento: '1', puntoEmision: '2' });
   assert.equal(normalized[0].estab, '001');
   assert.equal(normalized[0].ptoEmi, '002');
+});
+
+test('SRI Pre-Flight & RUC validation: accepts modern SAS RUC (3rd digit 9) and valid cedula, rejects malformed IDs', () => {
+  // Real Ecuadorian SAS RUC issued by SRI whose 10th digit does not match legacy Mod-11
+  assert.equal(validarIdentificacion('1793231882001', 'ruc'), true);
+  assert.equal(validarIdentificacion('1793231882000', 'ruc'), false); // invalid establishment 000
+  assert.equal(validarIdentificacion('1793231882', 'cedula'), false); // 10-digit ID cannot have 3rd digit 9
+  assert.equal(validarIdentificacion('1710034065', 'cedula'), true); // valid natural-person cedula (Mod-10)
+  assert.equal(validarIdentificacion('1712345678', 'cedula'), false); // invalid Mod-10 checksum
+
+  const preSas = validateSriPreFlight({
+    documentType: 'factura',
+    emisorConfig: {
+      ruc: '1790012345001',
+      razonSocial: 'WEBFIX',
+      establecimiento: '001',
+      puntoEmision: '010',
+      certificadoCargado: true
+    },
+    buyer: { name: 'NIVUSOFTWARE SAS', ruc: '1793231882001', tipoIdentificacion: 'ruc' },
+    items: [
+      { name: 'Email Starter', quantity: 3, price: 30, ivaCategory: 15, tax_mode: 'EXCLUIDO' }
+    ]
+  });
+  assert.equal(preSas.valid, true);
+  assert.equal(preSas.blockers.length, 0);
+
+  const preBad = validateSriPreFlight({
+    documentType: 'factura',
+    emisorConfig: {
+      ruc: '1790012345001',
+      razonSocial: 'WEBFIX',
+      establecimiento: '001',
+      puntoEmision: '010',
+      certificadoCargado: true
+    },
+    buyer: { name: 'CLIENTE INVALIDO', ruc: '9912345678001', tipoIdentificacion: 'ruc' },
+    items: [{ name: 'Servicio', quantity: 1, price: 10, ivaCategory: 15, tax_mode: 'EXCLUIDO' }]
+  });
+  assert.equal(preBad.valid, false);
+  assert.ok(preBad.blockers.some((b) => b.code === 'BUYER_ID_INVALID'));
 });
 
 test('SRI XML Factura: grouped IVA and RIMPE/AgenteRetencion tags emit cleanly', () => {

@@ -158,10 +158,10 @@ export async function getResumenImpuestos(db, year, month, localTransactions = n
 export function validarRuc(ruc) {
   if (!ruc || typeof ruc !== 'string') return { valido: false, mensaje: 'RUC vacío' };
   const clean = ruc.trim();
-  if (clean.length !== 13) return { valido: false, mensaje: 'El RUC debe tener 13 dígitos' };
-  if (!clean.endsWith('001')) return { valido: false, mensaje: 'El RUC debe terminar en 001' };
+  if (!/^\d{13}$/.test(clean)) return { valido: false, mensaje: 'El RUC debe tener 13 dígitos numéricos' };
+  if (clean.endsWith('000')) return { valido: false, mensaje: 'El código de establecimiento del RUC no puede ser 000' };
   const valido = validarIdentificacion(clean, 'ruc');
-  return valido ? { valido: true, mensaje: 'RUC válido' } : { valido: false, mensaje: 'Dígito verificador incorrecto' };
+  return valido ? { valido: true, mensaje: 'RUC válido' } : { valido: false, mensaje: 'Estructura o dígito verificador incorrecto' };
 }
 
 export function generarAtsXml(datos) {

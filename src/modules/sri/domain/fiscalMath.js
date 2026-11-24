@@ -265,12 +265,16 @@ export function validateSriPreFlight({
     });
   }
   if (!isConsumidorFinal) {
-    const idCheck = validarIdentificacion(buyerRuc, buyer.tipoIdentificacion);
-    if (!idCheck.valido) {
+    const isIdValid = validarIdentificacion(
+      buyerRuc,
+      buyer.tipoIdentificacion,
+      buyer.isValidated || buyer.validado
+    );
+    if (!isIdValid) {
       blockers.push({
         code: 'BUYER_ID_INVALID',
         field: 'buyer.ruc',
-        message: idCheck.mensaje || 'Identificación del receptor inválida (verifica longitud y dígito verificador SRI).'
+        message: 'Identificación del receptor inválida (verifica longitud, código de provincia y estructura SRI).'
       });
     }
   }

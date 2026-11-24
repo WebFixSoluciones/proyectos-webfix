@@ -64,55 +64,58 @@ export function validarIdentificacion(identificacion, tipoIdentificacion = '', i
     return clean.length >= 3;
   }
 
+  // Para Cédula (10 dígitos) o RUC (13 dígitos), todos los caracteres deben ser numéricos
+  if (!/^\d+$/.test(clean)) return false;
+
   const len = clean.length;
   // Cédula debe tener 10 dígitos y RUC 13 dígitos
   if (len !== 10 && len !== 13) return false;
 
-  // Si fue validado externamente (ej: consulta autoritativa SRI), comprobar estructura básica
-  if (isValidated === true || isValidated === 'true') {
-    if (len === 13 && !clean.endsWith('001')) return false;
-    return true;
+  // Para RUC de 13 dígitos, los últimos 3 dígitos son el establecimiento (001..999, nunca 000)
+  const establecimiento = len === 13 ? clean.substring(10, 13) : '';
+  if (len === 13 && establecimiento === '000') {
+    return false;
   }
 
-  // Si es RUC de 13 dígitos, los 3 últimos deben ser 001
-  if (len === 13 && !clean.endsWith('001')) {
-    return false;
+  // Si fue validado externamente (ej: consulta autoritativa SRI), comprobar estructura básica
+  if (isValidated === true || isValidated === 'true') {
+    return true;
   }
 
   // Tomar los primeros 10 dígitos (que corresponden a la cédula o base del RUC)
   const cedula = clean.substring(0, 10);
   const provincia = parseInt(cedula.substring(0, 2), 10);
-  if (provincia < 1 || provincia > 24) return false;
+  // Provincias 01..24 y 30 (ecuatorianos / entidades registradas en el exterior según SRI)
+  if ((provincia < 1 || provincia > 24) && provincia !== 30) return false;
 
   const tercerDigito = parseInt(cedula.substring(2, 3), 10);
-  
-  // RUC para sociedades privadas y extranjeros sin cédula (tercer dígito = 9)
+
+  // RUC para sociedades privadas, S.A.S. y extranjeros sin cédula (tercer dígito = 9)
+  // Nota SRI Ecuador: desde la masificación de S.A.S. y nuevas secuencias (ej. 1793..., 0993...),
+  // el SRI emite RUCs válidos y activos cuyo décimo dígito ya no cumple el antiguo Módulo 11.
+  // Por ello se valida estructura oficial SRI (13 dígitos, provincia válida, establecimiento != 000).
   if (tercerDigito === 9) {
-    const coeficientes = [4, 3, 2, 7, 6, 5, 4, 3, 2];
+    return len === 13;
+  }
+
+  // RUC para entidades públicas (tercer dígito = 6, 13 dígitos) o cédulas nuevas con tercer dígito 6
+  if (tercerDigito === 6) {
+    if (len === 13) return true;
+    // Si tiene 10 dígitos (cédula persona natural con tercer dígito 6), validar con Módulo 10
+    const coeficientes = [2, 1, 2, 1, 2, 1, 2, 1, 2];
     const verificador = parseInt(cedula.substring(9, 10), 10);
     let suma = 0;
     for (let i = 0; i < 9; i++) {
-      suma += parseInt(cedula[i], 10) * coeficientes[i];
+      let valor = parseInt(cedula[i], 10) * coeficientes[i];
+      if (valor >= 10) valor -= 9;
+      suma += valor;
     }
-    const residuo = suma % 11;
-    const digitoCalculado = residuo === 0 ? 0 : 11 - residuo;
-    return digitoCalculado === verificador;
-  }
-  
-  // RUC para sociedades públicas (tercer dígito = 6)
-  if (tercerDigito === 6) {
-    const coeficientes = [3, 2, 7, 6, 5, 4, 3, 2];
-    const verificador = parseInt(cedula.substring(8, 9), 10);
-    let suma = 0;
-    for (let i = 0; i < 8; i++) {
-      suma += parseInt(cedula[i], 10) * coeficientes[i];
-    }
-    const residuo = suma % 11;
-    const digitoCalculado = residuo === 0 ? 0 : 11 - residuo;
+    const residuo = suma % 10;
+    const digitoCalculado = residuo === 0 ? 0 : 10 - residuo;
     return digitoCalculado === verificador;
   }
 
-  // Cédula de persona natural (tercer dígito < 6)
+  // Cédula / RUC de persona natural (tercer dígito 0..5)
   if (tercerDigito < 6) {
     const coeficientes = [2, 1, 2, 1, 2, 1, 2, 1, 2];
     const verificador = parseInt(cedula.substring(9, 10), 10);
