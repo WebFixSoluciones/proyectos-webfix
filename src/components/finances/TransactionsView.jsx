@@ -8,6 +8,7 @@ import { Plus, Search, Trash2, Edit2, FileText, CheckCircle2, Sparkles, AlertTri
 import { doc, deleteDoc, setDoc, getDoc, runTransaction } from '../../services/financeStore.js';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { analizarComprobanteConGemini, parsearXMLComprobante } from '../../services/geminiService';
+import { parsePurchaseInvoiceXml } from '../../services/purchaseXml';
 import { getEcuadorDateString, getEcuadorDateTimeString, consultarAutorizacionSRI } from '../../services/sriService';
 import { saveSriResult } from '../../services/sriEmission';
 import { notifyAuthorizedInvoice } from '../../services/invoiceNotification';
@@ -21,7 +22,7 @@ import confirmAction from '../../services/confirmDialog';
 import { Badge } from '../ui/badge';
 import { ensureDispatchForSale } from '../../modules/warehouse/infrastructure/DispatchRepository';
 
-export default function TransactionsView({ transactions, thirdParties, showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
+export default function TransactionsView({ transactions, thirdParties, products = [], showToast, db, storage, appId, onOpenForm, forcedDocType, forcedType, isPreventaTab = false }) {
   const getTransactionParty = (tx) => thirdParties.find(tp => tp.id === tx.thirdPartyId) || tx.thirdParty || null;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState(forcedType || 'all');
@@ -208,15 +209,35 @@ export default function TransactionsView({ transactions, thirdParties, showToast
 
     try {
       let extracted = null;
+      let parsedXmlPurchase = null;
+      const isXmlFile = file.name.toLowerCase().endsWith('.xml');
 
-      // 1. Si es XML, parseo local
-      if (file.name.endsWith('.xml')) {
+      // 1. Si es XML, intentar parseo completo de factura de compra (extrae ítems, SKU, clave SRI y xmlContent)
+      if (isXmlFile) {
         const text = await file.text();
-        const res = parsearXMLComprobante(text);
-        if (res.success) {
-          extracted = res.data;
-        } else {
-          throw new Error(res.error);
+        try {
+          parsedXmlPurchase = parsePurchaseInvoiceXml(text, products);
+          extracted = {
+            ruc: parsedXmlPurchase.supplierRuc,
+            razonSocial: parsedXmlPurchase.supplierName,
+            documentNumber: parsedXmlPurchase.documentNumber,
+            claveAcceso: parsedXmlPurchase.claveAcceso,
+            date: parsedXmlPurchase.date,
+            baseImponible: parsedXmlPurchase.baseImponible,
+            ivaValor: parsedXmlPurchase.ivaValor,
+            total: parsedXmlPurchase.total,
+            otrosImpuestos: parsedXmlPurchase.otrosImpuestos,
+            items: parsedXmlPurchase.items,
+            xmlContent: parsedXmlPurchase.xmlContent,
+            description: (parsedXmlPurchase.items || []).map(i => i.name).filter(Boolean).slice(0, 3).join(', '),
+          };
+        } catch {
+          const res = parsearXMLComprobante(text);
+          if (res.success) {
+            extracted = res.data;
+          } else {
+            throw new Error(res.error);
+          }
         }
       } else {
         // 2. Si es imagen o PDF, usar Gemini OCR
@@ -227,19 +248,22 @@ export default function TransactionsView({ transactions, thirdParties, showToast
         throw new Error("No se pudieron extraer datos del comprobante.");
       }
 
-      // 3. Identificar o Crear Tercero (Cliente/Proveedor)
+      // 3. Identificar o Crear Tercero (Proveedor)
       let thirdPartyId = '';
-      if (extracted.ruc) {
-        const matchedTp = thirdParties.find(tp => tp.ruc === matchedRucFormat(extracted.ruc));
+      const cleanSupplierRuc = matchedRucFormat(extracted.ruc);
+      let supplierNameResolved = extracted.razonSocial || '';
+      if (cleanSupplierRuc) {
+        const matchedTp = thirdParties.find(tp => String(tp.ruc || '').trim() === cleanSupplierRuc);
         if (matchedTp) {
           thirdPartyId = matchedTp.id;
+          supplierNameResolved = supplierNameResolved || matchedTp.name;
           showToast(`Proveedor encontrado: ${matchedTp.name}`, 'success');
         } else {
-          // Auto-crear tercero si no existe
           const newTpId = `tp_${new Date().getTime()}`;
           const newTp = {
-            name: extracted.razonSocial || 'Nuevo Proveedor Extraído',
-            ruc: matchedRucFormat(extracted.ruc),
+            name: supplierNameResolved || 'Nuevo Proveedor Extraído',
+            ruc: cleanSupplierRuc,
+            tipoIdentificacion: cleanSupplierRuc.length === 10 ? 'cedula' : 'ruc',
             email: extracted.email || '',
             phone: extracted.phone || '',
             type: 'proveedor',
@@ -247,64 +271,78 @@ export default function TransactionsView({ transactions, thirdParties, showToast
           };
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_third_parties', newTpId), newTp);
           thirdPartyId = newTpId;
-          showToast(`Contacto creado automáticamente: ${newTp.name}`, 'success');
+          supplierNameResolved = newTp.name;
+          showToast(`Proveedor creado automáticamente: ${newTp.name}`, 'success');
         }
       }
 
       // 4. Detectar duplicados
-      const isDuplicate = transactions.some(tx => 
-        tx.thirdPartyId === thirdPartyId && 
-        tx.documentNumber === extracted.documentNumber && 
-        extracted.documentNumber !== ""
+      const isDuplicate = transactions.some(tx =>
+        tx.type === 'egreso' && (
+          (extracted.claveAcceso && tx.claveAcceso === extracted.claveAcceso) ||
+          (tx.thirdPartyId === thirdPartyId && tx.documentNumber === extracted.documentNumber && extracted.documentNumber !== '')
+        )
       );
 
       if (isDuplicate) {
-        showToast("Advertencia: Este número de comprobante ya está registrado.", "error");
+        showToast("Advertencia: Este número de comprobante ya está registrado.", "warning");
       }
 
-      // 5. Subir archivo a Storage
+      // 5. Subir archivo a Storage (si storage está disponible)
       let downloadURL = '';
       let storagePath = '';
-      try {
-        const extension = file.name.split('.').pop();
-        const path = `artifacts/${appId}/finances/${new Date().getTime()}_capture.${extension}`;
-        const storageRef = ref(storage, path);
-        const uploadTask = await uploadBytesResumable(storageRef, file);
-        downloadURL = await getDownloadURL(uploadTask.ref);
-        storagePath = path;
-      } catch (storageErr) {
-        console.error(storageErr);
+      if (storage) {
+        try {
+          const extension = file.name.split('.').pop();
+          const path = `artifacts/${appId}/finances/${new Date().getTime()}_capture.${extension}`;
+          const storageRef = ref(storage, path);
+          const uploadTask = await uploadBytesResumable(storageRef, file);
+          downloadURL = await getDownloadURL(uploadTask.ref);
+          storagePath = path;
+        } catch (storageErr) {
+          console.error(storageErr);
+        }
       }
 
-      // 6. Enviar datos al formulario central
+      // 6. Enviar todos los datos completos al flujo de Compras
       const newTxData = {
         id: '',
         type: 'egreso',
         date: extracted.date || getEcuadorDateString(),
-        documentType: 'factura',
+        documentType: parsedXmlPurchase?.documentType || 'factura',
         documentNumber: extracted.documentNumber || '',
+        claveAcceso: String(extracted.claveAcceso || '').replace(/\D/g, ''),
         thirdPartyId,
-        category: extracted.category || 'otros',
+        supplierId: thirdPartyId,
+        thirdPartyName: supplierNameResolved,
+        supplierName: supplierNameResolved,
+        thirdPartyRuc: cleanSupplierRuc,
+        supplierRuc: cleanSupplierRuc,
+        category: extracted.category || 'compras',
+        description: extracted.description || extracted.concepto || `Compra ${extracted.documentNumber || ''}`.trim(),
         currency: 'USD',
         baseImponible: Number(extracted.baseImponible) || 0,
         ivaPorcentaje: extracted.ivaPorcentaje || 15,
         ivaValor: Number(extracted.ivaValor) || 0,
+        otrosImpuestos: Number(extracted.otrosImpuestos) || 0,
         retencionFuente: 0,
         retencionIva: 0,
         total: Number(extracted.total) || 0,
+        items: Array.isArray(extracted.items) ? extracted.items : [],
+        xmlContent: extracted.xmlContent || '',
         paymentMethod: extracted.paymentMethod || 'transferencia',
         paymentStatus: 'pendiente',
-        sriStatus: file.name.endsWith('.xml') ? 'autorizado' : 'pendiente',
-        xmlUrl: file.name.endsWith('.xml') ? downloadURL : '',
-        xmlPath: file.name.endsWith('.xml') ? storagePath : '',
-        pdfUrl: file.name.endsWith('.pdf') ? downloadURL : '',
-        pdfPath: file.name.endsWith('.pdf') ? storagePath : '',
+        sriStatus: isXmlFile ? 'pendiente_verificacion' : 'sin_clave',
+        xmlUrl: isXmlFile ? downloadURL : '',
+        xmlPath: isXmlFile ? storagePath : '',
+        pdfUrl: file.name.toLowerCase().endsWith('.pdf') ? downloadURL : '',
+        pdfPath: file.name.toLowerCase().endsWith('.pdf') ? storagePath : '',
         isAIDetected: true,
         isDuplicateWarning: isDuplicate
       };
 
       onOpenForm(newTxData);
-      showToast("Datos leídos con éxito. Revisa el formulario.", "success");
+      showToast("Datos leídos con éxito. Elige si afecta inventario para revisarlos.", "success");
 
     } catch (err) {
       console.error(err);

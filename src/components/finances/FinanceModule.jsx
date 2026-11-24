@@ -1,15 +1,17 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { createThemedPortal } from '../ui/themePortal';
-import { UiBox, UiText, UiCard, UiHeading, UiLabel } from '../ui/layout';
-import { UiButton, UiInput } from '../ui/controls';
+import { UiBox, UiText } from '../ui/layout';
+import { UiButton } from '../ui/controls';
 import { useState, useEffect, useRef } from 'react';
 import { 
   DollarSign, PieChart, Users, FileText, Download, Sparkles, ShoppingCart, Package,
   ArrowUpCircle, Percent, CreditCard, ShoppingBag, TrendingUp,
-  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator, Shield
+  X, ArrowRight, Upload, Building2, Landmark, Scan, BarChart3, BookOpen, Calculator, Shield,
+  KeyRound, Loader2, CheckCircle2
 } from 'lucide-react';
-import { getEcuadorDateString } from '../../services/sriService';
+import { getEcuadorDateString, consultarAutorizacionSRI } from '../../services/sriService';
 import { parsePurchaseInvoiceXml } from '../../services/purchaseXml';
+import { analizarComprobanteConGemini } from '../../services/geminiService';
 import { db, storage, appId } from '../../firebase';
 import ValidacionesView from './ValidacionesView';
 import FinanceDashboard from './FinanceDashboard';
@@ -116,6 +118,9 @@ export default function FinanceModule({
   useEffect(() => () => checkoutResolver.current?.(false), []);
   const [purchaseMethod, setPurchaseMethod] = useState(null);
   const [showPurchaseMethodSelect, setShowPurchaseMethodSelect] = useState(false);
+  const [purchaseModalScope, setPurchaseModalScope] = useState('con_inventario');
+  const [purchaseClaveSri, setPurchaseClaveSri] = useState('');
+  const [purchaseImportLoading, setPurchaseImportLoading] = useState('');
 
   // Sincronizar subTab de ventas y personas desde prop de navegación rápida
   useEffect(() => {
@@ -196,11 +201,103 @@ export default function FinanceModule({
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = '';
-    setShowPurchaseMethodSelect(false);
+    setPurchaseImportLoading('xml');
     try {
-      reviewPurchase(parsePurchaseInvoiceXml(await file.text(), products), method);
-      showToast?.('Revisa la compra antes de guardarla.', 'info');
-    } catch (err) { console.error(err); showToast?.(err.message || 'Error al procesar XML.', 'error'); }
+      const parsed = parsePurchaseInvoiceXml(await file.text(), products);
+      const matchedSupplier = thirdParties.find(t => String(t.ruc || '').trim() === String(parsed.supplierRuc || '').trim() && t.type !== 'cliente');
+      const autoDesc = (parsed.items || []).map(i => i.name).filter(Boolean).slice(0, 3).join(', ');
+      reviewPurchase({
+        ...parsed,
+        supplierId: matchedSupplier?.id || '',
+        thirdPartyId: matchedSupplier?.id || '',
+        thirdPartyName: parsed.supplierName || matchedSupplier?.name || '',
+        thirdPartyRuc: parsed.supplierRuc || matchedSupplier?.ruc || '',
+        description: autoDesc || `Compra ${parsed.documentNumber || ''}`.trim(),
+      }, method);
+      showToast?.('XML cargado. Revisa los datos antes de guardar.', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast?.(err.message || 'Error al procesar XML.', 'error');
+    } finally {
+      setPurchaseImportLoading('');
+    }
+  };
+
+  // Consultar factura de compra directo en el SRI por Clave de Acceso (49 dígitos)
+  const handleSriKeyPurchase = async (method) => {
+    const cleanKey = String(purchaseClaveSri || '').replace(/\D/g, '').trim();
+    if (!/^\d{49}$/.test(cleanKey)) {
+      showToast?.('La Clave de Acceso SRI debe tener exactamente 49 dígitos numéricos.', 'warning');
+      return;
+    }
+    setPurchaseImportLoading('sri');
+    try {
+      const sriResult = await consultarAutorizacionSRI(cleanKey, cleanKey[23]);
+      if (sriResult?.status !== 'autorizado' || !sriResult.signedXml) {
+        throw new Error(sriResult?.message || 'El comprobante no aparece autorizado en el SRI.');
+      }
+      const parsed = parsePurchaseInvoiceXml(sriResult.signedXml, products);
+      const matchedSupplier = thirdParties.find(t => String(t.ruc || '').trim() === String(parsed.supplierRuc || '').trim() && t.type !== 'cliente');
+      const autoDesc = (parsed.items || []).map(i => i.name).filter(Boolean).slice(0, 3).join(', ');
+      setPurchaseClaveSri('');
+      reviewPurchase({
+        ...parsed,
+        sriStatus: 'autorizado',
+        xmlAutorizado: sriResult.xmlAutorizado || '',
+        supplierId: matchedSupplier?.id || '',
+        thirdPartyId: matchedSupplier?.id || '',
+        thirdPartyName: parsed.supplierName || matchedSupplier?.name || '',
+        thirdPartyRuc: parsed.supplierRuc || matchedSupplier?.ruc || '',
+        description: autoDesc || `Compra ${parsed.documentNumber || ''}`.trim(),
+      }, method);
+      showToast?.('Factura descargada del SRI con éxito. Revisa y confirma.', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast?.(err.message || 'No se pudo consultar la clave de acceso en el SRI.', 'error');
+    } finally {
+      setPurchaseImportLoading('');
+    }
+  };
+
+  // Analizar PDF o Imagen de compra con IA (Gemini OCR)
+  const handleOcrFilePurchase = async (e, method) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setPurchaseImportLoading('ocr');
+    try {
+      const extracted = await analizarComprobanteConGemini(file);
+      if (!extracted) throw new Error('No se pudieron extraer datos del archivo.');
+      const cleanRuc = String(extracted.ruc || '').replace(/\s+/g, '').trim();
+      const matchedSupplier = cleanRuc
+        ? thirdParties.find(t => String(t.ruc || '').trim() === cleanRuc && t.type !== 'cliente')
+        : null;
+      reviewPurchase({
+        documentType: 'factura',
+        documentNumber: extracted.documentNumber || '',
+        claveAcceso: String(extracted.claveAcceso || '').replace(/\D/g, ''),
+        date: extracted.date || getEcuadorDateString(),
+        supplierId: matchedSupplier?.id || '',
+        thirdPartyId: matchedSupplier?.id || '',
+        supplierName: extracted.razonSocial || matchedSupplier?.name || '',
+        thirdPartyName: extracted.razonSocial || matchedSupplier?.name || '',
+        supplierRuc: cleanRuc || matchedSupplier?.ruc || '',
+        thirdPartyRuc: cleanRuc || matchedSupplier?.ruc || '',
+        baseImponible: Number(extracted.baseImponible) || 0,
+        ivaValor: Number(extracted.ivaValor) || 0,
+        total: Number(extracted.total) || 0,
+        category: extracted.category || 'compras',
+        description: extracted.description || extracted.concepto || `Compra ${extracted.documentNumber || ''}`.trim(),
+        paymentMethod: extracted.paymentMethod || 'transferencia',
+        isAIDetected: true,
+      }, method);
+      showToast?.('Comprobante analizado con IA. Verifica los valores antes de guardar.', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast?.(err.message || 'No se pudo analizar el archivo con IA.', 'error');
+    } finally {
+      setPurchaseImportLoading('');
+    }
   };
 
   // Convertir cotización a Factura
@@ -553,7 +650,7 @@ export default function FinanceModule({
                   <TransactionsView 
                     transactions={transactions} 
                     thirdParties={thirdParties} 
-                    
+                    products={products}
                     showToast={showToast} 
                     db={db} 
                     storage={storage} 
@@ -601,77 +698,240 @@ export default function FinanceModule({
         />
       )}
 
-      {/* Modal: Seleccion de Metodo de Compra */}
+      {/* Modal: Registrar Compra — Brevo Flat Design con todas las opciones de carga */}
       {showPurchaseMethodSelect && createThemedPortal(
-        <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"}} onClick={() => setShowPurchaseMethodSelect(false)}>
-          <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-lg"}} onClick={e => e.stopPropagation()}>
-            <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-3"}}>
-              <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Registrar Compra</UiHeading>
-              <UiButton iconOnly onClick={() => setShowPurchaseMethodSelect(false)} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
-            </UiBox>
-            <UiBox {...{"className":"p-5 space-y-3"}}>
-              <UiText as="p" {...{"size":"2","color":"gray","highContrast":true}}>Selecciona el metodo para registrar la compra:</UiText>
-              
-              {/* Con Inventario + Manual */}
-              <UiButton onClick={() => handleConfirmPurchaseMethod('con_inventario')} {...{"variant":"outline","className":"w-full text-left group"}}>
-                <UiBox {...{"className":"flex items-start gap-3"}}>
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2 shrink-0"}}>
-                    <Package size={20} />
-                  </UiBox>
-                  <UiBox {...{"className":"flex-1"}}>
-                    <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Con Inventario - Manual</UiHeading>
-                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Ingresa proveedor, productos, cantidades y costos manualmente. Actualiza stock y kardex.</UiText>
-                  </UiBox>
-                  <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
-                </UiBox>
-              </UiButton>
+        <div
+          className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4"
+          onClick={() => { if (!purchaseImportLoading) setShowPurchaseMethodSelect(false); }}
+        >
+          <div
+            className="w-full max-w-xl bg-white border border-[#e3e3e3] rounded-2xl overflow-hidden max-h-[92dvh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#efefef] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
+                  <ShoppingBag size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#1b1b1b] leading-tight">Registrar Compra</h3>
+                  <p className="text-xs text-[#666666]">
+                    {editingTx?.isAIDetected
+                      ? 'Comprobante leído. Elige si afecta inventario para revisarlo.'
+                      : 'Elige la modalidad y el método de carga del comprobante'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={Boolean(purchaseImportLoading)}
+                onClick={() => setShowPurchaseMethodSelect(false)}
+                className="w-8 h-8 rounded-xl border border-[#e3e3e3] bg-[#fafafa] hover:bg-[#efefef] text-[#444444] flex items-center justify-center cursor-pointer disabled:opacity-50"
+                aria-label="Cerrar"
+              >
+                <X size={16} />
+              </button>
+            </div>
 
-              {/* Con Inventario + XML */}
-              <UiLabel {...{"className":"w-full p-4 text-left group cursor-pointer block"}}>
-                <UiBox {...{"className":"flex items-start gap-3"}}>
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--blue-3)","color":"var(--blue-12)"},"className":"p-2 shrink-0"}}>
-                    <Upload size={20} />
-                  </UiBox>
-                  <UiBox {...{"className":"flex-1"}}>
-                    <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Con Inventario - Importar XML</UiHeading>
-                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Carga el XML, revisa los productos vinculados y confirma la compra.</UiText>
-                  </UiBox>
-                  <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
-                </UiBox>
-                <UiInput type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'con_inventario')} {...{"className":"hidden"}} />
-              </UiLabel>
+            <div className="p-5 space-y-4 overflow-y-auto">
+              {/* Caso A: El usuario ya arrastró un PDF/XML/Imagen en el Historial de Compras */}
+              {editingTx?.isAIDetected ? (
+                <div className="space-y-4">
+                  <div className="rounded-xl bg-[#f0fdf4] border border-[#b3f4cb] p-3.5 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-[#004227]">
+                      <CheckCircle2 size={14} className="text-[#0b996f]" />
+                      Datos extraídos listos para revisión
+                    </div>
+                    <div className="text-[#1b1b1b]">
+                      <strong>{editingTx.supplierName || editingTx.thirdPartyName || 'Proveedor'}</strong>
+                      {(editingTx.supplierRuc || editingTx.thirdPartyRuc) ? ` (${editingTx.supplierRuc || editingTx.thirdPartyRuc})` : ''}
+                      {editingTx.documentNumber ? ` · Doc ${editingTx.documentNumber}` : ''}
+                      {Number(editingTx.total) > 0 ? ` · Total $${Number(editingTx.total).toFixed(2)}` : ''}
+                    </div>
+                  </div>
 
-              {/* Sin Inventario + Manual */}
-              <UiButton onClick={() => handleConfirmPurchaseMethod('sin_inventario')} {...{"variant":"outline","className":"w-full text-left group"}}>
-                <UiBox {...{"className":"flex items-start gap-3"}}>
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"p-2 shrink-0"}}>
-                    <FileText size={20} />
-                  </UiBox>
-                  <UiBox {...{"className":"flex-1"}}>
-                    <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Sin Inventario - Manual</UiHeading>
-                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Solo registro contable. Para gastos, servicios o compras sin movimiento de stock.</UiText>
-                  </UiBox>
-                  <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
-                </UiBox>
-              </UiButton>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleConfirmPurchaseMethod('con_inventario')}
+                      className="text-left p-4 rounded-xl border border-[#b3f4cb] bg-[#f0fdf4] hover:bg-[#e8fedf] transition-colors cursor-pointer space-y-1.5"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-white border border-[#b3f4cb] text-[#004227] flex items-center justify-center">
+                        <Package size={18} />
+                      </div>
+                      <div className="text-sm font-bold text-[#004227]">Con Inventario</div>
+                      <p className="text-xs text-[#444444]">Vincula los ítems al catálogo y actualiza stock y kardex.</p>
+                    </button>
 
-              {/* Sin Inventario + XML */}
-              <UiLabel {...{"className":"w-full p-4 text-left group cursor-pointer block"}}>
-                <UiBox {...{"className":"flex items-start gap-3"}}>
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","color":"var(--gray-12)"},"className":"p-2 shrink-0"}}>
-                    <Upload size={20} />
-                  </UiBox>
-                  <UiBox {...{"className":"flex-1"}}>
-                    <UiHeading as="h4" {...{"size":"3","weight":"bold","color":"gray","highContrast":true}}>Sin Inventario - Importar XML</UiHeading>
-                    <UiText as="p" {...{"size":"1","color":"gray","highContrast":true,"className":"mt-1"}}>Carga el XML y revisa el gasto antes de registrarlo.</UiText>
-                  </UiBox>
-                  <ArrowRight size={16} {...{"style":{"color":"var(--gray-11)"},"className":"shrink-0 self-center"}} />
-                </UiBox>
-                <UiInput type="file" accept=".xml" onChange={(e) => handleAutoXmlPurchase(e, 'sin_inventario')} {...{"className":"hidden"}} />
-              </UiLabel>
-            </UiBox>
-          </UiCard>
-        </UiBox>
+                    <button
+                      type="button"
+                      onClick={() => handleConfirmPurchaseMethod('sin_inventario')}
+                      className="text-left p-4 rounded-xl border border-[#e3e3e3] bg-white hover:bg-[#fafafa] transition-colors cursor-pointer space-y-1.5"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-[#fafafa] border border-[#e3e3e3] text-[#1b1b1b] flex items-center justify-center">
+                        <FileText size={18} />
+                      </div>
+                      <div className="text-sm font-bold text-[#1b1b1b]">Sin Inventario</div>
+                      <p className="text-xs text-[#666666]">Solo registro contable para gastos, servicios o suministros.</p>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Paso 1: Selector de modalidad (Con Inventario vs Sin Inventario) */}
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#666666] block">
+                      1. Tipo de compra
+                    </span>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setPurchaseModalScope('con_inventario')}
+                        className={`text-left p-3 rounded-xl border transition-colors cursor-pointer flex items-start gap-2.5 ${
+                          purchaseModalScope === 'con_inventario'
+                            ? 'bg-[#e8fedf] border-[#0b996f] text-[#004227]'
+                            : 'bg-white border-[#e3e3e3] text-[#1b1b1b] hover:bg-[#fafafa]'
+                        }`}
+                      >
+                        <Package size={17} className="shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold leading-tight">Con Inventario</div>
+                          <div className="text-[11px] opacity-80 mt-0.5 leading-snug">Actualiza stock y kardex</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPurchaseModalScope('sin_inventario')}
+                        className={`text-left p-3 rounded-xl border transition-colors cursor-pointer flex items-start gap-2.5 ${
+                          purchaseModalScope === 'sin_inventario'
+                            ? 'bg-[#e8fedf] border-[#0b996f] text-[#004227]'
+                            : 'bg-white border-[#e3e3e3] text-[#1b1b1b] hover:bg-[#fafafa]'
+                        }`}
+                      >
+                        <FileText size={17} className="shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold leading-tight">Sin Inventario</div>
+                          <div className="text-[11px] opacity-80 mt-0.5 leading-snug">Gastos y servicios contables</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Paso 2: Todas las opciones de carga */}
+                  <div className="space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#666666] block">
+                      2. Método de carga
+                    </span>
+
+                    {/* Opción 1: Importar XML del SRI */}
+                    <label
+                      className={`flex items-center gap-3.5 p-3.5 rounded-xl border border-[#e3e3e3] bg-white hover:border-[#0b996f] hover:bg-[#f0fdf4]/40 transition-colors cursor-pointer ${
+                        purchaseImportLoading ? 'opacity-60 pointer-events-none' : ''
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
+                        {purchaseImportLoading === 'xml' ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-[#1b1b1b]">Importar XML del SRI (.xml)</div>
+                        <div className="text-xs text-[#666666] mt-0.5">
+                          Lectura exacta de proveedor, ítems, impuestos y clave de acceso autorizada.
+                        </div>
+                      </div>
+                      <ArrowRight size={16} className="text-[#666666] shrink-0" />
+                      <input
+                        type="file"
+                        accept=".xml,text/xml,application/xml"
+                        onChange={(e) => handleAutoXmlPurchase(e, purchaseModalScope)}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {/* Opción 2: Consultar directo en el SRI por Clave de Acceso (49 dígitos) */}
+                    <div className="p-3.5 rounded-xl border border-[#e3e3e3] bg-[#fafafa] space-y-2.5">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white text-[#0b996f] border border-[#e3e3e3] flex items-center justify-center shrink-0">
+                          {purchaseImportLoading === 'sri' ? <Loader2 size={18} className="animate-spin" /> : <KeyRound size={18} />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold text-[#1b1b1b]">Consultar por Clave de Acceso SRI</div>
+                          <div className="text-xs text-[#666666] mt-0.5">
+                            Pega los 49 dígitos de la factura para descargar el XML oficial directo del SRI.
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          value={purchaseClaveSri}
+                          onChange={(e) => setPurchaseClaveSri(e.target.value.replace(/\D/g, '').slice(0, 49))}
+                          placeholder="Pega aquí la Clave de Acceso (49 dígitos)..."
+                          maxLength={49}
+                          disabled={Boolean(purchaseImportLoading)}
+                          className="flex-1 px-3 py-2 text-xs font-mono bg-white border border-[#e3e3e3] rounded-xl text-[#1b1b1b] focus:outline-hidden focus:border-[#0b996f]"
+                        />
+                        <button
+                          type="button"
+                          disabled={Boolean(purchaseImportLoading) || purchaseClaveSri.length !== 49}
+                          onClick={() => handleSriKeyPurchase(purchaseModalScope)}
+                          className="px-3.5 py-2 rounded-xl bg-[#0b996f] hover:bg-[#004227] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-45 shrink-0"
+                        >
+                          {purchaseImportLoading === 'sri' ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                          Consultar SRI
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Opción 3: Subir PDF o Foto / Imagen con IA (OCR) */}
+                    <label
+                      className={`flex items-center gap-3.5 p-3.5 rounded-xl border border-[#e3e3e3] bg-white hover:border-[#0b996f] hover:bg-[#f0fdf4]/40 transition-colors cursor-pointer ${
+                        purchaseImportLoading ? 'opacity-60 pointer-events-none' : ''
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-[#fcfbe7] text-[#866308] border border-[#f0df8a] flex items-center justify-center shrink-0">
+                        {purchaseImportLoading === 'ocr' ? <Loader2 size={18} className="animate-spin" /> : <Scan size={18} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-[#1b1b1b]">Subir PDF o Foto / Imagen (IA OCR)</div>
+                        <div className="text-xs text-[#666666] mt-0.5">
+                          Sube un RIDE en PDF o foto de factura/recibo y la IA completa los campos.
+                        </div>
+                      </div>
+                      <ArrowRight size={16} className="text-[#666666] shrink-0" />
+                      <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        onChange={(e) => handleOcrFilePurchase(e, purchaseModalScope)}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {/* Opción 4: Registro Manual */}
+                    <button
+                      type="button"
+                      disabled={Boolean(purchaseImportLoading)}
+                      onClick={() => handleConfirmPurchaseMethod(purchaseModalScope)}
+                      className="w-full text-left flex items-center gap-3.5 p-3.5 rounded-xl border border-[#e3e3e3] bg-white hover:border-[#1b1b1b] hover:bg-[#fafafa] transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-[#f4f4f5] text-[#1b1b1b] border border-[#e3e3e3] flex items-center justify-center shrink-0">
+                        <FileText size={18} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-[#1b1b1b]">Ingreso Manual</div>
+                        <div className="text-xs text-[#666666] mt-0.5">
+                          Registra proveedor, {purchaseModalScope === 'con_inventario' ? 'productos, cantidades y costos' : 'concepto del gasto, base e IVA'} paso a paso.
+                        </div>
+                      </div>
+                      <ArrowRight size={16} className="text-[#666666] shrink-0" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </UiBox>
   );

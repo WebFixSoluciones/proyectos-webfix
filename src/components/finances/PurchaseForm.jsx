@@ -6,15 +6,16 @@ import { useState, useEffect, useRef, Fragment } from 'react';
 import { 
   X, Plus, Search, Upload, Package, FileText,
   ShoppingBag, ChevronRight, ChevronLeft,
-  CheckCircle2, UserPlus
+  CheckCircle2, UserPlus, KeyRound, Scan, Loader2
 } from 'lucide-react';
 import { doc, setDoc, getDoc, getDocs, collection, query, where, runTransaction } from '../../services/financeStore.js';
 import { registerTransactionInventory } from '../../services/inventoryLedger';
 import { productRepository } from '../../modules/inventory/repositories/ProductRepository';
 import { normalizeProduct, tracksStock } from '../../services/productModel';
-import { getEcuadorDateString, consultarAutorizacionSRI, validarIdentificacion } from '../../services/sriService';
+import { getEcuadorDateString, consultarAutorizacionSRI, consultarRucSri, validarIdentificacion } from '../../services/sriService';
 import { verifyPurchaseSriXml } from '../../services/purchaseSriVerification';
 import { parsePurchaseInvoiceXml } from '../../services/purchaseXml';
+import { analizarComprobanteConGemini } from '../../services/geminiService';
 import { sincronizarCompra } from '../../services/integracionFinanzasService';
 import { getCuentas } from '../../services/bancosService';
 import { auth } from '../../firebase';
@@ -24,6 +25,7 @@ import { fetchUnifiedWarehouses } from '../../modules/warehouse/infrastructure/W
 export default function PurchaseForm({ tx, onClose, thirdParties = [], products = [], showToast, db, appId, purchaseMethod }) {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [importBusy, setImportBusy] = useState(''); // '' | 'xml' | 'ocr' | 'sri' | 'ruc'
   const [branches, setBranches] = useState([{ id: 'sucursal-central-uuid', name: 'Bodega Central' }]);
   const [bankAccounts, setBankAccounts] = useState([]);
 
@@ -193,13 +195,119 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
   const handleXmlUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setImportBusy('xml');
     try {
       const parsed = parsePurchaseInvoiceXml(await file.text(), products);
-      const existing = thirdParties.find(t => t.ruc === parsed.supplierRuc && t.type !== 'cliente');
-      setForm(prev => ({ ...prev, ...parsed, supplierId: existing?.id || '' }));
-      showToast?.('XML cargado. Revisa los productos y el pago.', 'info');
+      const existing = thirdParties.find(t => String(t.ruc || '').trim() === String(parsed.supplierRuc || '').trim() && t.type !== 'cliente');
+      const autoDesc = (parsed.items || []).map(i => i.name).filter(Boolean).slice(0, 3).join(', ');
+      setForm(prev => ({
+        ...prev,
+        ...parsed,
+        supplierId: existing?.id || prev.supplierId || '',
+        description: prev.description || autoDesc || `Compra ${parsed.documentNumber || ''}`.trim(),
+      }));
+      showToast?.('XML cargado. Revisa los productos y el pago.', 'success');
     } catch (error) { showToast?.(error.message || 'Error al procesar XML.', 'error'); }
+    finally { setImportBusy(''); }
     e.target.value = '';
+  };
+
+  // PDF / Imagen OCR con IA (Gemini)
+  const handleOcrUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportBusy('ocr');
+    try {
+      const extracted = await analizarComprobanteConGemini(file);
+      if (!extracted) throw new Error('No se pudieron extraer datos del archivo.');
+      const cleanRuc = String(extracted.ruc || '').replace(/\s+/g, '').trim();
+      const existing = cleanRuc
+        ? thirdParties.find(t => String(t.ruc || '').trim() === cleanRuc && t.type !== 'cliente')
+        : null;
+      setForm(prev => ({
+        ...prev,
+        documentNumber: extracted.documentNumber || prev.documentNumber,
+        claveAcceso: String(extracted.claveAcceso || '').replace(/\D/g, '') || prev.claveAcceso,
+        date: extracted.date || prev.date,
+        supplierId: existing?.id || prev.supplierId,
+        supplierName: extracted.razonSocial || existing?.name || prev.supplierName,
+        supplierRuc: cleanRuc || existing?.ruc || prev.supplierRuc,
+        baseImponible: Number(extracted.baseImponible) || prev.baseImponible,
+        ivaValor: Number(extracted.ivaValor) || prev.ivaValor,
+        total: Number(extracted.total) || prev.total,
+        category: extracted.category || prev.category,
+        description: extracted.description || extracted.concepto || prev.description,
+        paymentMethod: extracted.paymentMethod || prev.paymentMethod,
+      }));
+      showToast?.('Archivo analizado con IA. Verifica proveedor y montos.', 'success');
+    } catch (error) { showToast?.(error.message || 'Error al analizar comprobante con IA.', 'error'); }
+    finally { setImportBusy(''); }
+    e.target.value = '';
+  };
+
+  // Consultar factura directo en el SRI por Clave de Acceso (49 dígitos)
+  const handleConsultSriKey = async () => {
+    const cleanKey = String(form.claveAcceso || '').replace(/\D/g, '').trim();
+    if (!/^\d{49}$/.test(cleanKey)) {
+      showToast?.('Ingresa los 49 dígitos de la Clave de Acceso SRI para consultar.', 'warning');
+      return;
+    }
+    setImportBusy('sri');
+    try {
+      const sriResult = await consultarAutorizacionSRI(cleanKey, cleanKey[23]);
+      if (sriResult?.status !== 'autorizado' || !sriResult.signedXml) {
+        throw new Error(sriResult?.message || 'El comprobante aún no figura autorizado en el SRI.');
+      }
+      const parsed = parsePurchaseInvoiceXml(sriResult.signedXml, products);
+      const existing = thirdParties.find(t => String(t.ruc || '').trim() === String(parsed.supplierRuc || '').trim() && t.type !== 'cliente');
+      const autoDesc = (parsed.items || []).map(i => i.name).filter(Boolean).slice(0, 3).join(', ');
+      setForm(prev => ({
+        ...prev,
+        ...parsed,
+        sriStatus: 'autorizado',
+        xmlAutorizado: sriResult.xmlAutorizado || '',
+        supplierId: existing?.id || prev.supplierId || '',
+        description: prev.description || autoDesc || `Compra ${parsed.documentNumber || ''}`.trim(),
+      }));
+      showToast?.('Factura descargada desde el SRI y autocompletada.', 'success');
+    } catch (error) {
+      showToast?.(error.message || 'No se pudo descargar el comprobante del SRI.', 'error');
+    } finally {
+      setImportBusy('');
+    }
+  };
+
+  // Consultar RUC del proveedor en el SRI
+  const handleConsultSupplierRuc = async () => {
+    const cleanRuc = String(form.supplierRuc || '').replace(/\s+/g, '').trim();
+    if (!cleanRuc || (cleanRuc.length !== 10 && cleanRuc.length !== 13)) {
+      showToast?.('Ingresa un RUC (13 dígitos) o Cédula (10 dígitos) para consultar.', 'warning');
+      return;
+    }
+    setImportBusy('ruc');
+    try {
+      const existing = thirdParties.find(t => String(t.ruc || '').trim() === cleanRuc && t.type !== 'cliente');
+      if (existing) {
+        setForm(prev => ({ ...prev, supplierId: existing.id, supplierName: existing.name, supplierRuc: existing.ruc }));
+        showToast?.(`Proveedor encontrado en tu directorio: ${existing.name}`, 'success');
+        return;
+      }
+      const info = await consultarRucSri(cleanRuc);
+      if (info?.razonSocial || info?.nombreComercial) {
+        setForm(prev => ({
+          ...prev,
+          supplierRuc: cleanRuc,
+          supplierName: info.razonSocial || info.nombreComercial || prev.supplierName,
+        }));
+        showToast?.(`Datos obtenidos del SRI: ${info.razonSocial || info.nombreComercial}`, 'success');
+      } else {
+        showToast?.('No se encontró razón social en el SRI. Puedes ingresarla manualmente.', 'info');
+      }
+    } catch (error) {
+      showToast?.(error.message || 'No se pudo consultar el RUC en el SRI.', 'warning');
+    } finally {
+      setImportBusy('');
+    }
   };
 
   // Save
@@ -214,6 +322,10 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     if (form.purchaseType === 'con_inventario' && (!form.items.length || form.items.some(item => !item.productId))) { showToast?.('Asigna un producto de inventario a cada línea.', 'warning'); return; }
     if (!String(form.documentNumber || '').trim()) { showToast?.('Ingresa el número del comprobante.', 'warning'); return; }
     if (form.claveAcceso && !/^\d{49}$/.test(form.claveAcceso)) { showToast?.('La clave SRI debe tener 49 dígitos.', 'error'); return; }
+    if (form.paymentMethod === 'transferencia' && form.paymentStatus === 'pagado' && !form.cuentaBancariaId) {
+      showToast?.('Selecciona la cuenta bancaria de salida para el pago por transferencia.', 'warning');
+      return;
+    }
     saveLock.current = true;
     setSaving(true);
     const docId = persistedId.current || (form.documentNumber
@@ -380,166 +492,274 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
     t.type !== 'cliente' && (supplierSearch ? (t.name?.toLowerCase().includes(supplierSearch.toLowerCase()) || t.ruc?.includes(supplierSearch)) : true)
   ).slice(0, 6);
 
-  const filteredProducts = products.filter(p => tracksStock(p) &&
-    productSearch ? (p.name?.toLowerCase().includes(productSearch.toLowerCase()) || p.sku?.toLowerCase().includes(productSearch.toLowerCase())) : true
+  const filteredProducts = products.filter(p =>
+    tracksStock(p) && (!productSearch || p.name?.toLowerCase().includes(productSearch.toLowerCase()) || p.sku?.toLowerCase().includes(productSearch.toLowerCase()))
   ).slice(0, 8);
 
   return createThemedPortal(
-    <UiBox {...{"className":"erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-2 sm:p-4"}} onClick={onClose}>
-      <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden"}} onClick={e => e.stopPropagation()}>
+    <UiBox className="erp-dialog-overlay fixed inset-0 z-[300] flex items-center justify-center p-2 sm:p-4" onClick={onClose}>
+      <div className="w-full max-w-2xl max-h-[95vh] bg-white border border-[#e3e3e3] rounded-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         
-        {/* Header + Stepper */}
-        <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"shrink-0 px-5 py-3 space-y-3"}}>
-          <UiBox {...{"className":"flex items-center justify-between"}}>
-            <UiBox {...{"className":"flex items-center gap-3"}}>
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"p-1.5"}}>
+        {/* Header + Stepper Brevo */}
+        <div className="shrink-0 px-5 py-3.5 border-b border-[#efefef] space-y-3 bg-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
                 <ShoppingBag size={16} />
-              </UiBox>
-              <UiHeading as="h2" {...{"color":"gray","weight":"bold","highContrast":true}}>
-                {tx?.id ? 'Editar Compra' : 'Nueva Compra'}
-              </UiHeading>
-            </UiBox>
-            <UiButton iconOnly onClick={onClose} {...{"variant":"surface","color":"gray"}}><X size={16} /></UiButton>
-          </UiBox>
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-[#1b1b1b] leading-tight">
+                  {tx?.id ? 'Editar Compra' : 'Nueva Compra'}
+                </h2>
+                <p className="text-[11px] text-[#666666]">
+                  {form.purchaseType === 'con_inventario' ? 'Con movimiento de inventario y kardex' : 'Registro contable (gastos / servicios)'}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 rounded-xl border border-[#e3e3e3] bg-[#fafafa] hover:bg-[#efefef] text-[#444444] flex items-center justify-center cursor-pointer"
+              aria-label="Cerrar"
+            >
+              <X size={16} />
+            </button>
+          </div>
           {/* Stepper dots */}
-          <UiBox {...{"className":"flex items-center gap-1.5"}}>
+          <div className="flex items-center gap-2">
             {[1, 2, 3].filter(s => s <= maxStep).map(s => (
               <Fragment key={s}>
-                <UiBox {...mergeThemeProps({"className":"flex items-center gap-1.5"}, {}, (step >= s ? {"style":{"color":"var(--blue-11)"}} : {"style":{"color":"var(--gray-11)"}}))}>
-                  <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"w-6 h-6 flex items-center justify-center text-xs font-bold"}, {}, (step >= s ? {"style":{"backgroundColor":"var(--blue-9)","color":"#ffffff"}} : {"style":{"backgroundColor":"var(--gray-3)","color":"var(--gray-11)"}}))}>
-                    {step > s ? <CheckCircle2 size={12} /> : s}
-                  </UiBox>
-                  <UiText {...{"size":"1","weight":"medium","className":"hidden sm:inline"}}>
-                    {s === 1 ? 'Datos' : s === 2 && form.purchaseType === 'con_inventario' ? 'Productos' : 'Confirmar'}
-                  </UiText>
-                </UiBox>
-                {s < maxStep && <UiBox {...mergeThemeProps({"style":{"borderRadius":"var(--radius-3)"},"className":"flex-1 h-0.5"}, {}, (step > s ? {"style":{"backgroundColor":"var(--blue-9)"}} : {"style":{"backgroundColor":"var(--gray-4)"}}))} />}
+                <div className={`flex items-center gap-1.5 text-xs font-semibold ${step >= s ? 'text-[#004227]' : 'text-[#999999]'}`}>
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
+                    step > s ? 'bg-[#0b996f] text-white' : step === s ? 'bg-[#e8fedf] text-[#004227] border border-[#0b996f]' : 'bg-[#f4f4f5] text-[#666666]'
+                  }`}>
+                    {step > s ? <CheckCircle2 size={13} /> : s}
+                  </div>
+                  <span className="hidden sm:inline">
+                    {s === 1 ? 'Datos y Carga' : s === 2 && form.purchaseType === 'con_inventario' ? 'Productos' : 'Pago y Confirmar'}
+                  </span>
+                </div>
+                {s < maxStep && <div className={`flex-1 h-0.5 rounded-full ${step > s ? 'bg-[#0b996f]' : 'bg-[#e3e3e3]'}`} />}
               </Fragment>
             ))}
-          </UiBox>
-        </UiBox>
+          </div>
+        </div>
 
         {/* Body - scrollable */}
-        <UiBox {...{"className":"flex-1 overflow-y-auto p-5 space-y-4"}}>
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           
           {/* ===== STEP 1: DATOS GENERALES ===== */}
           {step === 1 && (
-            <UiBox {...{"className":"space-y-4"}}>
-              {/* Purchase type */}
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Tipo de compra</UiLabel>
-                <UiBox {...{"className":"flex gap-2"}}>
-                  <UiButton type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'con_inventario' }))}
-                    {...mergeThemeProps({"variant":"outline","color":"gray","className":"flex-1 text-left h-auto py-2.5 flex-col items-start"}, {}, (form.purchaseType === 'con_inventario' ? {"variant":"soft","color":"blue"} : {}))}>
-                    <Package size={16} {...{"className":"mb-1"}} />
-                    <UiBox className="font-semibold">Con Inventario</UiBox>
-                    <UiBox className="text-xs opacity-80">Controla stock y costos</UiBox>
-                  </UiButton>
-                  <UiButton type="button" onClick={() => setForm(prev => ({ ...prev, purchaseType: 'sin_inventario' }))}
-                    {...mergeThemeProps({"variant":"outline","color":"gray","className":"flex-1 text-left h-auto py-2.5 flex-col items-start"}, {}, (form.purchaseType === 'sin_inventario' ? {"variant":"soft","color":"blue"} : {}))}>
-                    <FileText size={16} {...{"className":"mb-1"}} />
-                    <UiBox className="font-semibold">Sin Inventario</UiBox>
-                    <UiBox className="text-xs opacity-80">Solo registro contable</UiBox>
-                  </UiButton>
-                </UiBox>
-              </UiBox>
+            <div className="space-y-4">
+              {/* Purchase type (Brevo cards sin clipping) */}
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#666666] block mb-1.5">Tipo de compra</span>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, purchaseType: 'con_inventario' }))}
+                    className={`text-left p-3 rounded-xl border transition-colors cursor-pointer flex items-start gap-2.5 ${
+                      form.purchaseType === 'con_inventario'
+                        ? 'bg-[#e8fedf] border-[#0b996f] text-[#004227]'
+                        : 'bg-white border-[#e3e3e3] text-[#1b1b1b] hover:bg-[#fafafa]'
+                    }`}
+                  >
+                    <Package size={17} className="shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-xs font-bold">Con Inventario</div>
+                      <div className="text-[11px] opacity-80">Controla stock y costos</div>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, purchaseType: 'sin_inventario' }))}
+                    className={`text-left p-3 rounded-xl border transition-colors cursor-pointer flex items-start gap-2.5 ${
+                      form.purchaseType === 'sin_inventario'
+                        ? 'bg-[#e8fedf] border-[#0b996f] text-[#004227]'
+                        : 'bg-white border-[#e3e3e3] text-[#1b1b1b] hover:bg-[#fafafa]'
+                    }`}
+                  >
+                    <FileText size={17} className="shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-xs font-bold">Sin Inventario</div>
+                      <div className="text-[11px] opacity-80">Solo registro contable</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
 
               {/* Document type */}
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Tipo de documento</UiLabel>
-                <UiBox {...{"className":"flex gap-2"}}>
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#666666] block mb-1.5">Tipo de documento</span>
+                <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: 'factura', label: 'Factura SRI' },
                     { id: 'nota_venta', label: 'Recibo / Nota Venta' },
                     { id: 'liquidacion', label: 'Liq. Compras' }
                   ].map(dt => (
-                    <UiButton key={dt.id} type="button" onClick={() => setForm(prev => ({ ...prev, documentType: dt.id }))}
-                      {...mergeThemeProps({"variant":"outline","size":"2","className":"flex-1"}, {}, (form.documentType === dt.id ? {"variant":"solid","color":"gray"} : {"color":"gray"}))}>
+                    <button
+                      key={dt.id}
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, documentType: dt.id }))}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
+                        form.documentType === dt.id
+                          ? 'bg-[#1b1b1b] text-white border-[#1b1b1b]'
+                          : 'bg-white text-[#444444] border-[#e3e3e3] hover:bg-[#fafafa]'
+                      }`}
+                    >
                       {dt.label}
-                    </UiButton>
+                    </button>
                   ))}
-                </UiBox>
-              </UiBox>
+                </div>
+              </div>
 
-              {/* XML Import */}
-              <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)","border":"1px solid var(--gray-a6)"},"className":"p-3"}}>
-                <UiLabel {...{"className":"flex items-center gap-3 cursor-pointer"}}>
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","backgroundColor":"var(--gray-2)"},"className":"p-2 shrink-0"}}>
-                    <Upload size={16} />
-                  </UiBox>
-                  <UiBox {...{"className":"flex-1"}}>
-                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Importar XML del SRI</UiBox>
-                    <UiBox {...{"style":{"color":"var(--gray-12)"}}}>Carga la factura electronica y completa los datos automaticamente</UiBox>
-                  </UiBox>
-                  <UiInput type="file" accept=".xml" onChange={handleXmlUpload} {...{"className":"hidden"}} />
-                </UiLabel>
-              </UiBox>
+              {/* Carga rápida de comprobante (XML + PDF/Imagen IA) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <label className={`flex items-center gap-3 p-3 rounded-xl border border-[#e3e3e3] bg-[#fafafa] hover:border-[#0b996f] hover:bg-[#f0fdf4]/50 transition-colors cursor-pointer ${importBusy ? 'opacity-60 pointer-events-none' : ''}`}>
+                  <div className="w-9 h-9 rounded-xl bg-[#e8fedf] text-[#004227] border border-[#b3f4cb] flex items-center justify-center shrink-0">
+                    {importBusy === 'xml' ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#1b1b1b]">Importar XML del SRI</div>
+                    <div className="text-[11px] text-[#666666] truncate">Autocompleta proveedor, ítems e IVA</div>
+                  </div>
+                  <input type="file" accept=".xml,text/xml,application/xml" onChange={handleXmlUpload} className="hidden" />
+                </label>
 
-              {/* Supplier */}
-              <UiBox>
-                <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Proveedor</UiLabel>
-                <UiBox className="relative">
-                  <UiInput
-                    value={form.supplierName || supplierSearch}
-                    onChange={e => { setSupplierSearch(e.target.value); setForm(prev => ({ ...prev, supplierName: e.target.value })); setShowSupplierResults(true); }}
-                    onFocus={() => setShowSupplierResults(true)}
-                    onBlur={() => setTimeout(() => setShowSupplierResults(false), 200)}
-                    placeholder="Buscar proveedor..."
-                    iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
-                    size="2"
-                    color="gray"
-                    className="w-full"
-                  />
-                  {showSupplierResults && filteredSuppliers.length > 0 && (
-                    <UiBox {...{"style":{"backgroundColor":"var(--color-panel-solid)","border":"1px solid var(--gray-a6)","borderRadius":"var(--radius-3)"},"className":"absolute z-20 top-full left-0 right-0 mt-1 max-h-44 overflow-y-auto"}}>
-                      {filteredSuppliers.map(t => (
-                        <UiButton key={t.id} type="button" onMouseDown={() => { setForm(prev => ({ ...prev, supplierId: t.id, supplierName: t.name, supplierRuc: t.ruc || '' })); setShowSupplierResults(false); setSupplierSearch(''); }}
-                          {...{"size":"2","color":"gray","className":"w-full text-left"}}>
-                          <UiBox {...{}}>{t.name}</UiBox>
-                          {t.ruc && <UiBox {...{"style":{"color":"var(--gray-12)"}}}>{t.ruc}</UiBox>}
-                        </UiButton>
-                      ))}
-                    </UiBox>
-                  )}
-                </UiBox>
-                <UiButton type="button" onClick={() => setQuickAddSupplier(!quickAddSupplier)} {...{"size":"2","className":"flex items-center gap-1 mt-1.5"}}>
-                  <UserPlus size={12} /> {quickAddSupplier ? 'Cancelar' : 'Crear nuevo proveedor'}
-                </UiButton>
+                <label className={`flex items-center gap-3 p-3 rounded-xl border border-[#e3e3e3] bg-[#fafafa] hover:border-[#0b996f] hover:bg-[#fcfbe7]/60 transition-colors cursor-pointer ${importBusy ? 'opacity-60 pointer-events-none' : ''}`}>
+                  <div className="w-9 h-9 rounded-xl bg-[#fcfbe7] text-[#866308] border border-[#f0df8a] flex items-center justify-center shrink-0">
+                    {importBusy === 'ocr' ? <Loader2 size={16} className="animate-spin" /> : <Scan size={16} />}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#1b1b1b]">Subir PDF o Foto (IA)</div>
+                    <div className="text-[11px] text-[#666666] truncate">Escanea factura o recibo con OCR</div>
+                  </div>
+                  <input type="file" accept=".pdf,image/*" onChange={handleOcrUpload} className="hidden" />
+                </label>
+              </div>
+
+              {/* Proveedor + RUC con consulta SRI */}
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div className="sm:col-span-3">
+                  <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5">Proveedor *</UiLabel>
+                  <div className="relative">
+                    <UiInput
+                      value={form.supplierName || supplierSearch}
+                      onChange={e => { setSupplierSearch(e.target.value); setForm(prev => ({ ...prev, supplierName: e.target.value })); setShowSupplierResults(true); }}
+                      onFocus={() => setShowSupplierResults(true)}
+                      onBlur={() => setTimeout(() => setShowSupplierResults(false), 200)}
+                      placeholder="Buscar o escribir razón social..."
+                      iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
+                      size="2"
+                      color="gray"
+                      className="w-full"
+                    />
+                    {showSupplierResults && filteredSuppliers.length > 0 && (
+                      <div className="absolute z-20 top-full left-0 right-0 mt-1 max-h-44 overflow-y-auto bg-white border border-[#e3e3e3] rounded-xl divide-y divide-[#efefef]">
+                        {filteredSuppliers.map(t => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onMouseDown={() => { setForm(prev => ({ ...prev, supplierId: t.id, supplierName: t.name, supplierRuc: t.ruc || '' })); setShowSupplierResults(false); setSupplierSearch(''); }}
+                            className="w-full text-left px-3 py-2 hover:bg-[#f0fdf4] transition-colors cursor-pointer"
+                          >
+                            <div className="text-xs font-bold text-[#1b1b1b] truncate">{t.name}</div>
+                            {t.ruc && <div className="text-[11px] font-mono text-[#666666]">{t.ruc}</div>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5">RUC / Cédula *</UiLabel>
+                  <div className="flex gap-1.5">
+                    <UiInput
+                      value={form.supplierRuc || ''}
+                      onChange={e => setForm(prev => ({ ...prev, supplierRuc: e.target.value.replace(/\s+/g, '') }))}
+                      placeholder="1790000000001"
+                      size="2"
+                      color="gray"
+                      className="w-full font-mono"
+                    />
+                    <button
+                      type="button"
+                      disabled={Boolean(importBusy)}
+                      onClick={handleConsultSupplierRuc}
+                      title="Consultar RUC en el SRI"
+                      className="px-2.5 rounded-lg border border-[#e3e3e3] bg-[#fafafa] hover:bg-[#e8fedf] hover:border-[#0b996f] text-[#004227] text-xs font-semibold flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      {importBusy === 'ruc' ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setQuickAddSupplier(!quickAddSupplier)}
+                  className="text-xs font-semibold text-[#0b996f] hover:text-[#004227] inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <UserPlus size={13} /> {quickAddSupplier ? 'Cancelar registro rápido' : 'Guardar nuevo proveedor en directorio'}
+                </button>
                 {quickAddSupplier && (
-                  <UiBox {...{"style":{"borderRadius":"var(--radius-3)","border":"1px solid var(--gray-a6)"},"className":"mt-2 p-3 space-y-2"}}>
-                    <UiBox {...{"className":"grid grid-cols-2 gap-2"}}>
-                      <UiInput value={newSupplier.ruc} onChange={e => setNewSupplier(prev => ({ ...prev, ruc: e.target.value }))} placeholder="RUC *" {...{"size":"2","color":"gray","className":"w-full"}} />
-                      <UiInput value={newSupplier.name} onChange={e => setNewSupplier(prev => ({ ...prev, name: e.target.value }))} placeholder="Nombre *" {...{"size":"2","color":"gray","className":"w-full"}} />
-                      <UiInput value={newSupplier.email} onChange={e => setNewSupplier(prev => ({ ...prev, email: e.target.value }))} placeholder="Email" {...{"size":"2","color":"gray","className":"w-full"}} />
-                      <UiInput value={newSupplier.phone} onChange={e => setNewSupplier(prev => ({ ...prev, phone: e.target.value }))} placeholder="Telefono" {...{"size":"2","color":"gray","className":"w-full"}} />
-                    </UiBox>
-                    <UiButton type="button" onClick={handleQuickAddSupplier} {...{"variant":"solid","color":"blue","size":"2"}}>Crear Proveedor</UiButton>
-                  </UiBox>
+                  <div className="mt-2 p-3.5 rounded-xl border border-[#e3e3e3] bg-[#fafafa] space-y-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <UiInput value={newSupplier.ruc} onChange={e => setNewSupplier(prev => ({ ...prev, ruc: e.target.value }))} placeholder="RUC *" size="2" color="gray" className="w-full" />
+                      <UiInput value={newSupplier.name} onChange={e => setNewSupplier(prev => ({ ...prev, name: e.target.value }))} placeholder="Razón Social *" size="2" color="gray" className="w-full" />
+                      <UiInput value={newSupplier.email} onChange={e => setNewSupplier(prev => ({ ...prev, email: e.target.value }))} placeholder="Email" size="2" color="gray" className="w-full" />
+                      <UiInput value={newSupplier.phone} onChange={e => setNewSupplier(prev => ({ ...prev, phone: e.target.value }))} placeholder="Teléfono" size="2" color="gray" className="w-full" />
+                    </div>
+                    <UiButton type="button" onClick={handleQuickAddSupplier} variant="solid" color="green" size="2">Crear Proveedor</UiButton>
+                  </div>
                 )}
-              </UiBox>
+              </div>
 
-              {/* Doc details */}
-              <UiBox {...{"className":"grid grid-cols-2 sm:grid-cols-4 gap-3"}}>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Nro Documento</UiLabel>
-                  <UiInput value={form.documentNumber} onChange={e => setForm(prev => ({ ...prev, documentNumber: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Fecha</UiLabel>
-                  <UiInput type="date" value={form.date} onChange={e => setForm(prev => ({ ...prev, date: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} />
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Bodega</UiLabel>
-                  <UiSelect value={form.bodega} onChange={e => setForm(prev => ({ ...prev, bodega: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}}>
+              {/* Doc details + Clave SRI con consulta directa */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5">Nro Documento *</UiLabel>
+                  <UiInput value={form.documentNumber} onChange={e => setForm(prev => ({ ...prev, documentNumber: e.target.value }))} placeholder="001-001-000000123" size="2" color="gray" className="w-full font-mono" />
+                </div>
+                <div>
+                  <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5">Fecha *</UiLabel>
+                  <UiInput type="date" value={form.date} onChange={e => setForm(prev => ({ ...prev, date: e.target.value }))} size="2" color="gray" className="w-full" />
+                </div>
+                <div>
+                  <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5">Bodega</UiLabel>
+                  <UiSelect value={form.bodega} onChange={e => setForm(prev => ({ ...prev, bodega: e.target.value }))} size="2" color="gray" className="w-full">
                     {branches.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
                   </UiSelect>
-                </UiBox>
-                <UiBox>
-                  <UiLabel {...{"size":"1","weight":"bold","color":"gray","highContrast":true,"className":"block mb-1.5"}}>Clave SRI</UiLabel>
-                  <UiInput value={form.claveAcceso} onChange={e => setForm(prev => ({ ...prev, claveAcceso: e.target.value }))} {...{"size":"2","color":"gray","className":"w-full"}} placeholder="49 digitos" />
-                </UiBox>
-              </UiBox>
-            </UiBox>
+                </div>
+              </div>
+
+              <div>
+                <UiLabel size="1" weight="bold" color="gray" highContrast className="block mb-1.5">
+                  Clave de Acceso SRI (49 dígitos — opcional, permite descargar la factura directo del SRI)
+                </UiLabel>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <UiInput
+                    value={form.claveAcceso}
+                    onChange={e => setForm(prev => ({ ...prev, claveAcceso: e.target.value.replace(/\D/g, '').slice(0, 49) }))}
+                    placeholder="Pega los 49 dígitos y haz clic en Consultar SRI"
+                    size="2"
+                    color="gray"
+                    className="w-full font-mono"
+                  />
+                  <button
+                    type="button"
+                    disabled={Boolean(importBusy) || String(form.claveAcceso || '').replace(/\D/g, '').length !== 49}
+                    onClick={handleConsultSriKey}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#0b996f] hover:bg-[#004227] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-45 shrink-0"
+                  >
+                    {importBusy === 'sri' ? <Loader2 size={13} className="animate-spin" /> : <KeyRound size={13} />}
+                    Consultar SRI
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* ===== STEP 2: PRODUCTOS (only con_inventario) ===== */}
@@ -905,29 +1125,31 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
             </UiBox>
           )}
 
-        </UiBox>
+        </div>
 
         {/* Footer buttons */}
-        <UiBox {...{"style":{"borderTop":"1px solid var(--gray-a6)"},"className":"shrink-0 px-5 py-3 flex justify-between"}}>
-          <UiBox>
+        <div className="shrink-0 px-5 py-3.5 border-t border-[#efefef] bg-[#fafafa] flex items-center justify-between gap-2">
+          <div>
             {step > 1 && (
-              <UiButton type="button" onClick={() => setStep(step - 1)} {...{"variant":"surface","color":"blue"}}><ChevronLeft size={14} /> Anterior</UiButton>
+              <UiButton type="button" onClick={() => setStep(step - 1)} variant="outline" color="gray">
+                <ChevronLeft size={14} /> Anterior
+              </UiButton>
             )}
-          </UiBox>
-          <UiBox {...{"className":"flex gap-2"}}>
-            <UiButton type="button" onClick={onClose} {...{"variant":"surface","color":"blue"}}>Cancelar</UiButton>
+          </div>
+          <div className="flex items-center gap-2">
+            <UiButton type="button" onClick={onClose} variant="outline" color="gray">Cancelar</UiButton>
             {step < maxStep ? (
-              <UiButton type="button" onClick={() => setStep(step + 1)} {...{"variant":"solid","color":"blue"}}>
-                {form.purchaseType === 'sin_inventario' && step === 1 ? 'Confirmar' : 'Siguiente'} <ChevronRight size={14} />
+              <UiButton type="button" onClick={() => setStep(step + 1)} variant="solid" color="green">
+                {form.purchaseType === 'sin_inventario' && step === 1 ? 'Continuar al Pago' : 'Siguiente'} <ChevronRight size={14} />
               </UiButton>
             ) : (
-              <UiButton type="button" onClick={handleSave} disabled={saving} {...{"variant":"solid","color":"blue"}}>
+              <UiButton type="button" onClick={handleSave} disabled={saving} variant="solid" color="green">
                 <CheckCircle2 size={14} /> {saving ? 'Guardando...' : 'Guardar Compra'}
               </UiButton>
             )}
-          </UiBox>
-        </UiBox>
-      </UiBox>
+          </div>
+        </div>
+      </div>
     </UiBox>
   );
 }
