@@ -1,9 +1,9 @@
 import { mergeThemeProps } from '../ui/themeProps';
 import { createThemedPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiLabel, UiText } from '../ui/layout';
-import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Minus, Save } from 'lucide-react';
+import { Plus, Minus, Save } from 'lucide-react';
 import { crearMovimiento, editarMovimiento, registrarAbono } from '../../services/movimientoService';
 import { getCuentas as getCuentasBancarias } from '../../services/bancosService';
 
@@ -168,9 +168,7 @@ export default function MovimientoForm({ onClose, onSave, movimiento, db, usuari
           <UiHeading as="h2" {...{"size":"4","weight":"bold","color":"gray","highContrast":true}}>
             {esEdicion ? 'Editar Movimiento' : 'Nuevo Movimiento'}
           </UiHeading>
-          <UiButton iconOnly onClick={onClose} {...{"variant":"surface","color":"gray"}}>
-            <X size={18} />
-          </UiButton>
+          <UiModalCloseButton onClick={onClose} />
         </UiBox>
 
         <form onSubmit={handleSubmit} {...{"className":"px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar"}}>

@@ -1,8 +1,8 @@
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
 import { createThemedPortal } from '../ui/themePortal';
-import { UiButton, UiInput, UiSelect } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput, UiSelect } from '../ui/controls';
 import { useState, useEffect } from 'react';
-import { X, DollarSign } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { registrarAbono } from '../../services/movimientoService';
 import { getCuentas as getCuentasBancarias } from '../../services/bancosService';
 
@@ -58,7 +58,7 @@ export default function MovimientoAbono({ movimiento, onClose, onSave, db, usuar
       <UiCard {...{"style":{"backgroundColor":"var(--color-panel-solid)"},"className":"w-full max-w-sm mx-4"}}>
         <UiBox {...{"style":{"borderBottom":"1px solid var(--gray-a6)"},"className":"flex items-center justify-between px-5 py-4"}}>
           <UiHeading as="h3" {...{"color":"gray","weight":"bold","highContrast":true}}>Registrar Abono</UiHeading>
-          <UiButton iconOnly onClick={onClose} {...{"variant":"surface","color":"gray"}}><X size={18} /></UiButton>
+          <UiModalCloseButton onClick={onClose} />
         </UiBox>
 
         <form onSubmit={handleSubmit} {...{"className":"px-5 py-4 space-y-4"}}>

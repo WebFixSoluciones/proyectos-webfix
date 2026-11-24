@@ -9,6 +9,8 @@ import { getAppId } from '../../firebase';
 import FinancialPageHeader from './FinancialPageHeader';
 import FinancialPaymentModal from './FinancialPaymentModal';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
+import { UiButton, UiModalCloseButton } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 
 export default function CuentasPorCobrarView({ 
   db, 
@@ -248,12 +250,13 @@ export default function CuentasPorCobrarView({
         <AlertTriangle size={36} className="text-rose-500 mx-auto" />
         <h3 className="text-base font-bold text-slate-800">Error al cargar Cuentas por Cobrar</h3>
         <p className="text-xs text-slate-500 max-w-md mx-auto">{error}</p>
-        <button
+        <UiButton
+          variant="primary"
+          size="md"
           onClick={cargar}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm"
         >
           Reintentar
-        </button>
+        </UiButton>
       </div>
     );
   }
@@ -266,16 +269,18 @@ export default function CuentasPorCobrarView({
         title="Cuentas por Cobrar (CxC)"
         description="Gestión integral de cartera, registro de abonos y control de cobros a clientes"
         badge={`${items.length} facturas`}
-        badgeColor="blue"
+        badgeColor="green"
         actions={
           <div className="flex items-center gap-2">
-            <button
+            <UiButton
+              type="button"
+              variant="secondary"
+              size="md"
               onClick={handleExportCSV}
-              className="py-1.5 px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
             >
-              <Download size={13} />
+              <Download size={14} />
               <span>Exportar CSV</span>
-            </button>
+            </UiButton>
           </div>
         }
       />
@@ -587,15 +592,16 @@ export default function CuentasPorCobrarView({
                         <div className="flex items-center justify-center gap-1.5">
                           {/* 1. Botón Registrar Abono */}
                           {saldo > 0.005 ? (
-                            <button
+                            <UiButton
                               type="button"
+                              variant="brand"
+                              size="sm"
                               onClick={() => setSelectedItemForPayment(item)}
-                              className="px-2.5 py-1.5 rounded-xl bg-[#0b996f] hover:bg-[#004227] text-white text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                               title="Registrar un abono o pago a esta factura"
                             >
                               <Plus size={13} strokeWidth={2.5} />
                               <span>Abonar</span>
-                            </button>
+                            </UiButton>
                           ) : (
                             <span
                               className="px-2 py-1 rounded-xl bg-[#f4f4f5] text-[#666666] text-[11px] font-medium flex items-center gap-1 cursor-default"
@@ -606,35 +612,44 @@ export default function CuentasPorCobrarView({
                           )}
 
                           {/* 2. Botón Ver Historial de Movimientos / Abonos */}
-                          <button
+                          <UiButton
                             type="button"
+                            iconOnly
+                            variant="secondary"
+                            size="sm"
                             onClick={() => setSelectedItemForDetail(item)}
-                            className="p-1.5 rounded-xl border border-[#e3e3e3] bg-white hover:bg-[#fafafa] text-[#444444] text-xs flex items-center justify-center transition-colors cursor-pointer"
                             title="Ver historial de abonos y movimientos de este comprobante"
+                            aria-label="Ver historial"
                           >
-                            <History size={14} className="text-[#444444]" />
-                          </button>
+                            <History size={14} />
+                          </UiButton>
 
                           {/* 3. Botón Ver Comprobante / RIDE */}
-                          <button
+                          <UiButton
                             type="button"
+                            iconOnly
+                            variant="secondary"
+                            size="sm"
                             onClick={() => handleOpenRide(item)}
-                            className="p-1.5 rounded-xl border border-[#e3e3e3] bg-white hover:bg-[#e8fedf] text-[#444444] hover:text-[#004227] hover:border-[#b3f4cb] text-xs flex items-center justify-center transition-colors cursor-pointer"
                             title="Ver factura oficial / RIDE"
+                            aria-label="Ver RIDE"
                           >
-                            <FileText size={14} className="text-[#0b996f]" />
-                          </button>
+                            <FileText size={14} />
+                          </UiButton>
 
                           {/* 4. Botón WhatsApp Recordatorio (solo si tiene saldo pendiente) */}
                           {saldo > 0.005 && (
-                            <button
+                            <UiButton
                               type="button"
+                              iconOnly
+                              variant="soft"
+                              size="sm"
                               onClick={() => handleSendWhatsApp(item)}
-                              className="p-1.5 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center transition-colors cursor-pointer"
                               title="Enviar recordatorio de cobro por WhatsApp"
+                              aria-label="Enviar recordatorio WhatsApp"
                             >
-                              <MessageCircle size={14} className="text-emerald-600" />
-                            </button>
+                              <MessageCircle size={14} />
+                            </UiButton>
                           )}
                         </div>
                       </td>
@@ -677,9 +692,7 @@ export default function CuentasPorCobrarView({
             {/* Header del modal */}
             <div className="px-5 py-4 border-b border-slate-200/90 bg-slate-50/80 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-                  <History size={20} />
-                </div>
+                <UiIconBadge level="modal" tone="brand" icon={History} />
                 <div>
                   <h3 className="text-base font-bold text-slate-900 leading-tight">
                     Movimientos y Abonos de la Factura
@@ -689,13 +702,7 @@ export default function CuentasPorCobrarView({
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedItemForDetail(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
+              <UiModalCloseButton onClick={() => setSelectedItemForDetail(null)} />
             </div>
 
             {/* Contenido del modal */}
@@ -799,46 +806,50 @@ export default function CuentasPorCobrarView({
             {/* Footer con acciones */}
             <div className="px-5 py-3.5 border-t border-slate-200/90 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <button
+                <UiButton
                   type="button"
+                  variant="secondary"
+                  size="md"
                   onClick={() => handleOpenRide(selectedItemForDetail)}
-                  className="py-1.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
-                  <FileText size={13} className="text-blue-600" />
+                  <FileText size={14} />
                   <span>Ver RIDE</span>
-                </button>
-                <button
+                </UiButton>
+                <UiButton
                   type="button"
+                  variant="secondary"
+                  size="md"
                   onClick={() => handleManageInvoice(selectedItemForDetail)}
-                  className="py-1.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
-                  <ExternalLink size={13} className="text-slate-600" />
+                  <ExternalLink size={14} />
                   <span>Gestionar en Facturación</span>
-                </button>
+                </UiButton>
               </div>
 
               <div className="flex items-center gap-2">
                 {Number(selectedItemForDetail.saldoPendiente || 0) > 0.005 && (
-                  <button
+                  <UiButton
                     type="button"
+                    variant="brand"
+                    size="md"
                     onClick={() => {
                       const target = selectedItemForDetail;
                       setSelectedItemForDetail(null);
                       setSelectedItemForPayment(target);
                     }}
-                    className="py-1.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
                     <Plus size={14} strokeWidth={2.5} />
                     <span>Registrar Nuevo Abono</span>
-                  </button>
+                  </UiButton>
                 )}
-                <button
+                <UiButton
                   type="button"
+                  variant="secondary"
+                  size="md"
                   onClick={() => setSelectedItemForDetail(null)}
-                  className="py-1.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer"
                 >
                   Cerrar
-                </button>
+                </UiButton>
               </div>
             </div>
           </div>

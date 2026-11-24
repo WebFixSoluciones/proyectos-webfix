@@ -2,8 +2,8 @@ import { resolveThemeProps } from '../ui/themeProps';
 import { createThemedPortal } from '../ui/themePortal';
 import { mergeThemeProps } from '../ui/themeProps';
 import { UiBox, UiCard, UiHeading, UiText } from '../ui/layout';
-import { UiButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
-import { X, Calendar, User, FileText, CreditCard, Banknote, Clock, History } from 'lucide-react';
+import { UiButton, UiModalCloseButton, UiTable, UiTableHeader, UiTableRow, UiTableHead, UiTableBody, UiTableCell } from '../ui/controls';
+import { Calendar, User, FileText, CreditCard, Banknote, Clock, History } from 'lucide-react';
 
 const ESTADO_BADGES = {
   pendiente: {"style":{"backgroundColor":"var(--amber-3)","color":"var(--amber-11)"}},
@@ -42,7 +42,7 @@ export default function MovimientoDetalle({ movimiento, onClose }) {
               {m.estado}
             </UiText>
           </UiBox>
-          <UiButton iconOnly onClick={onClose} {...{"variant":"surface","color":"gray"}}><X size={18} /></UiButton>
+          <UiModalCloseButton onClick={onClose} />
         </UiBox>
 
         <UiBox {...{"className":"px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar"}}>

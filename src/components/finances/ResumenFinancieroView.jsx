@@ -7,6 +7,9 @@ import {
 import { getResumenFinanciero, getFlujoCajaMensual } from '../../services/resumenService';
 import { getMovimientos } from '../../services/movimientoService';
 import FinancialPageHeader from './FinancialPageHeader';
+import { UiButton } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 
 const TABS_RESUMEN = [
   { id: 'general', label: 'General', icon: LayoutGrid },
@@ -82,20 +85,21 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
   if (error) {
     return (
       <div className="text-center py-16 bg-white border border-slate-200/90 rounded-2xl max-w-lg mx-auto p-6 space-y-4">
-        <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
-          <AlertTriangle size={24} />
+        <div className="flex justify-center">
+          <UiIconBadge level="empty" tone="danger" icon={AlertTriangle} />
         </div>
         <div>
           <h3 className="text-base font-bold text-slate-900">Error al cargar datos financieros</h3>
           <p className="text-xs text-slate-500 mt-1">{error}</p>
         </div>
-        <button
+        <UiButton
           type="button"
+          variant="primary"
+          size="md"
           onClick={cargar}
-          className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-colors cursor-pointer"
         >
           Reintentar Carga
-        </button>
+        </UiButton>
       </div>
     );
   }
@@ -112,11 +116,11 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
         title="Resumen Financiero"
         description="Panel ejecutivo de tesorería, liquidez y proyección de flujo de caja"
         badge="Ecuador"
-        badgeColor="blue"
+        badgeColor="green"
         actions={
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-white border border-slate-200/90 rounded-xl px-3 py-1.5 gap-2 text-xs font-medium text-slate-700 hover:border-slate-300 transition-colors">
-              <Calendar size={14} className="text-slate-400 shrink-0" />
+            <div className="flex items-center bg-white border border-[#E3E3E3] rounded-[10px] h-9 px-3 gap-2 text-xs font-medium text-[#1B1B1B] hover:border-[#C7C7C7] transition-colors">
+              <Calendar size={14} className="text-[#696969] shrink-0" />
               <input
                 type="month"
                 value={periodo.fechaDesde.slice(0, 7)}
@@ -132,40 +136,27 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
                 className="bg-transparent text-xs font-semibold text-slate-800 outline-none cursor-pointer"
               />
             </div>
-            <button
+            <UiButton
               type="button"
+              iconOnly
+              variant="secondary"
+              size="lg"
               onClick={cargar}
-              className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 text-slate-600 hover:text-slate-950 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
               title="Actualizar métricas"
+              aria-label="Actualizar métricas"
             >
               <RefreshCw size={15} />
-            </button>
+            </UiButton>
           </div>
         }
       />
 
       {/* PESTAÑAS SEGMENTADAS (ESTILO BREVO) */}
-      <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/60 gap-1 text-xs">
-        {TABS_RESUMEN.map(t => {
-          const Icon = t.icon;
-          const isActive = tabActiva === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTabActiva(t.id)}
-              className={`px-4 py-2 font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                isActive
-                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200/50'
-                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
-              }`}
-            >
-              <Icon size={14} className={isActive ? 'text-slate-900' : 'text-slate-400'} />
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      <UiSegmentedTabs
+        value={tabActiva}
+        onChange={setTabActiva}
+        items={TABS_RESUMEN.map(t => ({ value: t.id, label: t.label, icon: t.icon }))}
+      />
 
       {/* VISTA: GENERAL */}
       {tabActiva === 'general' && (
@@ -177,9 +168,7 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
             <div className="bg-white border border-slate-200/90 rounded-2xl p-5 hover:border-slate-300 transition-all flex flex-col justify-between">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Flujo del Mes</span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                  <TrendingUp size={16} strokeWidth={2.2} />
-                </div>
+                <UiIconBadge level="kpi" tone="success" icon={TrendingUp} />
               </div>
               <div>
                 <div className={`text-3xl font-extrabold tracking-tight ${resumen.flujoMes.neto >= 0 ? 'text-slate-900' : 'text-rose-600'}`}>
@@ -187,8 +176,8 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> +{fmtShort(resumen.flujoMes.ingresos)}
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#E8FEDF] text-[#004227]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0B996F]"></span> +{fmtShort(resumen.flujoMes.ingresos)}
                 </span>
                 <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span> -{fmtShort(resumen.flujoMes.egresos)}
@@ -200,9 +189,7 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
             <div className="bg-white border border-slate-200/90 rounded-2xl p-5 hover:border-slate-300 transition-all flex flex-col justify-between">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Cartera Neta</span>
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                  <Wallet size={16} strokeWidth={2.2} />
-                </div>
+                <UiIconBadge level="kpi" tone="brand" icon={Wallet} />
               </div>
               <div>
                 <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -210,8 +197,8 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> CxC: {fmtShort(resumen.cartera.cxcPendiente)}
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#E8FEDF] text-[#004227]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0B996F]"></span> CxC: {fmtShort(resumen.cartera.cxcPendiente)}
                 </span>
                 <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span> CxP: {fmtShort(resumen.cartera.cxpPendiente)}
@@ -223,9 +210,7 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
             <div className="bg-white border border-slate-200/90 rounded-2xl p-5 hover:border-slate-300 transition-all flex flex-col justify-between">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Deuda Total</span>
-                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                  <CreditCard size={16} strokeWidth={2.2} />
-                </div>
+                <UiIconBadge level="kpi" tone="danger" icon={CreditCard} />
               </div>
               <div>
                 <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -234,8 +219,8 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap">
                 {resumen.deuda.total === 0 ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
-                    <CheckCircle2 size={12} className="text-emerald-600" />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#E8FEDF] text-[#004227]">
+                    <CheckCircle2 size={12} className="text-[#0B996F]" />
                     Sin obligaciones vencidas
                   </span>
                 ) : (
@@ -255,9 +240,7 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
             <div className="bg-white border border-slate-200/90 rounded-2xl p-5 hover:border-slate-300 transition-all flex flex-col justify-between">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Liquidez Disponible</span>
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                  <Building2 size={16} strokeWidth={2.2} />
-                </div>
+                <UiIconBadge level="kpi" tone="neutral" icon={Building2} />
               </div>
               <div>
                 <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -360,26 +343,23 @@ export default function ResumenFinancieroView({ db, onNavigate }) {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {[
-                  { id: 'movimientos', label: 'Movimientos', desc: 'Ingresos y egresos', icon: DollarSign, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-                  { id: 'cxc', label: 'Cuentas por Cobrar', desc: 'Gestión de cartera', icon: TrendingUp, bg: 'bg-blue-50', color: 'text-blue-600' },
-                  { id: 'cxp', label: 'Cuentas por Pagar', desc: 'Proveedores', icon: ArrowUpCircle, bg: 'bg-rose-50', color: 'text-rose-600' },
-                  { id: 'bancos', label: 'Bancos y Caja', desc: 'Cuentas y saldos', icon: Building2, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-                  { id: 'tarjetas', label: 'Tarjetas', desc: 'Líneas de crédito', icon: CreditCard, bg: 'bg-amber-50', color: 'text-amber-600' },
-                  { id: 'prestamos', label: 'Préstamos', desc: 'Tablas y cuotas', icon: Landmark, bg: 'bg-purple-50', color: 'text-purple-600' },
+                  { id: 'movimientos', label: 'Movimientos', desc: 'Ingresos y egresos', icon: DollarSign, tone: 'brand' },
+                  { id: 'cxc', label: 'Cuentas por Cobrar', desc: 'Gestión de cartera', icon: TrendingUp, tone: 'success' },
+                  { id: 'cxp', label: 'Cuentas por Pagar', desc: 'Proveedores', icon: ArrowUpCircle, tone: 'danger' },
+                  { id: 'bancos', label: 'Bancos y Caja', desc: 'Cuentas y saldos', icon: Building2, tone: 'neutral' },
+                  { id: 'tarjetas', label: 'Tarjetas', desc: 'Líneas de crédito', icon: CreditCard, tone: 'warning' },
+                  { id: 'prestamos', label: 'Préstamos', desc: 'Tablas y cuotas', icon: Landmark, tone: 'neutral' },
                 ].map(acc => {
-                  const AccIcon = acc.icon;
                   return (
                     <button
                       key={acc.id}
                       type="button"
                       onClick={() => onNavigate(acc.id)}
-                      className="p-3.5 bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/70 hover:border-slate-300 rounded-xl transition-all flex flex-col justify-between text-left group cursor-pointer"
+                      className="p-3.5 bg-[#FAFAFA] hover:bg-[#F0FDF4] border border-[#E3E3E3] hover:border-[#B3F4CB] rounded-[10px] transition-all flex flex-col justify-between text-left group cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-2 w-full">
-                        <div className={`w-8 h-8 rounded-lg ${acc.bg} ${acc.color} flex items-center justify-center shrink-0`}>
-                          <AccIcon size={16} strokeWidth={2} />
-                        </div>
-                        <ArrowUpRight size={14} className="text-slate-400 group-hover:text-slate-900 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        <UiIconBadge level="kpi" tone={acc.tone} icon={acc.icon} />
+                        <ArrowUpRight size={14} className="text-[#696969] group-hover:text-[#004227] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                       </div>
                       <div>
                         <div className="text-xs font-bold text-slate-900 group-hover:text-black">{acc.label}</div>

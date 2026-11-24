@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { createThemedPortal as createPortal } from '../ui/themePortal';
 import { UiBox, UiCard, UiHeading, UiText, UiLabel } from '../ui/layout';
-import { UiButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
+import { UiButton, UiModalCloseButton, UiInput, UiSelect, UiTextarea } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 import { mergeThemeProps } from '../ui/themeProps';
-import { DollarSign, CheckCircle2, X } from 'lucide-react';
+import { DollarSign, CheckCircle2 } from 'lucide-react';
 import { getCuentas } from '../../services/bancosService';
 
 export default function FinancialPaymentModal({
@@ -109,20 +110,7 @@ export default function FinancialPaymentModal({
           )}
         >
           <UiBox className="flex items-center gap-3">
-            <UiBox
-              {...mergeThemeProps(
-                {
-                  "style": {
-                    "borderRadius": "var(--radius-3)",
-                    "backgroundColor": isCobro ? "var(--green-9)" : "var(--blue-9)",
-                    "color": "white"
-                  },
-                  "className": "w-9 h-9 flex items-center justify-center shadow-sm"
-                }
-              )}
-            >
-              <DollarSign size={20} />
-            </UiBox>
+            <UiIconBadge level="modal" tone={isCobro ? 'brand' : 'neutral'} icon={DollarSign} />
             <UiBox>
               <UiHeading as="h3" {...mergeThemeProps({ "size": "3", "weight": "bold", "color": "gray", "highContrast": true })}>
                 {isCobro ? 'Registrar Cobro de Cartera' : 'Registrar Pago a Proveedor'}
@@ -132,9 +120,7 @@ export default function FinancialPaymentModal({
               </UiText>
             </UiBox>
           </UiBox>
-          <UiButton iconOnly onClick={onClose} {...mergeThemeProps({ "variant": "surface", "color": "gray", "size": "2" })}>
-            <X size={16} />
-          </UiButton>
+          <UiModalCloseButton onClick={onClose} />
         </UiBox>
 
         {/* Form Body */}

@@ -14,6 +14,9 @@ import MovimientoAbono from './MovimientoAbono';
 import MovimientoDetalle from './MovimientoDetalle';
 import FinancialPageHeader from './FinancialPageHeader';
 import confirmAction from '../../services/confirmDialog';
+import { UiButton } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
+import { UiSegmentedTabs } from '../ui/UiSegmentedTabs';
 
 const FILTROS_DEFAULT = {
   search: '',
@@ -266,12 +269,13 @@ export default function MovimientosView({ db, usuario, showToast, transactions =
         <AlertTriangle size={36} className="text-rose-500 mx-auto" />
         <h3 className="text-base font-bold text-slate-800">Error al cargar movimientos</h3>
         <p className="text-xs text-slate-500 max-w-md mx-auto">{error}</p>
-        <button
+        <UiButton
+          variant="primary"
+          size="md"
           onClick={cargarMovimientos}
-          className="px-4 py-2 bg-[#1b1b1b] hover:bg-black text-white rounded-xl text-xs font-semibold cursor-pointer"
         >
           Reintentar
-        </button>
+        </UiButton>
       </div>
     );
   }
@@ -287,18 +291,15 @@ export default function MovimientosView({ db, usuario, showToast, transactions =
         badgeColor="green"
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <UiButton
               type="button"
+              variant={missingTransactions.length > 0 ? 'soft' : 'secondary'}
+              size="md"
               onClick={() => handleSincronizarFaltantes(false)}
               disabled={syncing}
-              className={`py-1.5 px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 ${
-                missingTransactions.length > 0
-                  ? 'border-[#0b996f] bg-[#e8fedf] text-[#004227] hover:bg-[#c0ffa5]'
-                  : 'border-[#e3e3e3] bg-white hover:bg-[#fafafa] text-[#1b1b1b]'
-              }`}
               title="Sincronizar ventas autorizadas y compras recientes que falten en Movimientos"
             >
-              <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
+              <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
               <span>
                 {syncing
                   ? 'Sincronizando...'
@@ -306,23 +307,25 @@ export default function MovimientosView({ db, usuario, showToast, transactions =
                     ? `Sincronizar (${missingTransactions.length})`
                     : 'Sincronizar'}
               </span>
-            </button>
-            <button
+            </UiButton>
+            <UiButton
               type="button"
+              variant="primary"
+              size="md"
               onClick={() => { setEditingMov(null); setShowForm(true); }}
-              className="py-1.5 px-3.5 rounded-xl bg-[#1b1b1b] hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus size={14} />
               <span>Nuevo Movimiento</span>
-            </button>
-            <button
+            </UiButton>
+            <UiButton
               type="button"
+              variant="secondary"
+              size="md"
               onClick={handleExportCsv}
-              className="py-1.5 px-3.5 rounded-xl border border-[#e3e3e3] bg-white hover:bg-[#fafafa] text-[#1b1b1b] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Download size={13} />
+              <Download size={14} />
               <span>Exportar CSV</span>
-            </button>
+            </UiButton>
           </div>
         }
       />
@@ -374,9 +377,7 @@ export default function MovimientosView({ db, usuario, showToast, transactions =
               {countIngresos} entradas registradas
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[#e8fedf] text-[#0b996f] flex items-center justify-center shrink-0 border border-[#b3f4cb]">
-            <TrendingUp size={20} />
-          </div>
+          <UiIconBadge level="kpi" tone="success" icon={TrendingUp} />
         </div>
 
         {/* Card 2: Egresos */}
@@ -392,9 +393,7 @@ export default function MovimientosView({ db, usuario, showToast, transactions =
               {countEgresos} salidas y pagos registrados
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[#fff0f5] text-[#851b40] flex items-center justify-center shrink-0 border border-[#fbc6d9]">
-            <TrendingDown size={20} />
-          </div>
+          <UiIconBadge level="kpi" tone="danger" icon={TrendingDown} />
         </div>
 
         {/* Card 3: Saldo Neto */}
@@ -412,9 +411,7 @@ export default function MovimientosView({ db, usuario, showToast, transactions =
               {resumen.saldoNeto >= 0 ? 'Balance operacional positivo' : 'Déficit operacional del período'}
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[#fafafa] text-[#004227] flex items-center justify-center shrink-0 border border-[#e3e3e3]">
-            <DollarSign size={20} />
-          </div>
+          <UiIconBadge level="kpi" tone="neutral" icon={DollarSign} />
         </div>
       </div>
 
@@ -422,36 +419,15 @@ export default function MovimientosView({ db, usuario, showToast, transactions =
       <div className="bg-white border border-[#e3e3e3] rounded-2xl p-3 sm:p-4 space-y-3">
         {/* Pestañas tipo píldora para filtrar por Tipo */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1 bg-[#f4f4f5] p-1 rounded-xl">
-            {[
-              { id: 'all', label: 'Todos', count: allMovimientos.length },
-              { id: 'ingreso', label: 'Ingresos', count: countIngresos, isIngreso: true },
-              { id: 'egreso', label: 'Egresos', count: countEgresos, isEgreso: true },
-            ].map(tab => {
-              const active = filtros.tipo === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setFiltros(f => ({ ...f, tipo: tab.id }))}
-                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                    active
-                      ? 'bg-[#e8fedf] text-[#004227] border border-[#b3f4cb]'
-                      : 'text-[#666666] hover:text-[#1b1b1b] hover:bg-white/70 border border-transparent'
-                  }`}
-                >
-                  {tab.isIngreso && <span className="w-2 h-2 rounded-full bg-[#0b996f] inline-block" />}
-                  {tab.isEgreso && <span className="w-2 h-2 rounded-full bg-[#be123c] inline-block" />}
-                  <span>{tab.label}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
-                    active ? 'bg-[#004227] text-white' : 'bg-[#e3e3e3] text-[#444444]'
-                  }`}>
-                    {tab.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <UiSegmentedTabs
+            value={filtros.tipo}
+            onChange={(val) => setFiltros(f => ({ ...f, tipo: val }))}
+            items={[
+              { value: 'all', label: 'Todos', count: allMovimientos.length },
+              { value: 'ingreso', label: 'Ingresos', count: countIngresos, dotColor: '#0B996F' },
+              { value: 'egreso', label: 'Egresos', count: countEgresos, dotColor: '#D9306B' },
+            ]}
+          />
 
           {/* Rango de Fechas compacto inline */}
           <div className="flex flex-wrap items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/80">
@@ -663,51 +639,63 @@ export default function MovimientosView({ db, usuario, showToast, transactions =
 
                       {/* Acciones */}
                       <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1.5">
                           {/* 1. Ver detalle */}
-                          <button
+                          <UiButton
                             type="button"
+                            iconOnly
+                            variant="secondary"
+                            size="sm"
                             onClick={() => setShowDetalle(mov)}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                             title="Ver detalle del movimiento"
+                            aria-label="Ver detalle"
                           >
                             <Eye size={14} />
-                          </button>
+                          </UiButton>
 
                           {/* 2. Abonar (si está pendiente o parcial) */}
                           {(mov.estado === 'pendiente' || mov.estado === 'parcial') && (
-                            <button
+                            <UiButton
                               type="button"
+                              iconOnly
+                              variant="soft"
+                              size="sm"
                               onClick={() => setShowAbono(mov)}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                               title="Registrar abono"
+                              aria-label="Registrar abono"
                             >
                               <Wallet size={14} />
-                            </button>
+                            </UiButton>
                           )}
 
                           {/* 3. Editar (si es origen finanzas y no anulado) */}
                           {mov.origen === 'finanzas' && mov.estado !== 'anulado' && (
-                            <button
+                            <UiButton
                               type="button"
+                              iconOnly
+                              variant="secondary"
+                              size="sm"
                               onClick={() => { setEditingMov(mov); setShowForm(true); }}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 hover:text-black hover:bg-slate-100 transition-colors cursor-pointer"
                               title="Editar movimiento"
+                              aria-label="Editar movimiento"
                             >
-                              <Edit2 size={13} />
-                            </button>
+                              <Edit2 size={14} />
+                            </UiButton>
                           )}
 
                           {/* 4. Anular */}
                           {mov.estado !== 'anulado' && (
-                            <button
+                            <UiButton
                               type="button"
+                              iconOnly
+                              variant="danger"
+                              size="sm"
                               onClick={() => handleAnular(mov.id)}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                               title="Anular movimiento"
+                              aria-label="Anular movimiento"
                             >
-                              <Trash2 size={13} />
-                            </button>
+                              <Trash2 size={14} />
+                            </UiButton>
                           )}
                         </div>
                       </td>
