@@ -1,5 +1,8 @@
 export { Button, default as ButtonDefault } from "./button";
 export { buttonVariants } from "./buttonVariants";
+export { UiIconBadge } from "./UiIconBadge";
+export { UiSegmentedTabs } from "./UiSegmentedTabs";
+export { UiButton, UiModalCloseButton } from "./controls";
 export {
   Card,
   CardHeader,

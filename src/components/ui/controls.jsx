@@ -1,23 +1,114 @@
 import { Children, Fragment, forwardRef, isValidElement, useState } from 'react';
 import { Button, IconButton, Checkbox, Radio, Select, TextField, TextArea, Table } from '@radix-ui/themes';
+import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Resuelve cualquier combinación de props nuevas (Brevo v2) o legadas (Radix)
+ * al contrato único de 6 tonos semánticos y 3 tallas exactas (sm: 30px, md: 36px, lg: 42px).
+ */
+function resolveBrevoButtonVariant(variant, color, iconOnly) {
+  const v = String(variant || 'secondary').toLowerCase();
+  const c = String(color || '').toLowerCase();
+
+  // Variantes explícitas Brevo v2
+  if (['primary', 'brand', 'secondary', 'soft', 'soft-amber', 'danger', 'danger-solid', 'ghost'].includes(v)) {
+    return v;
+  }
+
+  // Botones solo-ícono (tablas y modales): neutro limpio o destructivo rosa
+  if (iconOnly) {
+    if (c === 'red' || c === 'rose') return 'danger';
+    if (v === 'solid' && c === 'green') return 'brand';
+    if (v === 'solid') return 'primary';
+    if (v === 'soft' && (c === 'green' || c === 'emerald')) return 'soft';
+    if (v === 'soft' && c === 'amber') return 'soft-amber';
+    return 'secondary';
+  }
+
+  // Mapeo desde variantes legadas de Radix (solid, soft, surface, outline, ghost)
+  if (v === 'solid') {
+    if (c === 'red' || c === 'rose') return 'danger-solid';
+    if (c === 'green' || c === 'emerald') return 'brand';
+    return 'primary';
+  }
+  if (v === 'soft') {
+    if (c === 'red' || c === 'rose') return 'danger';
+    if (c === 'amber') return 'soft-amber';
+    if (c === 'gray' || c === 'slate') return 'secondary';
+    return 'soft';
+  }
+  if (v === 'outline' || v === 'surface') {
+    if (c === 'red' || c === 'rose') return 'danger';
+    return 'secondary';
+  }
+  return 'secondary';
+}
+
+function resolveRadixPropsFromBrevo(wfVariant, size) {
+  const sizeMap = { sm: '1', md: '2', lg: '3', '1': '1', '2': '2', '3': '3' };
+  const radixSize = sizeMap[String(size || '2')] || '2';
+  const wfSize = radixSize === '1' ? 'sm' : radixSize === '3' ? 'lg' : 'md';
+  const radixVariant =
+    wfVariant === 'primary' || wfVariant === 'brand' || wfVariant === 'danger-solid'
+      ? 'solid'
+      : wfVariant === 'soft' || wfVariant === 'soft-amber' || wfVariant === 'danger'
+        ? 'soft'
+        : wfVariant === 'ghost'
+          ? 'ghost'
+          : 'outline';
+  return { radixSize, wfSize, radixVariant };
+}
+
 // Keep native form events, names, validation and refs used by business modules.
-export const UiButton = forwardRef(function UiButton({ className, children, type = 'button', iconOnly, variant = 'soft', style, asChild = false, ...props }, ref) {
+export const UiButton = forwardRef(function UiButton(
+  { className, children, type = 'button', iconOnly, variant = 'soft', color, size = '2', style, asChild = false, ...props },
+  ref
+) {
   const Component = iconOnly ? IconButton : Button;
   const stacked = className?.split(/\s+/).includes('flex-col');
+  const wfVariant = resolveBrevoButtonVariant(variant, color, Boolean(iconOnly));
+  const { radixSize, wfSize, radixVariant } = resolveRadixPropsFromBrevo(wfVariant, size);
+
   return (
     <Component
       ref={ref}
       asChild={asChild}
       type={asChild ? undefined : type}
-      variant={variant}
-      className={className}
+      variant={radixVariant}
+      color={wfVariant === 'danger' || wfVariant === 'danger-solid' ? 'red' : wfVariant === 'brand' || wfVariant === 'soft' ? 'green' : 'gray'}
+      size={radixSize}
+      data-wf-button="true"
+      data-wf-variant={wfVariant}
+      data-wf-size={wfSize}
+      data-wf-icon-only={iconOnly ? 'true' : undefined}
+      className={cn(className)}
       style={{ ...(stacked ? { height: 'auto', minHeight: 'var(--space-8)', padding: 'var(--space-3)' } : {}), ...style }}
       {...props}
     >
       {children}
     </Component>
+  );
+});
+
+/**
+ * Botón estándar único de cierre de modales (32×32px, borde 1px, ícono X 16px).
+ */
+export const UiModalCloseButton = forwardRef(function UiModalCloseButton({ className, onClick, ...props }, ref) {
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      aria-label="Cerrar"
+      className={cn(
+        'w-8 h-8 rounded-[8px] border border-[#e3e3e3] bg-[#fafafa] hover:bg-[#efefef] text-[#474747] hover:text-[#1b1b1b] inline-flex items-center justify-center shrink-0 transition-colors cursor-pointer',
+        className
+      )}
+      {...props}
+    >
+      <X size={16} strokeWidth={2} />
+    </button>
   );
 });
 

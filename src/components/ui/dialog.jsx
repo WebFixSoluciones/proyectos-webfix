@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
-import { Dialog as RadixDialog, IconButton } from '@radix-ui/themes';
-import { X } from 'lucide-react';
+import { Dialog as RadixDialog } from '@radix-ui/themes';
+import { UiModalCloseButton } from './controls';
 import { cn } from '../../lib/utils';
 export function Dialog(props) { return <RadixDialog.Root {...props} />; }
 export const DialogTrigger = forwardRef(function DialogTrigger(props, ref) { return <RadixDialog.Trigger ref={ref} {...props} />; });
@@ -9,7 +9,7 @@ export const DialogDescription = forwardRef(function DialogDescription(props, re
 export const DialogContent = forwardRef(function DialogContent({ className, children, ...props }, ref) {
   return <RadixDialog.Content ref={ref} aria-describedby={undefined} className={cn('relative w-full max-w-lg max-h-[90dvh] overflow-y-auto', className)} {...props}>
     {children}
-    <RadixDialog.Close><IconButton type="button" variant="ghost" color="gray" aria-label="Cerrar" className="absolute right-4 top-4"><X size={16} /></IconButton></RadixDialog.Close>
+    <RadixDialog.Close><UiModalCloseButton className="absolute right-4 top-4" /></RadixDialog.Close>
   </RadixDialog.Content>;
 });
 export function DialogHeader({ className, ...props }) {

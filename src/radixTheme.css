@@ -162,15 +162,174 @@
   box-shadow: none !important;
 }
 
-.erp-workspace .rt-Button.rt-variant-solid:not([data-accent-color="red"]):not(:disabled),
-.erp-dialog-overlay .rt-Button.rt-variant-solid:not([data-accent-color="red"]):not(:disabled) {
-  background-color: #1b1b1b;
-  color: white;
+/* ==========================================================================
+   WEBFIX BREVO UI KIT v2 — ESTÁNDAR UNIFICADO DE BOTONES E ICON-BUTTONS
+   Geometría única: radio 10px (8px iconOnly), borde hairline 1px, cero sombras
+   Tallas exactas: sm (30px), md (36px), lg (42px) · IconOnly: 30 / 32 / 36px
+   ========================================================================== */
+[data-wf-button="true"] {
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, opacity 140ms ease !important;
+  cursor: pointer;
 }
 
-.erp-workspace .rt-Button.rt-variant-solid:not([data-accent-color="red"]):not(:disabled):hover,
-.erp-dialog-overlay .rt-Button.rt-variant-solid:not([data-accent-color="red"]):not(:disabled):hover {
-  background-color: #333;
+[data-wf-button="true"]:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Tallas exactas de botones con texto */
+[data-wf-button="true"]:not([data-wf-icon-only="true"])[data-wf-size="sm"] {
+  height: 30px;
+  min-height: 30px;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 12px;
+  gap: 6px;
+}
+
+[data-wf-button="true"]:not([data-wf-icon-only="true"])[data-wf-size="md"] {
+  height: 36px;
+  min-height: 36px;
+  padding-left: 14px;
+  padding-right: 14px;
+  font-size: 13px;
+  gap: 6px;
+}
+
+[data-wf-button="true"]:not([data-wf-icon-only="true"])[data-wf-size="lg"] {
+  height: 42px;
+  min-height: 42px;
+  padding-left: 18px;
+  padding-right: 18px;
+  font-size: 14px;
+  font-weight: 700 !important;
+  gap: 8px;
+}
+
+/* Tallas exactas de botones solo-ícono (tablas 30px, modales 32px, POS táctil 36px) */
+[data-wf-button="true"][data-wf-icon-only="true"] {
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+[data-wf-button="true"][data-wf-icon-only="true"][data-wf-size="sm"] {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px;
+  min-height: 30px;
+}
+[data-wf-button="true"][data-wf-icon-only="true"][data-wf-size="md"] {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px;
+  min-height: 32px;
+}
+[data-wf-button="true"][data-wf-icon-only="true"][data-wf-size="lg"] {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+/* Variantes semánticas Brevo v2 */
+[data-wf-button="true"][data-wf-variant="primary"] {
+  background-color: #1b1b1b !important;
+  border-color: #1b1b1b !important;
+  color: #ffffff !important;
+}
+[data-wf-button="true"][data-wf-variant="primary"]:not(:disabled):hover {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+[data-wf-button="true"][data-wf-variant="brand"] {
+  background-color: #0b996f !important;
+  border-color: #0b996f !important;
+  color: #ffffff !important;
+}
+[data-wf-button="true"][data-wf-variant="brand"]:not(:disabled):hover {
+  background-color: #004227 !important;
+  border-color: #004227 !important;
+}
+
+[data-wf-button="true"][data-wf-variant="secondary"] {
+  background-color: #ffffff !important;
+  border-color: #e3e3e3 !important;
+  color: #1b1b1b !important;
+}
+[data-wf-button="true"][data-wf-variant="secondary"]:not(:disabled):hover {
+  background-color: #fafafa !important;
+  border-color: #cccccc !important;
+}
+[data-wf-button="true"][data-wf-icon-only="true"][data-wf-variant="secondary"] {
+  color: #474747 !important;
+}
+[data-wf-button="true"][data-wf-icon-only="true"][data-wf-variant="secondary"]:not(:disabled):hover {
+  background-color: #f0fdf4 !important;
+  border-color: #b3f4cb !important;
+  color: #004227 !important;
+}
+
+[data-wf-button="true"][data-wf-variant="soft"] {
+  background-color: #e8fedf !important;
+  border-color: #b3f4cb !important;
+  color: #004227 !important;
+}
+[data-wf-button="true"][data-wf-variant="soft"]:not(:disabled):hover {
+  background-color: #d8fae4 !important;
+  border-color: #7deda9 !important;
+}
+
+[data-wf-button="true"][data-wf-variant="soft-amber"] {
+  background-color: #fcfbe7 !important;
+  border-color: #f0df8a !important;
+  color: #866308 !important;
+}
+[data-wf-button="true"][data-wf-variant="soft-amber"]:not(:disabled):hover {
+  background-color: #fef3c7 !important;
+  border-color: #dca718 !important;
+}
+
+[data-wf-button="true"][data-wf-variant="danger"] {
+  background-color: #fff0f5 !important;
+  border-color: #fbc6d9 !important;
+  color: #851b40 !important;
+}
+[data-wf-button="true"][data-wf-variant="danger"]:not(:disabled):hover {
+  background-color: #ffe4ed !important;
+  border-color: #f49bb8 !important;
+}
+
+[data-wf-button="true"][data-wf-variant="danger-solid"] {
+  background-color: #d9306b !important;
+  border-color: #d9306b !important;
+  color: #ffffff !important;
+}
+[data-wf-button="true"][data-wf-variant="danger-solid"]:not(:disabled):hover {
+  background-color: #be123c !important;
+  border-color: #be123c !important;
+}
+
+[data-wf-button="true"][data-wf-variant="ghost"] {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #474747 !important;
+}
+[data-wf-button="true"][data-wf-variant="ghost"]:not(:disabled):hover {
+  background-color: #f4f4f5 !important;
+  color: #1b1b1b !important;
+}
+
+@media (max-width: 767px) {
+  [data-wf-button="true"]:not([data-wf-icon-only="true"])[data-wf-size="md"],
+  [data-wf-button="true"]:not([data-wf-icon-only="true"])[data-wf-size="lg"] {
+    min-height: 40px;
+  }
 }
 
 .erp-dialog-overlay {
