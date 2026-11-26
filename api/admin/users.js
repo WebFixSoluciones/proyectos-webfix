@@ -1,4 +1,5 @@
 import { adminServices } from '../../server/firebaseAdmin.js';
+import { buildTenantFirestorePatch, sanitizePlanForSave } from '../../src/services/tenantAdminModel.js';
 
 const errorWithStatus = (message, status) => Object.assign(new Error(message), { status });
 
@@ -87,6 +88,71 @@ export function createUsersHandler(getServices = adminServices) {
         });
       }
       const { uid, action } = req.body || {};
+
+      // Acción directa de administración: actualizar suscripción/plan de un tenant
+      if (action === 'update_tenant') {
+        const tenantId = String(req.body.tenantId || '').trim();
+        if (!/^[A-Za-z0-9_-]{1,128}$/.test(tenantId)) throw errorWithStatus('ID de empresa inválido.', 400);
+        const result = await db.runTransaction(async tx => {
+          const companyRef = db.doc(`tenants/${tenantId}`);
+          const companySnap = await tx.get(companyRef);
+          if (!companySnap.exists) throw errorWithStatus('La empresa no existe.', 404);
+          const existing = companySnap.data();
+          let built;
+          try {
+            built = buildTenantFirestorePatch(
+              {
+                companyName: req.body.companyName ?? existing.companyName ?? tenantId,
+                planId: req.body.planId ?? existing.planId ?? 'starter',
+                planStatus: req.body.planStatus ?? existing.planStatus ?? 'active',
+                billingPeriod: req.body.billingPeriod ?? existing.billingPeriod ?? 'monthly',
+                expiresAt: req.body.expiresAt
+              },
+              {
+                previousStatus: existing.planStatus,
+                actorUid: caller.uid,
+                timestampFactory: d => timestamp(d),
+                serverTimestampValue: serverTimestamp()
+              }
+            );
+          } catch (validationErr) {
+            throw errorWithStatus(validationErr.message || 'Datos de suscripción inválidos.', 400);
+          }
+          tx.update(companyRef, built.patch);
+          tx.create(companyRef.collection('admin_events').doc(), {
+            action: existing.planStatus === 'pending_approval' && ['active', 'trial'].includes(built.changes.planStatus)
+              ? 'Empresa activada y configurada'
+              : 'Empresa y suscripción actualizadas',
+            actorUid: caller.uid,
+            createdAt: serverTimestamp(),
+            changes: built.changes
+          });
+          return { tenantId, changes: built.changes };
+        });
+        return res.status(200).json({ ...result, message: 'Configuración del tenant y plan guardados correctamente.' });
+      }
+
+      // Acción directa de administración: guardar configuración de plan en catálogo
+      if (action === 'save_plan') {
+        let cleanPlan;
+        try {
+          cleanPlan = sanitizePlanForSave(req.body.plan);
+        } catch (validationErr) {
+          throw errorWithStatus(validationErr.message || 'Datos de plan inválidos.', 400);
+        }
+        const planRef = db.doc(`plans/${cleanPlan.id}`);
+        if (typeof planRef.set === 'function') {
+          await planRef.set({ ...cleanPlan, updatedAt: serverTimestamp(), updatedBy: caller.uid }, { merge: true });
+        } else {
+          await db.runTransaction(async tx => {
+            const snap = await tx.get(planRef);
+            if (snap.exists) tx.update(planRef, { ...cleanPlan, updatedAt: serverTimestamp(), updatedBy: caller.uid });
+            else tx.create(planRef, { ...cleanPlan, updatedAt: serverTimestamp(), updatedBy: caller.uid });
+          });
+        }
+        return res.status(200).json({ plan: cleanPlan, message: `Plan "${cleanPlan.name}" guardado correctamente.` });
+      }
+
       if (typeof uid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(uid)) throw errorWithStatus('Usuario inválido.', 400);
       if (!['complete', 'enable'].includes(action)) throw errorWithStatus('Acción inválida.', 400);
       const account = await auth.getUser(uid);

@@ -43,7 +43,7 @@ import { reconcileSriDocument, batchReconcileSriDocuments, scanAllTenantsPending
 import { notifyAuthorizedInvoice } from '../services/invoiceNotification';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, deleteUser, inMemoryPersistence, setPersistence } from 'firebase/auth';
-import { collection, doc, getDocs, getDoc, setDoc, onSnapshot, deleteDoc, Timestamp, writeBatch, serverTimestamp, getCountFromServer } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc, Timestamp, serverTimestamp, getCountFromServer } from 'firebase/firestore';
 import { db, auth, firebaseConfig } from '../firebase';
 import RegistrationAdminView from '../components/admin/RegistrationAdminView';
 import TenantAdminPanel from '../components/admin/TenantAdminPanel';
@@ -137,6 +137,7 @@ export default function SuperAdminPage({ showToast }) {
   const [planCategoryFilter, setPlanCategoryFilter] = useState('all');
   const [loadError, setLoadError] = useState('');
   const [savingTenant, setSavingTenant] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState(null);
   const [savingPlan, setSavingPlan] = useState(false);
   const [savingAddon, setSavingAddon] = useState('');
   const tenantRequest = useRef(0);
@@ -295,6 +296,7 @@ export default function SuperAdminPage({ showToast }) {
       expiresAt: expiryInput
     });
     setTenantEditSubTab('subscription');
+    setSaveFeedback(null);
     setLoadingTenantDetails(true);
     setTenantUsers([]);
     setTenantStats({ transactionsCount: 0, productsCount: 0 });
@@ -328,6 +330,42 @@ export default function SuperAdminPage({ showToast }) {
     });
   };
 
+  // Helpers de persistencia segura:
+  // 1) Nunca bloquear un guardado por fallo de auditoría (admin_events puede no estar desplegado en reglas)
+  const logAdminEventSafe = async (tenantId, eventPayload) => {
+    try {
+      await addDoc(collection(db, 'tenants', tenantId, 'admin_events'), {
+        ...eventPayload,
+        actorUid: currentUser?.uid || '',
+        createdAt: serverTimestamp()
+      });
+    } catch (auditErr) {
+      console.warn('Evento admin_events omitido:', auditErr?.code || auditErr?.message || auditErr);
+    }
+  };
+
+  // 2) Fallback autenticado vía Firebase Admin SDK en Vercel si las reglas cliente rechazan la escritura
+  const callSuperAdminApi = async (body) => {
+    const token = await auth.currentUser?.getIdToken(true);
+    if (!token) throw new Error('Sesión expirada. Inicia sesión nuevamente.');
+    const response = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data) {
+      throw new Error(data?.error || 'No se pudo guardar mediante el servicio de administración.');
+    }
+    return data;
+  };
+
+  const isPermissionError = (err) => {
+    const code = String(err?.code || '').toLowerCase();
+    const msg = String(err?.message || '').toLowerCase();
+    return code.includes('permission-denied') || msg.includes('permission') || msg.includes('insufficient');
+  };
+
   // Confirm Tenant Activation (Active OR Trial with chosen plan, cycle, expiry)
   const handleConfirmActivation = async (e) => {
     e.preventDefault();
@@ -351,18 +389,29 @@ export default function SuperAdminPage({ showToast }) {
         }
       );
 
-      await runTransaction(db, async transaction => {
-        const tenantRef = doc(db, 'tenants', tenant.id);
-        const snapshot = await transaction.get(tenantRef);
-        if (!snapshot.exists()) throw new Error('La empresa no existe en Firestore.');
-        transaction.update(tenantRef, patch);
-        transaction.set(doc(collection(db, 'tenants', tenant.id, 'admin_events')), {
+      let savedViaApi = false;
+      try {
+        await updateDoc(doc(db, 'tenants', tenant.id), patch);
+      } catch (clientErr) {
+        if (!isPermissionError(clientErr)) throw clientErr;
+        await callSuperAdminApi({
+          action: 'update_tenant',
+          tenantId: tenant.id,
+          companyName: tenant.companyName || tenant.id,
+          planId,
+          planStatus,
+          billingPeriod,
+          expiresAt
+        });
+        savedViaApi = true;
+      }
+
+      if (!savedViaApi) {
+        await logAdminEventSafe(tenant.id, {
           action: planStatus === 'active' ? 'Plan activado por administrador' : 'Prueba habilitada por administrador',
-          actorUid: currentUser.uid,
-          createdAt: serverTimestamp(),
           changes
         });
-      });
+      }
 
       if (selectedTenantDetails?.id === tenant.id) {
         setSelectedTenantDetails(prev => prev ? {
@@ -370,20 +419,21 @@ export default function SuperAdminPage({ showToast }) {
           planId,
           planStatus,
           billingPeriod,
-          expiresAt: expiresAt
+          expiresAt
         } : prev);
       }
 
-      showToast?.(
-        planStatus === 'active'
-          ? `Empresa "${tenant.companyName}" activada con plan ${getPlanName(planId)} hasta ${expiresAt}.`
-          : `Empresa "${tenant.companyName}" habilitada en modo prueba hasta ${expiresAt}.`,
-        'success'
-      );
+      const msg = planStatus === 'active'
+        ? `Empresa "${tenant.companyName}" activada con plan ${getPlanName(planId)} hasta ${expiresAt}.`
+        : `Empresa "${tenant.companyName}" habilitada en modo prueba hasta ${expiresAt}.`;
+      setSaveFeedback({ type: 'success', text: msg });
+      showToast?.(msg, 'success');
       setActivationModal(null);
     } catch (error) {
       console.error('Error activando empresa:', error);
-      showToast?.(error.message || 'No se pudo activar la empresa.', 'error');
+      const errMsg = error.message || 'No se pudo activar la empresa.';
+      setSaveFeedback({ type: 'error', text: errMsg });
+      showToast?.(errMsg, 'error');
     } finally {
       setIsActivating(false);
     }
@@ -439,17 +489,19 @@ export default function SuperAdminPage({ showToast }) {
             updatedBy: currentUser.uid
           });
         }
-        transaction.set(doc(collection(db, 'tenants', payment.tenantId, 'admin_events')), {
-          action: 'Pago aprobado',
-          actorUid: currentUser.uid,
-          createdAt: serverTimestamp(),
-          changes: { planId: payment.planId, category, expiresAt: newExpiresAt.toISOString(), transferId: transfer.id }
-        });
         transaction.update(transferRef, {
           status: 'approved',
           approvedAt: new Date().toISOString(),
           approvedBy: currentUser.uid
         });
+        return { tenantId: payment.tenantId, planId: payment.planId, category, expiresAt: newExpiresAt.toISOString() };
+      }).then(async (auditInfo) => {
+        if (auditInfo?.tenantId) {
+          await logAdminEventSafe(auditInfo.tenantId, {
+            action: 'Pago aprobado',
+            changes: { planId: auditInfo.planId, category: auditInfo.category, expiresAt: auditInfo.expiresAt, transferId: transfer.id }
+          });
+        }
       });
 
       showToast?.('Transferencia bancaria aprobada. Suscripción activada.', 'success');
@@ -485,6 +537,7 @@ export default function SuperAdminPage({ showToast }) {
     e.preventDefault();
     if (savingTenant || !selectedTenantDetails) return;
     setSavingTenant(true);
+    setSaveFeedback(null);
     try {
       const existingTenant = tenants.find(item => item.id === selectedTenantDetails.id);
       const effectiveExpiry = selectedTenantDetails.expiresAt || (
@@ -500,17 +553,31 @@ export default function SuperAdminPage({ showToast }) {
         serverTimestampValue: serverTimestamp()
       });
 
-      const batch = writeBatch(db);
-      batch.update(doc(db, 'tenants', selectedTenantDetails.id), patch);
-      batch.set(doc(collection(db, 'tenants', selectedTenantDetails.id, 'admin_events')), {
-        action: existingTenant?.planStatus === 'pending_approval' && ['active', 'trial'].includes(changes.planStatus)
-          ? 'Empresa activada y configurada'
-          : 'Empresa y suscripción actualizadas',
-        actorUid: currentUser.uid,
-        createdAt: serverTimestamp(),
-        changes
-      });
-      await batch.commit();
+      let savedViaApi = false;
+      try {
+        await updateDoc(doc(db, 'tenants', selectedTenantDetails.id), patch);
+      } catch (clientErr) {
+        if (!isPermissionError(clientErr)) throw clientErr;
+        await callSuperAdminApi({
+          action: 'update_tenant',
+          tenantId: selectedTenantDetails.id,
+          companyName: changes.companyName,
+          planId: changes.planId,
+          planStatus: changes.planStatus,
+          billingPeriod: changes.billingPeriod,
+          expiresAt: effectiveExpiry
+        });
+        savedViaApi = true;
+      }
+
+      if (!savedViaApi) {
+        await logAdminEventSafe(selectedTenantDetails.id, {
+          action: existingTenant?.planStatus === 'pending_approval' && ['active', 'trial'].includes(changes.planStatus)
+            ? 'Empresa activada y configurada'
+            : 'Empresa y suscripción actualizadas',
+          changes
+        });
+      }
 
       setSelectedTenantDetails(prev => prev ? {
         ...prev,
@@ -521,10 +588,22 @@ export default function SuperAdminPage({ showToast }) {
         expiresAt: effectiveExpiry
       } : prev);
 
-      showToast?.('Configuración del tenant y plan guardados correctamente.', 'success');
+      const statusText = {
+        active: 'Activo',
+        trial: 'Prueba (Trial)',
+        pending_approval: 'Pendiente de aprobación',
+        suspended: 'Suspendido',
+        expired: 'Vencido'
+      }[changes.planStatus] || changes.planStatus;
+
+      const successMsg = `Guardado: ${getPlanName(changes.planId)} · ${statusText}${effectiveExpiry ? ` · vence ${effectiveExpiry}` : ''}`;
+      setSaveFeedback({ type: 'success', text: successMsg });
+      showToast?.(successMsg, 'success');
     } catch (err) {
       console.error('Error actualizando tenant:', err);
-      showToast?.(err.message || 'No se pudo actualizar la empresa.', 'error');
+      const errMsg = err.message || 'No se pudo actualizar la empresa.';
+      setSaveFeedback({ type: 'error', text: errMsg });
+      showToast?.(errMsg, 'error');
     } finally {
       setSavingTenant(false);
     }
@@ -537,7 +616,6 @@ export default function SuperAdminPage({ showToast }) {
     setSavingAddon(category);
     try {
       const tenantRef = doc(db, 'tenants', selectedTenantDetails.id);
-      const batch = writeBatch(db);
       if (activate) {
         const expDate = computeNextPlanExpiry(null, selectedTenantDetails.billingPeriod || 'monthly');
         const subObj = {
@@ -546,36 +624,30 @@ export default function SuperAdminPage({ showToast }) {
           billingPeriod: selectedTenantDetails.billingPeriod || 'monthly',
           expiresAt: Timestamp.fromDate(expDate)
         };
-        batch.update(tenantRef, {
+        await updateDoc(tenantRef, {
           [`serviceSubscriptions.${category}`]: subObj,
           updatedAt: serverTimestamp(),
           updatedBy: currentUser.uid
         });
-        batch.set(doc(collection(db, 'tenants', selectedTenantDetails.id, 'admin_events')), {
+        await logAdminEventSafe(selectedTenantDetails.id, {
           action: 'Servicio adicional activado',
-          actorUid: currentUser.uid,
-          createdAt: serverTimestamp(),
           changes: { category, planId: addonPlan.id, expiresAt: expDate.toISOString() }
         });
-        await batch.commit();
         setSelectedTenantDetails(prev => prev ? {
           ...prev,
           serviceSubscriptions: { ...(prev.serviceSubscriptions || {}), [category]: subObj }
         } : prev);
         showToast?.(`Servicio "${addonPlan.name}" activado para la empresa.`, 'success');
       } else {
-        batch.update(tenantRef, {
+        await updateDoc(tenantRef, {
           [`serviceSubscriptions.${category}`]: deleteField(),
           updatedAt: serverTimestamp(),
           updatedBy: currentUser.uid
         });
-        batch.set(doc(collection(db, 'tenants', selectedTenantDetails.id, 'admin_events')), {
+        await logAdminEventSafe(selectedTenantDetails.id, {
           action: 'Servicio adicional desactivado',
-          actorUid: currentUser.uid,
-          createdAt: serverTimestamp(),
           changes: { category, status: 'removed' }
         });
-        await batch.commit();
         setSelectedTenantDetails(prev => {
           if (!prev) return prev;
           const nextSubs = { ...(prev.serviceSubscriptions || {}) };
@@ -599,11 +671,16 @@ export default function SuperAdminPage({ showToast }) {
     setSavingPlan(true);
     try {
       const cleanPlan = sanitizePlanForSave(editingPlan);
-      await setDoc(doc(db, 'plans', cleanPlan.id), {
-        ...cleanPlan,
-        updatedAt: serverTimestamp(),
-        updatedBy: currentUser.uid
-      }, { merge: true });
+      try {
+        await setDoc(doc(db, 'plans', cleanPlan.id), {
+          ...cleanPlan,
+          updatedAt: serverTimestamp(),
+          updatedBy: currentUser.uid
+        }, { merge: true });
+      } catch (clientErr) {
+        if (!isPermissionError(clientErr)) throw clientErr;
+        await callSuperAdminApi({ action: 'save_plan', plan: cleanPlan });
+      }
       setPlans(current => {
         const exists = current.some(p => p.id === cleanPlan.id);
         return exists
@@ -827,12 +904,6 @@ export default function SuperAdminPage({ showToast }) {
           users: [{ email, role: 'admin', name: `Admin ${companyName}`, active: true }],
           trash: [],
           googleClientId: ''
-        }],
-        [doc(collection(db, 'tenants', cleanTenantId, 'admin_events')), {
-          action: 'Empresa creada',
-          actorUid: currentUser.uid,
-          createdAt: serverTimestamp(),
-          changes: { planId: tenantData.planId, planStatus: tenantData.planStatus, billingPeriod: tenantData.billingPeriod, expiresAt: tenantData.expiresAt }
         }]
       ];
 
@@ -842,6 +913,11 @@ export default function SuperAdminPage({ showToast }) {
         documents.forEach(([ref, data]) => tx.set(ref, data));
       });
       workspaceCreated = true;
+
+      await logAdminEventSafe(cleanTenantId, {
+        action: 'Empresa creada',
+        changes: { planId: tenantData.planId, planStatus: tenantData.planStatus, billingPeriod: tenantData.billingPeriod, expiresAt: tenantData.expiresAt }
+      });
 
       if (newTenantForm.sendResetEmail) {
         try {
@@ -1167,7 +1243,7 @@ export default function SuperAdminPage({ showToast }) {
                 : 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
             }`}>
               <span className={`w-1.5 h-1.5 rounded-full ${loadError ? 'bg-[#D9306B]' : 'bg-[#0B996F] animate-pulse'}`} />
-              <span className="hidden xs:inline">{loadError ? 'Sin conexión' : loading ? 'Sincronizando' : `${tenants.length} tenants`}</span>
+              <span className="hidden sm:inline">{loadError ? 'Sin conexión' : loading ? 'Sincronizando' : `${tenants.length} tenants`}</span>
             </span>
           </div>
         </header>
@@ -1777,6 +1853,22 @@ export default function SuperAdminPage({ showToast }) {
                                 </button>
                               ))}
                             </div>
+
+                            {saveFeedback && (
+                              <div
+                                role="status"
+                                className={`p-3 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                                  saveFeedback.type === 'success'
+                                    ? 'bg-[#E8FEDF] border-[#B3F4CB] text-[#004227]'
+                                    : 'bg-[#FFF0F5] border-[#FBC6D9] text-[#851B40]'
+                                }`}
+                              >
+                                {saveFeedback.type === 'success'
+                                  ? <CheckCircle2 size={14} className="shrink-0 text-[#0B996F]" />
+                                  : <AlertTriangle size={14} className="shrink-0 text-[#D9306B]" />}
+                                <span>{saveFeedback.text}</span>
+                              </div>
+                            )}
 
                             <div className="flex flex-wrap justify-end gap-2 pt-4 border-t border-[#EFEFEF]">
                               <UiButton

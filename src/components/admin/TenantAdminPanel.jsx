@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, doc, limit, onSnapshot, orderBy, query, runTransaction, serverTimestamp, where } from 'firebase/firestore';
+import { addDoc, collection, doc, limit, onSnapshot, orderBy, query, runTransaction, serverTimestamp, where } from 'firebase/firestore';
 import { CheckCircle2, Clock, History, ShieldCheck, UserCheck, Users, UserX } from 'lucide-react';
 import { db } from '../../firebase';
 import { tenantSetupChecks } from '../../services/tenantAdminModel';
@@ -22,11 +22,13 @@ export default function TenantAdminPanel({ tenant, currentUser, onUsersChange, s
   const [users, setUsers] = useState([]);
   const [config, setConfig] = useState(null);
   const [events, setEvents] = useState([]);
+  const [eventsUnavailable, setEventsUnavailable] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setError('');
+    setEventsUnavailable(false);
     setUsers([]);
     setConfig(null);
     setEvents([]);
@@ -41,7 +43,10 @@ export default function TenantAdminPanel({ tenant, currentUser, onUsersChange, s
     }, fail);
     const stopEvents = onSnapshot(query(collection(db, 'tenants', tenant.id, 'admin_events'), orderBy('createdAt', 'desc'), limit(20)), snapshot => {
       setEvents(snapshot.docs.map(item => ({ ...item.data(), id: item.id })));
-    }, fail);
+      setEventsUnavailable(false);
+    }, () => {
+      setEventsUnavailable(true);
+    });
     return () => { stopUsers(); stopConfig(); stopEvents(); };
   }, [tenant.id, onUsersChange]);
 
@@ -49,6 +54,7 @@ export default function TenantAdminPanel({ tenant, currentUser, onUsersChange, s
     if (busy) return;
     setBusy(true);
     try {
+      let existingBefore = null;
       await runTransaction(db, async tx => {
         const ref = doc(db, 'users', user.id);
         const snapshot = await tx.get(ref);
@@ -58,16 +64,21 @@ export default function TenantAdminPanel({ tenant, currentUser, onUsersChange, s
         if (user.id === currentUser.uid || existing.role === 'superadmin' || user.id === company.data()?.ownerUid) {
           throw new Error('El propietario y las cuentas de superadministración están protegidos.');
         }
+        existingBefore = { role: existing.role, status: existing.status };
         tx.update(ref, { ...changes, updatedAt: serverTimestamp(), updatedBy: currentUser.uid });
-        tx.set(doc(collection(db, 'tenants', tenant.id, 'admin_events')), {
+      });
+      try {
+        await addDoc(collection(db, 'tenants', tenant.id, 'admin_events'), {
           action: 'Acceso de usuario actualizado',
           targetUid: user.id,
           actorUid: currentUser.uid,
-          before: { role: existing.role, status: existing.status },
+          before: existingBefore,
           changes,
           createdAt: serverTimestamp()
         });
-      });
+      } catch (auditErr) {
+        console.warn('No se pudo registrar evento de auditoría:', auditErr?.code || auditErr);
+      }
       showToast?.('Acceso de usuario actualizado.', 'success');
     } catch (err) {
       showToast?.(err.message, 'error');
@@ -300,7 +311,11 @@ export default function TenantAdminPanel({ tenant, currentUser, onUsersChange, s
             </div>
           </div>
 
-          {!events.length ? (
+          {eventsUnavailable ? (
+            <p className="text-xs text-[#696969] bg-[#FAFAFA] border border-[#EFEFEF] rounded-xl p-4 text-center">
+              El historial de eventos administrativos requiere desplegar las reglas actualizadas de Firestore (`admin_events`).
+            </p>
+          ) : !events.length ? (
             <p className="text-xs text-[#696969] bg-[#FAFAFA] border border-[#EFEFEF] rounded-xl p-4 text-center">
               Sin cambios registrados en el historial.
             </p>

@@ -813,6 +813,7 @@ export default function App() {
     return !activeModules[activePageId];
   })();
   return (
+    <>
     <Routes>
       <Route element={<LandingLayout />}>
         <Route path="/" element={<LandingHome />} />
@@ -1377,7 +1378,12 @@ export default function App() {
 
 
 
-      {/* Contenedor de Toasts (Notificaciones Flotantes Minimalistas — siempre sobre modales) */}
+        </div>
+      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+
+      {/* Contenedor Global de Toasts (visible en /superadmin, /login, /register y /app) */}
       <UiBox {...{"className":"fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[600] flex flex-col gap-2 pointer-events-none max-w-[calc(100vw-2rem)]"}}>
         {toasts.map(toast => (
           <UiCard key={toast.id} {...mergeThemeProps({"className":"animate-in slide-in-from-bottom-5 fade-in duration-300 flex items-center gap-2.5 px-4 py-3 pointer-events-auto border border-slate-200"}, {}, {"style":{"backgroundColor":"var(--color-panel-solid)","color":"var(--gray-12)"}})}>
@@ -1420,10 +1426,6 @@ export default function App() {
           </UiBox>
         </UiBox>
       )}
-
-        </div>
-      } />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    </>
   );
 }

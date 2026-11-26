@@ -91,3 +91,47 @@ test('enable supports direct active plan activation with chosen planId, billingP
   assert.ok(rows.get(tenantPath).subscriptionExpiresAt instanceof Date);
   assert.equal('trialExpiresAt' in rows.get(tenantPath), false);
 });
+
+test('update_tenant and save_plan allow superadmin to persist tenant plan assignments and plan catalog via Admin SDK', async () => {
+  const { rows, call } = setup();
+  rows.set('tenants/org_f5tar', {
+    id: 'org_f5tar',
+    companyName: 'F5TAR',
+    planId: 'starter',
+    planStatus: 'trial',
+    billingPeriod: 'monthly'
+  });
+
+  const updated = await call({
+    action: 'update_tenant',
+    tenantId: 'org_f5tar',
+    companyName: 'F5TAR',
+    planId: 'enterprise',
+    planStatus: 'active',
+    billingPeriod: 'yearly',
+    expiresAt: '2027-12-10'
+  });
+  assert.equal(updated.status, 200);
+  assert.equal(rows.get('tenants/org_f5tar').planStatus, 'active');
+  assert.equal(rows.get('tenants/org_f5tar').planId, 'enterprise');
+  assert.equal(rows.get('tenants/org_f5tar').billingPeriod, 'yearly');
+  assert.equal(rows.get('tenants/org_f5tar').expiresAt, '2027-12-10T23:59:59.000Z');
+  assert.ok(rows.get('tenants/org_f5tar').subscriptionExpiresAt instanceof Date);
+
+  const savedPlan = await call({
+    action: 'save_plan',
+    plan: {
+      id: 'starter',
+      name: 'Starter Plus',
+      category: 'erp',
+      priceMonthly: 29.99,
+      priceYearly: 24.5,
+      maxUsers: 5,
+      maxProducts: 250,
+      modules: ['dashboard', 'ventas']
+    }
+  });
+  assert.equal(savedPlan.status, 200);
+  assert.equal(rows.get('plans/starter').name, 'Starter Plus');
+  assert.equal(rows.get('plans/starter').priceMonthly, 29.99);
+});
