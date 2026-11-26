@@ -70,3 +70,24 @@ test('an employee cannot enable a pending company on behalf of the owner', async
   assert.equal((await call({ uid: 'new', action: 'enable' })).status, 409);
   assert.equal(rows.get('tenants/other').planStatus, 'pending_approval');
 });
+
+test('enable supports direct active plan activation with chosen planId, billingPeriod and expiry', async () => {
+  const { rows, call } = setup();
+  const completed = await call({ uid: 'new', action: 'complete', name: 'Ana', companyName: 'Comercial Ana' });
+  const tenantPath = `tenants/${completed.body.tenantId}`;
+  const enabled = await call({
+    uid: 'new',
+    action: 'enable',
+    planStatus: 'active',
+    planId: 'professional',
+    billingPeriod: 'yearly',
+    expiresAt: '2027-11-25'
+  });
+  assert.equal(enabled.status, 200);
+  assert.equal(rows.get(tenantPath).planStatus, 'active');
+  assert.equal(rows.get(tenantPath).planId, 'professional');
+  assert.equal(rows.get(tenantPath).billingPeriod, 'yearly');
+  assert.equal(rows.get(tenantPath).expiresAt, '2027-11-25T23:59:59.000Z');
+  assert.ok(rows.get(tenantPath).subscriptionExpiresAt instanceof Date);
+  assert.equal('trialExpiresAt' in rows.get(tenantPath), false);
+});

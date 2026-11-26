@@ -1,17 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UiInput } from '../components/ui/controls';
+import { UiButton, UiInput, UiModalCloseButton, UiSelect, UiTextarea } from '../components/ui/controls';
+import { UiIconBadge } from '../components/ui/UiIconBadge';
+import { UiSegmentedTabs } from '../components/ui/UiSegmentedTabs';
 import confirmAction from '../services/confirmDialog';
-import { 
-  Building, 
-  CreditCard, 
-  Settings, 
-  XCircle, 
-  Search, 
-  Activity, 
-  Edit3, 
-  Check, 
-  X, 
+import {
+  Building,
+  CreditCard,
+  Settings,
+  XCircle,
+  Search,
+  Activity,
+  Edit3,
+  Check,
+  X,
   LogOut,
   Sliders,
   DollarSign,
@@ -27,9 +29,16 @@ import {
   Copy,
   ExternalLink,
   CheckCircle2,
-  Zap
+  Zap,
+  Sparkles,
+  Calendar,
+  Layers,
+  Users,
+  Clock,
+  Package,
+  AlertTriangle
 } from 'lucide-react';
-import { query, where, runTransaction } from 'firebase/firestore';
+import { query, where, runTransaction, deleteField } from 'firebase/firestore';
 import { reconcileSriDocument, batchReconcileSriDocuments, scanAllTenantsPendingSri, getDocumentTypeName } from '../services/sriReconciliation';
 import { notifyAuthorizedInvoice } from '../services/invoiceNotification';
 import { initializeApp, deleteApp } from 'firebase/app';
@@ -39,32 +48,100 @@ import { db, auth, firebaseConfig } from '../firebase';
 import RegistrationAdminView from '../components/admin/RegistrationAdminView';
 import TenantAdminPanel from '../components/admin/TenantAdminPanel';
 import { getSubscriptionExpiry, isSubscriptionBlocked } from '../services/subscriptionAccess';
-import { tenantDateInput, tenantStatus, subscriptionUpdate } from '../services/tenantAdminModel';
+import {
+  tenantDateInput,
+  tenantStatus,
+  computeDefaultExpiryDate,
+  buildTenantFirestorePatch,
+  sanitizePlanForSave
+} from '../services/tenantAdminModel';
 import { useAuth } from '../contexts/AuthContext';
 import { DEFAULT_BILLING_PLANS } from '../config/billingPlans';
 import { validatePlanPayment, isBasePlanCategory, getSubscriptionExpiry as computeNextPlanExpiry } from '../services/subscriptionPlan';
 
+const CATEGORY_LABELS = {
+  all: 'Todos',
+  erp: 'ERP',
+  facturacion: 'Facturación SRI',
+  paginas: 'Páginas Web',
+  correos: 'Correos',
+  whatsapp: 'WhatsApp CRM'
+};
+
+const MODULE_LABELS = {
+  dashboard: 'Dashboard',
+  ventas: 'Ventas',
+  finances: 'Finanzas / Tesorería',
+  compras: 'Compras',
+  gastos_creditos: 'Gastos y Créditos',
+  inventario: 'Inventario',
+  personas: 'Personas',
+  calendar: 'Calendario',
+  team: 'Equipo',
+  contabilidad: 'Contabilidad SRI',
+  general_settings: 'Ajustes'
+};
+
+const STATUS_PILL_STYLES = {
+  Activo: 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]',
+  Prueba: 'bg-[#F4F4F5] text-[#474747] border-[#E3E3E3]',
+  'Por aprobar': 'bg-[#FCFBE7] text-[#866308] border-[#F0DF8A]',
+  Suspendido: 'bg-[#FFF0F5] text-[#851B40] border-[#FBC6D9]',
+  Vencido: 'bg-[#FFF0F5] text-[#851B40] border-[#FBC6D9]'
+};
+
+const TAB_TITLES = {
+  dashboard: 'Resumen Ejecutivo SaaS',
+  users: 'Usuarios y Altas',
+  tenants: 'Empresas (Tenants)',
+  sri_monitor: 'Monitor SRI Global',
+  transfers: 'Aprobaciones de Pago',
+  plans: 'Tarifas y Planes'
+};
+
+function addDaysToToday(days) {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function addMonthsToToday(months) {
+  const d = new Date();
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, lastDay));
+  return d.toISOString().slice(0, 10);
+}
+
 export default function SuperAdminPage({ showToast }) {
   const navigate = useNavigate();
   const { currentUser, logout, role } = useAuth();
-  
+
   // Navigation & UI state
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'tenants' | 'transfers' | 'plans'
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'edit' | 'create'
-  
+  const [tenantEditSubTab, setTenantEditSubTab] = useState('subscription'); // 'subscription' | 'team' | 'advanced'
+
   // Firestore collections state
   const [tenants, setTenants] = useState([]);
   const [transfers, setTransfers] = useState([]);
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState(DEFAULT_BILLING_PLANS);
   const [loading, setLoading] = useState(true);
   const [registrationSummary, setRegistrationSummary] = useState({ loading: true, incomplete: 0 });
   const [searchTerm, setSearchTerm] = useState('');
+  const [tenantStatusFilter, setTenantStatusFilter] = useState('all'); // 'all' | 'pending_approval' | 'active' | 'trial' | 'inactive'
+  const [transferFilter, setTransferFilter] = useState('pending'); // 'pending' | 'approved' | 'rejected' | 'all'
+  const [planCategoryFilter, setPlanCategoryFilter] = useState('all');
   const [loadError, setLoadError] = useState('');
   const [savingTenant, setSavingTenant] = useState(false);
-  const [pendingOnly, setPendingOnly] = useState(false);
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [savingAddon, setSavingAddon] = useState('');
   const tenantRequest = useRef(0);
-  
+  const plansInitialized = useRef(false);
+
   // Selected Tenant Details State (for inline editing)
   const [selectedTenantDetails, setSelectedTenantDetails] = useState(null);
   const [tenantUsers, setTenantUsers] = useState([]);
@@ -74,6 +151,8 @@ export default function SuperAdminPage({ showToast }) {
   // Modals / Edit states
   const [editingPlan, setEditingPlan] = useState(null);
   const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [activationModal, setActivationModal] = useState(null); // { tenant, planId, planStatus, billingPeriod, expiresAt }
+  const [isActivating, setIsActivating] = useState(false);
 
   // New Tenant Creation Form State
   const [newTenantForm, setNewTenantForm] = useState({
@@ -81,8 +160,9 @@ export default function SuperAdminPage({ showToast }) {
     tenantId: '',
     email: '',
     planId: 'starter',
-    planStatus: 'trial',
+    planStatus: 'active',
     billingPeriod: 'monthly',
+    expiresAt: computeDefaultExpiryDate('active', 'monthly'),
     initialPassword: '',
     sendResetEmail: true
   });
@@ -109,81 +189,112 @@ export default function SuperAdminPage({ showToast }) {
 
   const isSuperAdmin = String(role || '').toLowerCase().trim() === 'superadmin';
 
-  // Gating check: ensure only superadmins can access this page
+  // Derived plan lists
+  const basePlans = useMemo(() => {
+    const list = plans.filter(p => isBasePlanCategory(p.category || 'erp'));
+    return list.length > 0 ? list : DEFAULT_BILLING_PLANS.filter(p => isBasePlanCategory(p.category || 'erp'));
+  }, [plans]);
+
+  const addonPlans = useMemo(() => {
+    return plans.filter(p => !isBasePlanCategory(p.category || 'erp'));
+  }, [plans]);
+
+  const getPlanName = (planId) => {
+    const found = plans.find(p => p.id === planId);
+    return found?.name || planId || 'Sin plan';
+  };
+
+  // Gating check
   useEffect(() => {
     if (currentUser && !isSuperAdmin) {
-      showToast?.("Acceso denegado. Se requieren permisos de super-administrador.", "error");
+      showToast?.('Acceso denegado. Se requieren permisos de super-administrador.', 'error');
       navigate('/app');
     }
   }, [currentUser, isSuperAdmin, navigate, showToast]);
 
-  // Load Tenants, Transfers, and Plans
+  // Real-time listeners for Tenants, Transfers, and Plans
   useEffect(() => {
     if (!isSuperAdmin) return;
     setLoading(true);
     setLoadError('');
-    // 1. Listen to Tenants
+
     const unsubTenants = onSnapshot(collection(db, 'tenants'), (snap) => {
       const list = [];
-      snap.forEach(doc => list.push({ ...doc.data(), id: doc.id }));
+      snap.forEach(d => list.push({ ...d.data(), id: d.id }));
       const created = tenant => tenant.createdAt?.toMillis?.() || Date.parse(tenant.createdAt || '') || 0;
       list.sort((a, b) => created(b) - created(a));
       setTenants(list);
       setLoading(false);
     }, (error) => {
-      setLoadError("No se pudieron cargar las empresas. Comprueba los permisos de superadministrador.");
+      setLoadError('No se pudieron cargar las empresas. Comprueba los permisos de superadministrador.');
       setLoading(false);
-      console.warn("Superadmin tenants subscription blocked by security rules:", error);
+      console.warn('Superadmin tenants subscription blocked by security rules:', error);
     });
 
-    // 2. Listen to Transfers
     const unsubTransfers = onSnapshot(collection(db, 'transfers'), (snap) => {
       const list = [];
-      snap.forEach(doc => list.push({ ...doc.data(), id: doc.id }));
+      snap.forEach(d => list.push({ ...d.data(), id: d.id }));
+      list.sort((a, b) => Date.parse(b.createdAt || '') - Date.parse(a.createdAt || ''));
       setTransfers(list);
     }, (error) => {
-      setLoadError("No se pudieron cargar los pagos. Revisa tu conexión y permisos.");
-      console.warn("Superadmin transfers subscription blocked by security rules:", error);
+      setLoadError('No se pudieron cargar los pagos. Revisa tu conexión y permisos.');
+      console.warn('Superadmin transfers subscription blocked by security rules:', error);
     });
 
-    // 3. Load or Initialize Plans in Firestore
-    const loadPlans = async () => {
-      try {
-        const snap = await getDocs(collection(db, 'plans'));
-        const list = [];
-        snap.forEach(doc => list.push({ ...doc.data(), id: doc.id }));
-        
-        const existingIds = new Set(list.map(plan => plan.id));
-        const missing = DEFAULT_BILLING_PLANS.filter(plan => !existingIds.has(plan.id));
+    const unsubPlans = onSnapshot(collection(db, 'plans'), async (snap) => {
+      const list = [];
+      snap.forEach(d => list.push({ ...d.data(), id: d.id }));
+      const existingIds = new Set(list.map(p => p.id));
+      const missing = DEFAULT_BILLING_PLANS.filter(p => !existingIds.has(p.id));
+      if (missing.length > 0 && !plansInitialized.current) {
+        plansInitialized.current = true;
         for (const plan of missing) {
-          await setDoc(doc(db, 'plans', plan.id), plan);
+          try {
+            await setDoc(doc(db, 'plans', plan.id), sanitizePlanForSave(plan), { merge: true });
+          } catch (err) {
+            console.warn('No se pudo inicializar plan por defecto:', plan.id, err);
+          }
         }
-        setPlans([...list, ...missing]);
-      } catch (err) {
-        console.error("Error cargando planes:", err);
       }
-    };
-
-    loadPlans();
+      const orderMap = new Map(DEFAULT_BILLING_PLANS.map((p, idx) => [p.id, idx]));
+      const merged = [...list, ...missing.filter(m => !list.some(l => l.id === m.id))];
+      merged.sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
+      setPlans(merged);
+    }, (err) => {
+      console.error('Error escuchando planes:', err);
+    });
 
     return () => {
       unsubTenants();
       unsubTransfers();
+      unsubPlans();
     };
   }, [isSuperAdmin]);
 
-  // Set default initial password on form setup
+  // Set default initial password on create form
   useEffect(() => {
     if (viewMode === 'create') {
-      const randPassword = Array.from(crypto.getRandomValues(new Uint8Array(18)), value => value.toString(16).padStart(2, '0')).join('') + 'A1!';
-      setNewTenantForm(prev => ({ ...prev, initialPassword: randPassword }));
+      const randPassword = Array.from(crypto.getRandomValues(new Uint8Array(12)), value => value.toString(16).padStart(2, '0')).join('') + 'A1!';
+      setNewTenantForm(prev => ({
+        ...prev,
+        initialPassword: randPassword,
+        expiresAt: computeDefaultExpiryDate(prev.planStatus, prev.billingPeriod)
+      }));
     }
   }, [viewMode]);
 
-  // Fetch tenant details under Approach A (accounts list and consumptions metrics)
+  // Select tenant for inline editing
   const handleSelectTenant = async (tenant) => {
     const request = ++tenantRequest.current;
-    setSelectedTenantDetails({ ...tenant, expiresAt: tenantDateInput(tenant), billingPeriod: tenant.billingPeriod || 'monthly' });
+    const expiryInput = tenantDateInput(tenant);
+    setSelectedTenantDetails({
+      ...tenant,
+      planId: tenant.planId || basePlans[0]?.id || 'starter',
+      planStatus: tenant.planStatus || 'pending_approval',
+      billingPeriod: tenant.billingPeriod || 'monthly',
+      expiresAt: expiryInput
+    });
+    setTenantEditSubTab('subscription');
     setLoadingTenantDetails(true);
     setTenantUsers([]);
     setTenantStats({ transactionsCount: 0, productsCount: 0 });
@@ -193,7 +304,9 @@ export default function SuperAdminPage({ showToast }) {
         getCountFromServer(collection(db, 'artifacts', tenant.id, 'public', 'data', 'finances_transactions')),
         getCountFromServer(collection(db, 'artifacts', tenant.id, 'public', 'data', 'inventory_products'))
       ]);
-      if (request === tenantRequest.current) setTenantStats({ transactionsCount: txSnap.data().count, productsCount: prodSnap.data().count });
+      if (request === tenantRequest.current) {
+        setTenantStats({ transactionsCount: txSnap.data().count, productsCount: prodSnap.data().count });
+      }
     } catch (error) {
       console.error('Error cargando consumo:', error);
       showToast?.('No se pudo cargar el consumo de la empresa.', 'error');
@@ -202,31 +315,77 @@ export default function SuperAdminPage({ showToast }) {
     }
   };
 
-  // Actions
-  const handleApproveRegistration = async (tenant) => {
+  // Open explicit Activation Modal (lets SuperAdmin pick Plan + Active/Trial + Billing Period + Expiry)
+  const openActivationModal = (tenant) => {
+    const initialPlanId = tenant.planId || basePlans[0]?.id || 'starter';
+    const initialPeriod = tenant.billingPeriod || 'monthly';
+    setActivationModal({
+      tenant,
+      planStatus: 'active',
+      planId: initialPlanId,
+      billingPeriod: initialPeriod,
+      expiresAt: computeDefaultExpiryDate('active', initialPeriod)
+    });
+  };
+
+  // Confirm Tenant Activation (Active OR Trial with chosen plan, cycle, expiry)
+  const handleConfirmActivation = async (e) => {
+    e.preventDefault();
+    if (!activationModal || isActivating) return;
+    setIsActivating(true);
     try {
+      const { tenant, planId, planStatus, billingPeriod, expiresAt } = activationModal;
+      const { changes, patch } = buildTenantFirestorePatch(
+        {
+          companyName: tenant.companyName || tenant.id,
+          planId,
+          planStatus,
+          billingPeriod,
+          expiresAt
+        },
+        {
+          previousStatus: tenant.planStatus,
+          actorUid: currentUser.uid,
+          timestampFactory: (d) => Timestamp.fromDate(d),
+          serverTimestampValue: serverTimestamp()
+        }
+      );
+
       await runTransaction(db, async transaction => {
         const tenantRef = doc(db, 'tenants', tenant.id);
         const snapshot = await transaction.get(tenantRef);
-        if (!snapshot.exists() || snapshot.data().planStatus !== 'pending_approval') {
-          throw new Error('Esta solicitud ya fue procesada. Actualiza el listado.');
-        }
-        const approvedAt = new Date();
-        const expiresAt = new Date(approvedAt);
-        expiresAt.setUTCDate(expiresAt.getUTCDate() + 14);
-        transaction.update(tenantRef, {
-          planStatus: 'trial',
-          trialExpiresAt: Timestamp.fromDate(expiresAt),
-          expiresAt: expiresAt.toISOString(),
-          approvedAt: approvedAt.toISOString(),
-          approvedBy: currentUser.uid
+        if (!snapshot.exists()) throw new Error('La empresa no existe en Firestore.');
+        transaction.update(tenantRef, patch);
+        transaction.set(doc(collection(db, 'tenants', tenant.id, 'admin_events')), {
+          action: planStatus === 'active' ? 'Plan activado por administrador' : 'Prueba habilitada por administrador',
+          actorUid: currentUser.uid,
+          createdAt: serverTimestamp(),
+          changes
         });
       });
-      showToast('Empresa aprobada. La prueba de 14 días comienza hoy.', 'success');
-      setViewMode('list');
-      setSelectedTenantDetails(null);
+
+      if (selectedTenantDetails?.id === tenant.id) {
+        setSelectedTenantDetails(prev => prev ? {
+          ...prev,
+          planId,
+          planStatus,
+          billingPeriod,
+          expiresAt: expiresAt
+        } : prev);
+      }
+
+      showToast?.(
+        planStatus === 'active'
+          ? `Empresa "${tenant.companyName}" activada con plan ${getPlanName(planId)} hasta ${expiresAt}.`
+          : `Empresa "${tenant.companyName}" habilitada en modo prueba hasta ${expiresAt}.`,
+        'success'
+      );
+      setActivationModal(null);
     } catch (error) {
-      showToast(error.message || 'No se pudo aprobar la solicitud.', 'error');
+      console.error('Error activando empresa:', error);
+      showToast?.(error.message || 'No se pudo activar la empresa.', 'error');
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -250,7 +409,9 @@ export default function SuperAdminPage({ showToast }) {
 
         const isBasePlan = isBasePlanCategory(category);
         const tenant = tenantSnap.data();
-        if (tenant.planStatus === 'suspended') throw new Error('La empresa está suspendida. Revisa y reactiva su acceso antes de aprobar el pago.');
+        if (tenant.planStatus === 'suspended') {
+          throw new Error('La empresa está suspendida. Reactiva su acceso antes de aprobar el pago.');
+        }
         const currentExpiryValue = isBasePlan
           ? (tenant.subscriptionExpiresAt || tenant.expiresAt)
           : tenant.serviceSubscriptions?.[category]?.expiresAt;
@@ -261,7 +422,10 @@ export default function SuperAdminPage({ showToast }) {
             expiresAt: newExpiresAt.toISOString(),
             subscriptionExpiresAt: Timestamp.fromDate(newExpiresAt),
             planId: payment.planId,
-            billingPeriod: payment.billingPeriod
+            billingPeriod: payment.billingPeriod,
+            updatedAt: serverTimestamp(),
+            updatedBy: currentUser.uid,
+            ...(tenant.planStatus === 'pending_approval' ? { approvedAt: new Date().toISOString(), approvedBy: currentUser.uid } : {})
           });
         } else {
           transaction.update(tenantRef, {
@@ -270,10 +434,17 @@ export default function SuperAdminPage({ showToast }) {
               status: 'active',
               billingPeriod: payment.billingPeriod,
               expiresAt: Timestamp.fromDate(newExpiresAt)
-            }
+            },
+            updatedAt: serverTimestamp(),
+            updatedBy: currentUser.uid
           });
         }
-        transaction.set(doc(collection(db, 'tenants', payment.tenantId, 'admin_events')), { action: 'Pago aprobado', actorUid: currentUser.uid, createdAt: serverTimestamp(), changes: { planId: payment.planId, category, expiresAt: newExpiresAt.toISOString(), transferId: transfer.id } });
+        transaction.set(doc(collection(db, 'tenants', payment.tenantId, 'admin_events')), {
+          action: 'Pago aprobado',
+          actorUid: currentUser.uid,
+          createdAt: serverTimestamp(),
+          changes: { planId: payment.planId, category, expiresAt: newExpiresAt.toISOString(), transferId: transfer.id }
+        });
         transaction.update(transferRef, {
           status: 'approved',
           approvedAt: new Date().toISOString(),
@@ -281,10 +452,10 @@ export default function SuperAdminPage({ showToast }) {
         });
       });
 
-      showToast("Transferencia bancaria aprobada. Suscripción activada.", "success");
+      showToast?.('Transferencia bancaria aprobada. Suscripción activada.', 'success');
       setSelectedTransfer(null);
     } catch (err) {
-      showToast("Error al aprobar transferencia: " + err.message, "error");
+      showToast?.('Error al aprobar transferencia: ' + err.message, 'error');
     }
   };
 
@@ -302,56 +473,150 @@ export default function SuperAdminPage({ showToast }) {
           rejectedBy: currentUser.uid
         });
       });
-      showToast("Transferencia bancaria rechazada.", "warning");
+      showToast?.('Transferencia bancaria rechazada.', 'warning');
       setSelectedTransfer(null);
     } catch {
-      showToast("Error al rechazar transferencia", "error");
+      showToast?.('Error al rechazar transferencia.', 'error');
     }
   };
 
+  // Save tenant subscription & plan changes (works even directly from pending_approval -> active/trial!)
   const handleUpdateSubscription = async (e) => {
     e.preventDefault();
-    if (savingTenant) return;
+    if (savingTenant || !selectedTenantDetails) return;
     setSavingTenant(true);
     try {
-      if (tenants.find(item => item.id === selectedTenantDetails.id)?.planStatus === 'pending_approval' && selectedTenantDetails.planStatus !== 'pending_approval') {
-        showToast('Aprueba primero el registro desde el listado o desde Usuarios y altas.', 'warning');
-        return;
-      }
-      const changes = subscriptionUpdate(selectedTenantDetails);
-      const expiry = changes.expiresAt ? Timestamp.fromDate(new Date(changes.expiresAt)) : null;
-      const batch = writeBatch(db);
-      batch.update(doc(db, 'tenants', selectedTenantDetails.id), {
-        ...changes, updatedAt: serverTimestamp(), updatedBy: currentUser.uid,
-        ...(changes.planStatus === 'trial' ? { trialExpiresAt: expiry } : {}),
-        ...(changes.planStatus === 'active' ? { subscriptionExpiresAt: expiry } : {})
+      const existingTenant = tenants.find(item => item.id === selectedTenantDetails.id);
+      const effectiveExpiry = selectedTenantDetails.expiresAt || (
+        ['active', 'trial'].includes(selectedTenantDetails.planStatus)
+          ? computeDefaultExpiryDate(selectedTenantDetails.planStatus, selectedTenantDetails.billingPeriod)
+          : ''
+      );
+      const draft = { ...selectedTenantDetails, expiresAt: effectiveExpiry };
+      const { changes, patch } = buildTenantFirestorePatch(draft, {
+        previousStatus: existingTenant?.planStatus,
+        actorUid: currentUser.uid,
+        timestampFactory: (d) => Timestamp.fromDate(d),
+        serverTimestampValue: serverTimestamp()
       });
+
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'tenants', selectedTenantDetails.id), patch);
       batch.set(doc(collection(db, 'tenants', selectedTenantDetails.id, 'admin_events')), {
-        action: 'Empresa y suscripción actualizadas', actorUid: currentUser.uid,
-        createdAt: serverTimestamp(), changes
+        action: existingTenant?.planStatus === 'pending_approval' && ['active', 'trial'].includes(changes.planStatus)
+          ? 'Empresa activada y configurada'
+          : 'Empresa y suscripción actualizadas',
+        actorUid: currentUser.uid,
+        createdAt: serverTimestamp(),
+        changes
       });
       await batch.commit();
-      showToast?.('Empresa y suscripción actualizadas.', 'success');
-    } catch (err) { showToast?.(err.message || 'No se pudo actualizar la empresa.', 'error'); }
-    finally { setSavingTenant(false); }
+
+      setSelectedTenantDetails(prev => prev ? {
+        ...prev,
+        companyName: changes.companyName,
+        planId: changes.planId,
+        planStatus: changes.planStatus,
+        billingPeriod: changes.billingPeriod,
+        expiresAt: effectiveExpiry
+      } : prev);
+
+      showToast?.('Configuración del tenant y plan guardados correctamente.', 'success');
+    } catch (err) {
+      console.error('Error actualizando tenant:', err);
+      showToast?.(err.message || 'No se pudo actualizar la empresa.', 'error');
+    } finally {
+      setSavingTenant(false);
+    }
   };
 
+  // Toggle / assign an add-on service subscription on the selected tenant
+  const handleAssignAddonService = async (addonPlan, activate) => {
+    if (!selectedTenantDetails || savingAddon) return;
+    const category = addonPlan.category;
+    setSavingAddon(category);
+    try {
+      const tenantRef = doc(db, 'tenants', selectedTenantDetails.id);
+      const batch = writeBatch(db);
+      if (activate) {
+        const expDate = computeNextPlanExpiry(null, selectedTenantDetails.billingPeriod || 'monthly');
+        const subObj = {
+          planId: addonPlan.id,
+          status: 'active',
+          billingPeriod: selectedTenantDetails.billingPeriod || 'monthly',
+          expiresAt: Timestamp.fromDate(expDate)
+        };
+        batch.update(tenantRef, {
+          [`serviceSubscriptions.${category}`]: subObj,
+          updatedAt: serverTimestamp(),
+          updatedBy: currentUser.uid
+        });
+        batch.set(doc(collection(db, 'tenants', selectedTenantDetails.id, 'admin_events')), {
+          action: 'Servicio adicional activado',
+          actorUid: currentUser.uid,
+          createdAt: serverTimestamp(),
+          changes: { category, planId: addonPlan.id, expiresAt: expDate.toISOString() }
+        });
+        await batch.commit();
+        setSelectedTenantDetails(prev => prev ? {
+          ...prev,
+          serviceSubscriptions: { ...(prev.serviceSubscriptions || {}), [category]: subObj }
+        } : prev);
+        showToast?.(`Servicio "${addonPlan.name}" activado para la empresa.`, 'success');
+      } else {
+        batch.update(tenantRef, {
+          [`serviceSubscriptions.${category}`]: deleteField(),
+          updatedAt: serverTimestamp(),
+          updatedBy: currentUser.uid
+        });
+        batch.set(doc(collection(db, 'tenants', selectedTenantDetails.id, 'admin_events')), {
+          action: 'Servicio adicional desactivado',
+          actorUid: currentUser.uid,
+          createdAt: serverTimestamp(),
+          changes: { category, status: 'removed' }
+        });
+        await batch.commit();
+        setSelectedTenantDetails(prev => {
+          if (!prev) return prev;
+          const nextSubs = { ...(prev.serviceSubscriptions || {}) };
+          delete nextSubs[category];
+          return { ...prev, serviceSubscriptions: nextSubs };
+        });
+        showToast?.(`Servicio de ${CATEGORY_LABELS[category] || category} removido.`, 'info');
+      }
+    } catch (err) {
+      console.error('Error actualizando servicio adicional:', err);
+      showToast?.(err.message || 'No se pudo actualizar el servicio adicional.', 'error');
+    } finally {
+      setSavingAddon('');
+    }
+  };
+
+  // Save Plan Configuration (sanitized, decimal-safe, zero undefined fields)
   const handleSavePlanEdit = async (e) => {
     e.preventDefault();
+    if (!editingPlan || savingPlan) return;
+    setSavingPlan(true);
     try {
-      if (![editingPlan.priceMonthly, editingPlan.priceYearly].every(price => Number.isFinite(price) && price > 0) ||
-        ![editingPlan.maxUsers, editingPlan.maxProducts].every(limit => Number.isInteger(limit) && limit >= 0)) {
-        showToast('Ingresa precios positivos y límites válidos.', 'warning');
-        return;
-      }
-      const { featuresText, ...planFields } = editingPlan;
-      const planToSave = { ...planFields, features: (featuresText || '').split('\n').map(item => item.trim()).filter(Boolean) };
-      await setDoc(doc(db, 'plans', editingPlan.id), planToSave, { merge: true });
-      setPlans(current => current.map(plan => plan.id === editingPlan.id ? planToSave : plan));
-      showToast(`Configuración del plan ${editingPlan.name} guardada`, "success");
+      const cleanPlan = sanitizePlanForSave(editingPlan);
+      await setDoc(doc(db, 'plans', cleanPlan.id), {
+        ...cleanPlan,
+        updatedAt: serverTimestamp(),
+        updatedBy: currentUser.uid
+      }, { merge: true });
+      setPlans(current => {
+        const exists = current.some(p => p.id === cleanPlan.id);
+        return exists
+          ? current.map(p => p.id === cleanPlan.id ? cleanPlan : p)
+          : [...current, cleanPlan];
+      });
+      showToast?.(`Plan "${cleanPlan.name}" guardado correctamente.`, 'success');
       setEditingPlan(null);
-    } catch {
-      showToast("Error al guardar plan", "error");
+    } catch (err) {
+      console.error('Error al guardar plan:', err);
+      showToast?.(err.message || 'Error al guardar la configuración del plan.', 'error');
+    } finally {
+      setSavingPlan(false);
     }
   };
 
@@ -369,15 +634,12 @@ export default function SuperAdminPage({ showToast }) {
         'meta'
       ];
       const backupData = {};
-      
       for (const colName of collections) {
         const colRef = collection(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', colName);
         const snap = await getDocs(colRef);
-        backupData[colName] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        backupData[colName] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
-      
-      const jsonString = JSON.stringify(backupData, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -386,11 +648,10 @@ export default function SuperAdminPage({ showToast }) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
-      showToast("Backup generado y descargado exitosamente", "success");
+      showToast?.('Backup generado y descargado exitosamente.', 'success');
     } catch (err) {
-      console.error("Error exporting backup:", err);
-      showToast("Error al generar el backup", "error");
+      console.error('Error exporting backup:', err);
+      showToast?.('Error al generar el backup.', 'error');
     } finally {
       setIsExporting(false);
     }
@@ -402,45 +663,40 @@ export default function SuperAdminPage({ showToast }) {
     try {
       const colRef = collection(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', godModeCollection);
       const snap = await getDocs(colRef);
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      data.sort((a, b) => {
-        const dateA = a.createdAt || a.date || a.updatedAt || '';
-        const dateB = b.createdAt || b.date || b.updatedAt || '';
-        return dateB.localeCompare(dateA);
-      });
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      data.sort((a, b) => String(b.createdAt || b.date || b.updatedAt || '').localeCompare(String(a.createdAt || a.date || a.updatedAt || '')));
       setGodModeData(data.slice(0, 150));
     } catch (err) {
-      console.error("Error loading god mode data:", err);
-      showToast("Error al cargar los datos crudos", "error");
+      console.error('Error loading god mode data:', err);
+      showToast?.('Error al cargar los datos crudos.', 'error');
     } finally {
       setIsLoadingGodMode(false);
     }
   };
 
   useEffect(() => {
-    if (viewMode === 'edit' && selectedTenantDetails) {
+    if (viewMode === 'edit' && tenantEditSubTab === 'advanced' && selectedTenantDetails) {
       loadGodModeData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, selectedTenantDetails?.id, godModeCollection]);
+  }, [viewMode, tenantEditSubTab, selectedTenantDetails?.id, godModeCollection]);
 
   const handleDeleteGodModeDoc = async (docId) => {
-    if (!await confirmAction(`PELIGRO (God Mode): Estás a punto de borrar permanentemente el documento ${docId}. Esta acción saltará todas las reglas del ERP y no se puede deshacer. ¿Continuar?`)) {
+    if (!await confirmAction(`PELIGRO (God Mode): Vas a borrar permanentemente el documento ${docId}. Esta acción no se puede deshacer. ¿Continuar?`)) {
       return;
     }
     try {
       await deleteDoc(doc(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', godModeCollection, docId));
-      showToast(`Documento ${docId} eliminado exitosamente`, "success");
+      showToast?.(`Documento ${docId} eliminado.`, 'success');
       setGodModeData(prev => prev.filter(d => d.id !== docId));
-      
       if (godModeCollection === 'finances_transactions') {
-        setTenantStats(prev => ({...prev, transactionsCount: Math.max(0, prev.transactionsCount - 1)}));
+        setTenantStats(prev => ({ ...prev, transactionsCount: Math.max(0, prev.transactionsCount - 1) }));
       } else if (godModeCollection === 'inventory_products') {
-        setTenantStats(prev => ({...prev, productsCount: Math.max(0, prev.productsCount - 1)}));
+        setTenantStats(prev => ({ ...prev, productsCount: Math.max(0, prev.productsCount - 1) }));
       }
     } catch (err) {
-      console.error("Error deleting doc:", err);
-      showToast("Error al eliminar documento", "error");
+      console.error('Error deleting doc:', err);
+      showToast?.('Error al eliminar documento.', 'error');
     }
   };
 
@@ -448,160 +704,138 @@ export default function SuperAdminPage({ showToast }) {
     if (!selectedTenantDetails) return;
     const confirmId = window.prompt(
       `ZONA DE PELIGRO (God Mode):\n` +
-      `Estás a punto de ELIMINAR permanentemente TODOS los datos operativos (Gastos, Ventas, Clientes/Proveedores, Productos e Inventario, Créditos/Obligaciones) del inquilino "${selectedTenantDetails.companyName}".\n\n` +
-      `Esta acción NO se puede deshacer y desconfigurará temporalmente el ERP del cliente hasta que registre nuevos datos.\n\n` +
-      `Para confirmar, escribe exactamente el ID del inquilino ("${selectedTenantDetails.id}") a continuación:`
+      `Vas a ELIMINAR permanentemente los datos operativos del inquilino "${selectedTenantDetails.companyName}".\n\n` +
+      `Para confirmar, escribe exactamente el ID del inquilino ("${selectedTenantDetails.id}"):`
     );
-
     if (confirmId !== selectedTenantDetails.id) {
-      if (confirmId !== null) {
-        showToast("Confirmación incorrecta. Operación cancelada.", "error");
-      }
+      if (confirmId !== null) showToast?.('Confirmación incorrecta. Operación cancelada.', 'error');
       return;
     }
-
     setIsWiping(true);
     try {
-      const collectionsToWipe = [
-        'finances_transactions',
-        'finances_third_parties',
-        'inventory_products',
-        'finances_liabilities'
-      ];
-
+      const collectionsToWipe = ['finances_transactions', 'finances_third_parties', 'inventory_products', 'finances_liabilities'];
       let totalDeleted = 0;
       for (const colName of collectionsToWipe) {
         const colRef = collection(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', colName);
         const snap = await getDocs(colRef);
-        
         for (const docObj of snap.docs) {
           await deleteDoc(doc(db, 'artifacts', selectedTenantDetails.id, 'public', 'data', colName, docObj.id));
           totalDeleted++;
         }
       }
-
       setTenantStats({ transactionsCount: 0, productsCount: 0 });
       setGodModeData([]);
-      
-      showToast(`Sandbox de inquilino limpiado con éxito. Se eliminaron ${totalDeleted} documentos.`, "success");
+      showToast?.(`Sandbox limpiado con éxito (${totalDeleted} documentos eliminados).`, 'success');
     } catch (err) {
-      console.error("Error wiping sandbox:", err);
-      showToast("Error al limpiar el sandbox del inquilino: " + err.message, "error");
+      showToast?.('Error al limpiar el sandbox: ' + err.message, 'error');
     } finally {
       setIsWiping(false);
     }
   };
-  // --------------------------
 
-  // Manual Tenant and Admin creation logic via Temporary Firebase App
+  // Manual Tenant Creation
   const handleCreateTenant = async (e) => {
     e.preventDefault();
-    
     const companyName = newTenantForm.companyName.trim();
     const cleanTenantId = newTenantForm.tenantId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
     const email = newTenantForm.email.trim();
     const password = newTenantForm.initialPassword;
 
     if (!companyName || !cleanTenantId || !email || !password) {
-      showToast("Por favor complete todos los campos obligatorios.", "warning");
+      showToast?.('Por favor completa todos los campos obligatorios.', 'warning');
       return;
     }
-
     if (tenants.some(t => t.id === cleanTenantId)) {
-      showToast("El ID de Inquilino ya existe en el sistema.", "error");
+      showToast?.('El ID de inquilino ya existe en el sistema.', 'error');
       return;
     }
-
     if (isCreatingTenant) return;
     setIsCreatingTenant(true);
+
     let tempApp = null;
     let createdUser = null;
     let workspaceCreated = false;
     try {
-      const documents = [];
       if ((await getDoc(doc(db, 'tenants', cleanTenantId))).exists()) throw new Error('El ID ya está registrado.');
-      // 1. Create User in Firebase Auth using a secondary temporary Firebase app instance
       const tempAppName = `TempApp_${Date.now()}`;
       tempApp = initializeApp(firebaseConfig, tempAppName);
       const tempAuth = getAuth(tempApp);
       await setPersistence(tempAuth, inMemoryPersistence);
-      
+
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
       const user = userCredential.user;
       const uid = user.uid;
       createdUser = user;
 
+      const expiryStr = newTenantForm.expiresAt || computeDefaultExpiryDate(newTenantForm.planStatus, newTenantForm.billingPeriod);
+      const expiryDate = new Date(`${expiryStr}T23:59:59.000Z`);
 
-
-      // 2. Set expiration date (default to +14 days for trial, +30 days for active starter/prof)
-      const expiresAt = new Date();
-      if (newTenantForm.planStatus === 'trial') expiresAt.setDate(expiresAt.getDate() + 14);
-      else expiresAt.setMonth(expiresAt.getMonth() + (newTenantForm.billingPeriod === 'yearly' ? 12 : 1));
-
-      // 3. Write Tenant doc in Firestore
       const tenantData = {
         id: cleanTenantId,
         ownerUid: uid,
         ownerEmail: email,
         registrationSource: 'admin',
         requireEmailVerification: true,
-        companyName: companyName,
+        companyName,
         planId: newTenantForm.planId,
         planStatus: newTenantForm.planStatus,
         billingPeriod: newTenantForm.billingPeriod,
         createdAt: new Date().toISOString(),
-        expiresAt: expiresAt.toISOString(),
+        approvedAt: new Date().toISOString(),
+        approvedBy: currentUser.uid,
+        expiresAt: expiryDate.toISOString(),
         ...(newTenantForm.planStatus === 'trial'
-          ? { trialExpiresAt: Timestamp.fromDate(expiresAt) }
-          : { subscriptionExpiresAt: Timestamp.fromDate(expiresAt) })
+          ? { trialExpiresAt: Timestamp.fromDate(expiryDate) }
+          : { subscriptionExpiresAt: Timestamp.fromDate(expiryDate) })
       };
-      documents.push([doc(db, 'tenants', cleanTenantId), tenantData]);
 
-      // 4. Write User doc in Firestore
       const userData = {
-        uid: uid,
+        uid,
         name: `Admin ${companyName}`,
-        email: email,
+        email,
         tenantId: cleanTenantId,
         role: 'admin',
         status: 'active',
         createdAt: new Date().toISOString()
       };
-      documents.push([doc(db, 'users', uid), userData]);
 
-      // 5. Initialize Workspace configurations for billing settings
-      const configRef = doc(db, 'artifacts', cleanTenantId, 'public', 'data', 'finances_settings', 'config');
-      documents.push([configRef, {
-        razonSocial: companyName,
-        nombreComercial: companyName,
-        ruc: '',
-        direccionMatriz: '',
-        telefono: '',
-        email: email,
-        web: '',
-        obligadoContabilidad: false,
-        agenteRetencion: false,
-        contribuyenteEspecial: '',
-        contribuyenteRimpe: 'regimen_general',
-        smtpHost: '',
-        smtpPort: '465',
-        smtpUser: '',
-        smtpPass: '',
-        smtpSecure: true,
-        firmaUrl: '',
-        firmaPass: '',
-        geminiApiKey: ''
-      }]);
+      const documents = [
+        [doc(db, 'tenants', cleanTenantId), tenantData],
+        [doc(db, 'users', uid), userData],
+        [doc(db, 'artifacts', cleanTenantId, 'public', 'data', 'finances_settings', 'config'), {
+          razonSocial: companyName,
+          nombreComercial: companyName,
+          ruc: '',
+          direccionMatriz: '',
+          telefono: '',
+          email,
+          web: '',
+          obligadoContabilidad: false,
+          agenteRetencion: false,
+          contribuyenteEspecial: '',
+          contribuyenteRimpe: 'regimen_general',
+          smtpHost: '',
+          smtpPort: '465',
+          smtpUser: '',
+          smtpPass: '',
+          smtpSecure: true,
+          firmaUrl: '',
+          firmaPass: '',
+          geminiApiKey: ''
+        }],
+        [doc(db, 'artifacts', cleanTenantId, 'public', 'data', 'meta', 'info'), {
+          users: [{ email, role: 'admin', name: `Admin ${companyName}`, active: true }],
+          trash: [],
+          googleClientId: ''
+        }],
+        [doc(collection(db, 'tenants', cleanTenantId, 'admin_events')), {
+          action: 'Empresa creada',
+          actorUid: currentUser.uid,
+          createdAt: serverTimestamp(),
+          changes: { planId: tenantData.planId, planStatus: tenantData.planStatus, billingPeriod: tenantData.billingPeriod, expiresAt: tenantData.expiresAt }
+        }]
+      ];
 
-      // 6. Initialize Workspace metadata info (Admin account link)
-      const metaRef = doc(db, 'artifacts', cleanTenantId, 'public', 'data', 'meta', 'info');
-      documents.push([metaRef, {
-        users: [{ email: email, role: 'admin', name: `Admin ${companyName}`, active: true }],
-        trash: [],
-        googleClientId: ''
-      }]);
-
-      documents.push([doc(collection(db, 'tenants', cleanTenantId, 'admin_events')), { action: 'Empresa creada', actorUid: currentUser.uid, createdAt: serverTimestamp(), changes: { planId: tenantData.planId, planStatus: tenantData.planStatus } }]);
       await runTransaction(db, async tx => {
         const existing = await tx.get(doc(db, 'tenants', cleanTenantId));
         if (existing.exists()) throw new Error('El ID ya está registrado.');
@@ -609,36 +843,35 @@ export default function SuperAdminPage({ showToast }) {
       });
       workspaceCreated = true;
 
-      // 7. Trigger Password Reset email for security (so they can reset/confirm login details)
       if (newTenantForm.sendResetEmail) {
         try {
           await sendPasswordResetEmail(auth, email);
-          showToast("Empresa creada y correo de restablecimiento enviado.", "success");
-        } catch { showToast("Empresa creada; no se pudo enviar el correo de restablecimiento.", "warning"); }
+          showToast?.('Empresa creada y correo de acceso enviado.', 'success');
+        } catch {
+          showToast?.('Empresa creada; no se pudo enviar el correo de restablecimiento.', 'warning');
+        }
       } else {
-        showToast("Empresa creada manualmente con éxito.", "success");
+        showToast?.('Empresa creada correctamente.', 'success');
       }
 
-      // Reset form & go back to list
       setNewTenantForm({
         companyName: '',
         tenantId: '',
         email: '',
-        planId: 'starter',
-        planStatus: 'trial',
+        planId: basePlans[0]?.id || 'starter',
+        planStatus: 'active',
         billingPeriod: 'monthly',
+        expiresAt: computeDefaultExpiryDate('active', 'monthly'),
         initialPassword: '',
         sendResetEmail: true
       });
       setViewMode('list');
-
     } catch (err) {
-      console.error("Error creating manual tenant:", err);
-      showToast(`Error al crear empresa: ${err.message}`, "error");
-      
+      console.error('Error creating manual tenant:', err);
+      showToast?.(`Error al crear empresa: ${err.message}`, 'error');
       if (createdUser && !workspaceCreated) {
         try { await deleteUser(createdUser); }
-        catch { showToast('Quedó una cuenta de acceso sin empresa. Requiere recuperación en Authentication.', 'warning'); }
+        catch { showToast?.('Quedó una cuenta de acceso sin empresa. Requiere revisión en Authentication.', 'warning'); }
       }
     } finally {
       if (tempApp) await deleteApp(tempApp).catch(() => {});
@@ -646,24 +879,44 @@ export default function SuperAdminPage({ showToast }) {
     }
   };
 
-  const pendingRegistrations = tenants.filter(tenant => tenant.planStatus === 'pending_approval');
-  const filteredTenants = tenants.filter(tenant =>
-    (!pendingOnly || tenant.planStatus === 'pending_approval') && (
-      tenant.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tenant.ownerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tenant.id?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  // Filtered counts & lists
+  const pendingRegistrations = useMemo(() => tenants.filter(t => t.planStatus === 'pending_approval'), [tenants]);
+  const activeTenantsList = useMemo(() => tenants.filter(t => t.planStatus === 'active' && !isSubscriptionBlocked(t)), [tenants]);
+  const trialTenantsList = useMemo(() => tenants.filter(t => t.planStatus === 'trial' && !isSubscriptionBlocked(t)), [tenants]);
+  const inactiveTenantsList = useMemo(() => tenants.filter(t => t.planStatus !== 'pending_approval' && isSubscriptionBlocked(t)), [tenants]);
 
-  // Dashboard Stats
-  const activeTenantsCount = tenants.filter(t => t.planStatus === 'active' && !isSubscriptionBlocked(t)).length;
-  const pendingTransfers = transfers.filter(t => t.status === 'pending');
-  const mrr = tenants
-    .filter(t => t.planStatus === 'active' && !isSubscriptionBlocked(t))
-    .reduce((sum, t) => {
-      const plan = plans.find(p => p.id === t.planId);
-      return sum + Number((t.billingPeriod === 'yearly' ? plan?.priceYearly : plan?.priceMonthly) || 0);
-    }, 0);
+  const filteredTenants = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    return tenants.filter(t => {
+      if (tenantStatusFilter === 'pending_approval' && t.planStatus !== 'pending_approval') return false;
+      if (tenantStatusFilter === 'active' && !(t.planStatus === 'active' && !isSubscriptionBlocked(t))) return false;
+      if (tenantStatusFilter === 'trial' && !(t.planStatus === 'trial' && !isSubscriptionBlocked(t))) return false;
+      if (tenantStatusFilter === 'inactive' && !(t.planStatus !== 'pending_approval' && isSubscriptionBlocked(t))) return false;
+      if (!q) return true;
+      return (
+        t.companyName?.toLowerCase().includes(q) ||
+        t.ownerEmail?.toLowerCase().includes(q) ||
+        t.id?.toLowerCase().includes(q) ||
+        t.planId?.toLowerCase().includes(q)
+      );
+    });
+  }, [tenants, tenantStatusFilter, searchTerm]);
+
+  const pendingTransfers = useMemo(() => transfers.filter(t => t.status === 'pending'), [transfers]);
+  const filteredTransfers = useMemo(() => {
+    if (transferFilter === 'all') return transfers;
+    return transfers.filter(t => t.status === transferFilter);
+  }, [transfers, transferFilter]);
+
+  const filteredPlans = useMemo(() => {
+    if (planCategoryFilter === 'all') return plans;
+    return plans.filter(p => (p.category || 'erp') === planCategoryFilter);
+  }, [plans, planCategoryFilter]);
+
+  const mrr = useMemo(() => activeTenantsList.reduce((sum, t) => {
+    const plan = plans.find(p => p.id === t.planId);
+    return sum + Number((t.billingPeriod === 'yearly' ? plan?.priceYearly : plan?.priceMonthly) || 0);
+  }, 0), [activeTenantsList, plans]);
 
   // Monitor SRI Global Handlers
   const handleScanAllSri = async (silent = false) => {
@@ -675,16 +928,16 @@ export default function SuperAdminPage({ showToast }) {
       setPendingSriDocs(res.pendingDocs);
       setLastScanDate(new Date());
       if (!silent) {
-        showToast(
+        showToast?.(
           res.totalPendingCount > 0
             ? `Escaneo finalizado: ${res.totalPendingCount} comprobantes pendientes en ${res.affectedTenantCount} empresas.`
-            : "¡Excelente! No hay comprobantes pendientes de autorización en ninguna empresa.",
-          res.totalPendingCount > 0 ? "warning" : "success"
+            : 'No hay comprobantes pendientes de autorización en ninguna empresa.',
+          res.totalPendingCount > 0 ? 'warning' : 'success'
         );
       }
     } catch (err) {
-      console.error("Error al escanear comprobantes SRI:", err);
-      if (!silent) showToast(`Error al escanear comprobantes SRI: ${err.message}`, "error");
+      console.error('Error al escanear comprobantes SRI:', err);
+      if (!silent) showToast?.(`Error al escanear comprobantes SRI: ${err.message}`, 'error');
     } finally {
       setIsScanningSri(false);
     }
@@ -701,30 +954,23 @@ export default function SuperAdminPage({ showToast }) {
     setVerifyingDocId(item.id);
     try {
       const docLabel = getDocumentTypeName(item.documentType);
-      showToast(`Consultando ${docLabel} ${item.documentNumber || item.claveAcceso} en el SRI...`, "info");
+      showToast?.(`Consultando ${docLabel} ${item.documentNumber || item.claveAcceso} en el SRI...`, 'info');
       const api = { doc, runTransaction, getDoc, setDoc };
-      const res = await reconcileSriDocument({
-        db,
-        appId: item.tenantId,
-        document: item,
-        api,
-        notify: notifyAuthorizedInvoice
-      });
-
+      const res = await reconcileSriDocument({ db, appId: item.tenantId, document: item, api, notify: notifyAuthorizedInvoice });
       if (res.status === 'autorizado') {
-        showToast(`¡${docLabel} ${item.documentNumber} AUTORIZADO por el SRI!`, "success");
+        showToast?.(`${docLabel} ${item.documentNumber} AUTORIZADO por el SRI.`, 'success');
         setPendingSriDocs(prev => prev.filter(d => !(d.id === item.id && d.tenantId === item.tenantId)));
         setReconcileStats(prev => ({ ...prev, authorized: prev.authorized + 1 }));
       } else if (res.status === 'no_autorizado' || res.status === 'devuelto') {
-        showToast(`SRI devolvió comprobante: ${res.message}`, "error");
+        showToast?.(`SRI devolvió comprobante: ${res.message}`, 'error');
         setPendingSriDocs(prev => prev.map(d => (d.id === item.id && d.tenantId === item.tenantId) ? { ...d, sriStatus: res.status, sriLastError: res.message } : d));
         setReconcileStats(prev => ({ ...prev, failed: prev.failed + 1 }));
       } else {
-        showToast(res.message || "Continúa en procesamiento en el SRI. Vuelve a consultar en unos minutos.", "warning");
+        showToast?.(res.message || 'Continúa en procesamiento en el SRI.', 'warning');
         setReconcileStats(prev => ({ ...prev, stillPending: prev.stillPending + 1 }));
       }
     } catch (err) {
-      showToast(`Error al reconciliar: ${err.message}`, "error");
+      showToast?.(`Error al reconciliar: ${err.message}`, 'error');
     } finally {
       setVerifyingDocId(null);
     }
@@ -734,7 +980,6 @@ export default function SuperAdminPage({ showToast }) {
     if (pendingSriDocs.length === 0) return;
     setIsReconcilingSri(true);
     setReconcileProgress({ current: 0, total: pendingSriDocs.length, currentDoc: null });
-
     try {
       const api = { doc, runTransaction, getDoc, setDoc };
       const stats = await batchReconcileSriDocuments({
@@ -745,21 +990,18 @@ export default function SuperAdminPage({ showToast }) {
         onProgress: (p) => setReconcileProgress(p),
         delayMs: 350
       });
-
       setReconcileStats(prev => ({
         authorized: prev.authorized + stats.authorized,
         stillPending: prev.stillPending + stats.stillPending,
         failed: prev.failed + stats.failed
       }));
-
-      showToast(
-        `Reconciliación en lote completada: ${stats.authorized} autorizados, ${stats.stillPending} pendientes, ${stats.failed} devueltos.`,
-        stats.authorized > 0 ? "success" : "info"
+      showToast?.(
+        `Reconciliación completada: ${stats.authorized} autorizados, ${stats.stillPending} pendientes, ${stats.failed} devueltos.`,
+        stats.authorized > 0 ? 'success' : 'info'
       );
-
       await handleScanAllSri(true);
     } catch (err) {
-      showToast(`Error en reconciliación en lote: ${err.message}`, "error");
+      showToast?.(`Error en reconciliación en lote: ${err.message}`, 'error');
     } finally {
       setIsReconcilingSri(false);
       setReconcileProgress({ current: 0, total: 0, currentDoc: null });
@@ -770,7 +1012,7 @@ export default function SuperAdminPage({ showToast }) {
     navigator.clipboard.writeText(text);
     setCopiedKey(keyId);
     setTimeout(() => setCopiedKey(null), 2000);
-    showToast("Clave de acceso copiada al portapapeles", "info");
+    showToast?.('Clave de acceso copiada.', 'info');
   };
 
   const handleLogout = () => {
@@ -779,1003 +1021,1537 @@ export default function SuperAdminPage({ showToast }) {
   };
 
   const sidebarLinks = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'users', label: 'Usuarios y altas', icon: ShieldAlert, count: registrationSummary.incomplete },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, count: 0 },
     { id: 'tenants', label: 'Empresas (Tenants)', icon: Building, count: pendingRegistrations.length },
-    { id: 'sri_monitor', label: 'Monitor SRI Global', icon: ShieldAlert, count: pendingSriDocs.length },
+    { id: 'users', label: 'Usuarios y altas', icon: Users, count: registrationSummary.incomplete },
     { id: 'transfers', label: 'Aprobaciones', icon: CreditCard, count: pendingTransfers.length },
-    { id: 'plans', label: 'Tarifas y Planes', icon: Sliders }
+    { id: 'plans', label: 'Tarifas y Planes', icon: Sliders, count: 0 },
+    { id: 'sri_monitor', label: 'Monitor SRI', icon: ShieldAlert, count: pendingSriDocs.length }
   ];
 
+  const handleNavSelect = (tabId) => {
+    setActiveTab(tabId);
+    setViewMode('list');
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  const selectedPlanObj = useMemo(
+    () => plans.find(p => p.id === selectedTenantDetails?.planId) || basePlans[0],
+    [plans, basePlans, selectedTenantDetails?.planId]
+  );
+
   return (
-    <div className={`flex h-screen overflow-hidden font-sans ${'bg-surface-card text-text-heading'}`}>
-      
-      {/* Sidebar Overlay on Mobile */}
+    <div className="flex h-dvh overflow-hidden bg-[#FAFAFA] text-[#1B1B1B] font-sans">
+      {/* Mobile Sidebar Backdrop */}
       {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-300" 
-          onClick={() => setIsSidebarOpen(false)} 
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {/* COLLAPSIBLE SIDEBAR */}
-      <aside 
-        className={`flex flex-col border-r shrink-0 transition-all duration-300 z-50 absolute md:relative h-full ${
-          isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 w-0 hidden md:flex md:w-16'
-        } ${'bg-white/95 border-primary/10'}`}
+      {/* SIDEBAR BREVO V2 */}
+      <aside
+        className={`fixed lg:relative inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-[#E3E3E3] shrink-0 transition-all duration-200 ${
+          isSidebarOpen
+            ? 'translate-x-0 w-64'
+            : '-translate-x-full lg:translate-x-0 lg:w-[72px]'
+        }`}
       >
-        {/* Header Logo */}
-        <div className={`h-16 flex items-center ${isSidebarOpen ? 'justify-between px-5' : 'justify-center'} border-b ${'border-black/5'} shrink-0 overflow-hidden`}>
-          {isSidebarOpen ? (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-card bg-primary flex items-center justify-center">
-                <Settings size={16} className="text-white" />
+        {/* Brand Header */}
+        <div className={`h-16 flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} border-b border-[#EFEFEF] shrink-0`}>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <UiIconBadge level="modal" tone="brand" icon={Settings} />
+            {isSidebarOpen && (
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-[#1B1B1B] leading-tight truncate">WebFix Admin</div>
+                <div className="text-[11px] text-[#696969] leading-tight truncate">Consola SaaS</div>
               </div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-black ">Master Admin</span>
-            </div>
-          ) : (
-            <div className="w-8 h-8 rounded-card bg-primary flex items-center justify-center">
-              <Settings size={16} className="text-white" />
+            )}
+          </div>
+          {isSidebarOpen && (
+            <div className="lg:hidden">
+              <UiModalCloseButton onClick={() => setIsSidebarOpen(false)} aria-label="Cerrar menú" />
             </div>
           )}
         </div>
 
-        {/* Links Area */}
-        <button type="button" aria-label="Cerrar menú" onClick={() => setIsSidebarOpen(false)} className="md:hidden self-end m-2 p-2 rounded-md text-[var(--gray-12)]"><X size={18} /></button>
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 custom-scrollbar">
+        {/* Navigation Links */}
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
           {sidebarLinks.map(link => {
             const Icon = link.icon;
             const isActive = activeTab === link.id;
             return (
               <button
                 key={link.id}
-                onClick={() => {
-                  setActiveTab(link.id);
-                  setViewMode('list'); // Return to list view on tab change
-                  if (window.innerWidth < 768) setIsSidebarOpen(false);
-                }}
-                className={`w-full flex items-center ${isSidebarOpen ? 'justify-between px-3' : 'justify-center'} py-2.5 rounded-md text-xs transition-all ${
-                  isActive 
-                    ? 'bg-[var(--accent-3)] text-[var(--accent-11)] font-bold'
-                    : ('text-text-primary hover:bg-surface-muted hover:text-black')
-                }`}
+                type="button"
+                onClick={() => handleNavSelect(link.id)}
                 title={link.label}
+                className={`w-full flex items-center ${isSidebarOpen ? 'justify-between px-3' : 'justify-center px-0'} h-10 rounded-[10px] text-xs font-semibold transition-colors cursor-pointer border ${
+                  isActive
+                    ? 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
+                    : 'bg-transparent text-[#474747] border-transparent hover:bg-[#FAFAFA] hover:text-[#1B1B1B]'
+                }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon size={16} className={isActive ? 'text-[var(--accent-11)]' : 'text-text-secondary'} />
-                  {isSidebarOpen && <span>{link.label}</span>}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Icon size={16} className={isActive ? 'text-[#004227] shrink-0' : 'text-[#696969] shrink-0'} />
+                  {isSidebarOpen && <span className="truncate">{link.label}</span>}
                 </div>
                 {isSidebarOpen && link.count > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-xs font-semibold">{link.count}</span>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold font-mono shrink-0 ${
+                    isActive ? 'bg-[#004227] text-white' : 'bg-[#FFF0F5] text-[#851B40] border border-[#FBC6D9]'
+                  }`}>
+                    {link.count}
+                  </span>
                 )}
               </button>
             );
           })}
-        </div>
+        </nav>
 
-        {/* Footer Settings Area */}
-        <div className={`p-4 border-t ${'border-black/5'} space-y-2 shrink-0`}>
-
-          {/* Go to ERP */}
+        {/* Footer Actions */}
+        <div className="p-3 border-t border-[#EFEFEF] space-y-1.5 shrink-0">
           <button
+            type="button"
             onClick={() => navigate('/app')}
-            className={`w-full flex items-center ${isSidebarOpen ? 'px-3 gap-3' : 'justify-center'} py-2 rounded-md text-xs transition-colors ${
-              'text-text-primary hover:bg-surface-muted hover:text-black'
-            }`}
+            title="Ir al ERP"
+            className={`w-full flex items-center ${isSidebarOpen ? 'px-3 gap-2.5' : 'justify-center'} h-9 rounded-[10px] text-xs font-semibold text-[#474747] hover:bg-[#FAFAFA] hover:text-[#1B1B1B] transition-colors cursor-pointer`}
           >
-            <Building size={15} className="text-text-secondary" />
+            <Building size={15} className="text-[#696969] shrink-0" />
             {isSidebarOpen && <span>Ir al ERP</span>}
           </button>
-
-          {/* Logout */}
           <button
+            type="button"
             onClick={handleLogout}
-            className={`w-full flex items-center ${isSidebarOpen ? 'px-3 gap-3' : 'justify-center'} py-2 rounded-md text-xs text-red-500 hover:bg-red-500/10 transition-colors`}
+            title="Cerrar Sesión"
+            className={`w-full flex items-center ${isSidebarOpen ? 'px-3 gap-2.5' : 'justify-center'} h-9 rounded-[10px] text-xs font-semibold text-[#851B40] hover:bg-[#FFF0F5] transition-colors cursor-pointer`}
           >
-            <LogOut size={15} />
+            <LogOut size={15} className="shrink-0" />
             {isSidebarOpen && <span>Cerrar Sesión</span>}
           </button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        
-        {/* HEADER */}
-        <header className={`h-16 flex items-center justify-between px-6 border-b shrink-0 ${'bg-white/95 border-black/5'}`}>
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className={`p-1.5 rounded-md transition-colors ${'hover:bg-white/60 text-text-primary'}`}
-              title="Alternar Menú"
+      {/* MAIN AREA */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* TOP HEADER */}
+        <header className="h-16 bg-white border-b border-[#E3E3E3] px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <UiButton
+              type="button"
+              iconOnly
+              variant="secondary"
+              size="md"
+              onClick={() => setIsSidebarOpen(prev => !prev)}
+              title="Alternar menú"
+              aria-label="Alternar menú"
             >
-              <Menu size={18} />
-            </button>
-            <span className="hidden sm:inline text-xs font-semibold uppercase tracking-widest text-text-secondary">Consola SaaS Master Admin</span>
+              <Menu size={16} />
+            </UiButton>
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-bold text-[#1B1B1B] truncate">
+                {TAB_TITLES[activeTab] || 'Panel SuperAdmin'}
+              </h1>
+              <p className="text-[11px] text-[#696969] hidden sm:block truncate">
+                Administración multi-tenant, activación de planes y control SRI
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold uppercase">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              {loadError ? 'Revisar conexión' : loading ? 'Cargando' : 'Empresas cargadas'}
-            </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+              loadError
+                ? 'bg-[#FFF0F5] text-[#851B40] border-[#FBC6D9]'
+                : 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${loadError ? 'bg-[#D9306B]' : 'bg-[#0B996F] animate-pulse'}`} />
+              <span className="hidden xs:inline">{loadError ? 'Sin conexión' : loading ? 'Sincronizando' : `${tenants.length} tenants`}</span>
+            </span>
           </div>
         </header>
 
-        {/* SCROLLABLE MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-          
-          {isSuperAdmin && <div className={activeTab === 'users' ? '' : 'hidden'}><RegistrationAdminView onSummary={setRegistrationSummary} showToast={showToast} onOpenTenant={id => {
-            const tenant = tenants.find(item => item.id === id);
-            if (!tenant) { showToast?.('La empresa no está disponible. Actualiza el listado.', 'error'); return; }
-            setActiveTab('tenants'); handleSelectTenant(tenant);
-          }} /></div>}
-          {activeTab === 'dashboard' && <button type="button" onClick={() => setActiveTab('users')} className="w-full mb-4 rounded-md border border-[var(--amber-6)] bg-[var(--amber-2)] p-4 text-left text-sm">
-            <strong>{registrationSummary.loading ? 'Comprobando registros…' : registrationSummary.error ? 'No se pudieron comprobar las altas' : `${registrationSummary.incomplete} registros incompletos${registrationSummary.hasMore ? ' en las páginas consultadas' : ''}`}</strong>
-            <span className="block mt-1">Revisar contactos, datos faltantes y habilitación de empresas →</span>
-          </button>}
-          {/* TAB 0: DASHBOARD DEDICADO */}
-          {activeTab === 'dashboard' && (
-            <div className="space-y-8">
-              {/* Stats Widgets */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className={`p-6 rounded-card border ${'bg-white border-black/5'}`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-text-secondary">Empresas Activas</span>
-                    <Building className="text-blue-500" size={18} />
-                  </div>
-                  <div className="text-2xl font-semibold">{activeTenantsCount}</div>
-                  <span className="text-xs text-text-secondary">De {tenants.length} registradas</span>
-                </div>
-
-                <div className={`p-6 rounded-card border ${'bg-white border-black/5'}`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-text-secondary">Cobros Pendientes</span>
-                    <CreditCard className="text-orange-500" size={18} />
-                  </div>
-                  <div className="text-2xl font-semibold text-orange-500">{pendingTransfers.length}</div>
-                  <span className="text-xs text-text-secondary">Por transferencia bancaria</span>
-                </div>
-
-                <div className={`p-6 rounded-card border ${'bg-white border-black/5'}`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-text-secondary">MRR Estimado</span>
-                    <DollarSign className="text-emerald-500" size={18} />
-                  </div>
-                  <div className="text-2xl font-semibold text-emerald-500">${mrr.toFixed(2)}</div>
-                  <span className="text-xs text-text-secondary">Suscripciones activas</span>
-                </div>
-
-                <div className={`p-6 rounded-card border ${'bg-white border-black/5'}`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-text-secondary">Estado del Sistema</span>
-                    <Activity className="text-indigo-500" size={18} />
-                  </div>
-                  <div className="text-2xl font-semibold">Online</div>
-                  <span className="text-xs text-text-secondary">Servidores operativos</span>
-                </div>
+        {/* SCROLLABLE BODY */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar">
+          <div className="max-w-[1440px] mx-auto space-y-5">
+            {loadError && (
+              <div role="alert" className="p-3.5 rounded-xl bg-[#FFF0F5] border border-[#FBC6D9] text-xs font-semibold text-[#851B40] flex items-center gap-2">
+                <AlertTriangle size={15} className="shrink-0" />
+                <span>{loadError}</span>
               </div>
+            )}
 
-              {/* Dashboard details */}
-              <div className="grid lg:grid-cols-2 gap-6">
-                {/* Recientes */}
-                <div className={`p-6 rounded-card border ${'bg-white border-border-default'} space-y-4`}>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Últimos Clientes Registrados</h3>
-                  <div className="divide-y divide-slate-200/50 ">
-                    {tenants.slice(0, 5).map((t, idx) => (
-                      <div key={idx} className="py-3 flex justify-between items-center text-xs">
-                        <div>
-                          <p className="font-bold">{t.companyName || 'Empresa'}</p>
-                          <p className="text-xs text-text-secondary font-mono">{t.id}</p>
-                        </div>
-                        <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${
-                          t.planStatus === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                        }`}>
-                          {t.planId}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* Hidden/Mounted Users & Registrations view so summary counter stays fresh */}
+            {isSuperAdmin && (
+              <div className={activeTab === 'users' ? '' : 'hidden'}>
+                <RegistrationAdminView
+                  plans={plans}
+                  onSummary={setRegistrationSummary}
+                  showToast={showToast}
+                  onOpenTenant={id => {
+                    const tenant = tenants.find(item => item.id === id);
+                    if (!tenant) {
+                      showToast?.('La empresa no está disponible. Actualiza el listado.', 'error');
+                      return;
+                    }
+                    setActiveTab('tenants');
+                    handleSelectTenant(tenant);
+                  }}
+                />
+              </div>
+            )}
 
-                {/* Cobros pendientes rápidos */}
-                <div className={`p-6 rounded-card border ${'bg-white border-border-default'} space-y-4`}>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Transferencias en Espera</h3>
-                  {pendingTransfers.length === 0 ? (
-                    <p className="text-xs text-text-secondary italic py-4">No hay transferencias pendientes de verificación.</p>
-                  ) : (
-                    <div className="divide-y divide-slate-200/50 ">
-                      {pendingTransfers.slice(0, 5).map((tr, idx) => (
-                        <div key={idx} className="py-3 flex justify-between items-center text-xs">
-                          <div>
-                            <p className="font-bold">{tr.companyName}</p>
-                            <p className="text-xs text-text-secondary font-mono">Ref: {tr.referenceNumber}</p>
+            {/* ==================== TAB: DASHBOARD ==================== */}
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                {/* Actionable alerts */}
+                {(pendingRegistrations.length > 0 || registrationSummary.incomplete > 0) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {pendingRegistrations.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => { setTenantStatusFilter('pending_approval'); setActiveTab('tenants'); }}
+                        className="p-4 rounded-2xl border border-[#F0DF8A] bg-[#FCFBE7] hover:bg-[#faf6d2] text-left transition-colors cursor-pointer flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <UiIconBadge level="kpi" tone="warning" icon={Clock} />
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-[#866308]">
+                              {pendingRegistrations.length} {pendingRegistrations.length === 1 ? 'empresa esperando activación' : 'empresas esperando activación'}
+                            </p>
+                            <p className="text-[11px] text-[#866308]/85 truncate">Asigna plan y activa en 1 paso</p>
                           </div>
-                          <span className="font-semibold text-emerald-500 font-mono">${tr.amount}</span>
                         </div>
-                      ))}
+                        <span className="text-xs font-bold text-[#866308] shrink-0">Revisar →</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('users')}
+                      className="p-4 rounded-2xl border border-[#E3E3E3] bg-white hover:bg-[#FAFAFA] text-left transition-colors cursor-pointer flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <UiIconBadge level="kpi" tone="neutral" icon={Users} />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#1B1B1B]">
+                            {registrationSummary.loading
+                              ? 'Comprobando registros…'
+                              : registrationSummary.error
+                                ? 'Revisar servicio de altas'
+                                : `${registrationSummary.incomplete} registros incompletos`}
+                          </p>
+                          <p className="text-[11px] text-[#696969] truncate">Contactos, perfiles huérfanos y verificaciones</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-[#004227] shrink-0">Abrir →</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#696969] block">Empresas Activas</span>
+                      <div className="text-2xl sm:text-3xl font-extrabold font-mono text-[#1B1B1B] mt-1">{activeTenantsList.length}</div>
+                      <span className="text-[11px] text-[#0B996F] font-medium">
+                        {trialTenantsList.length} en prueba · {tenants.length} total
+                      </span>
                     </div>
-                  )}
+                    <UiIconBadge level="kpi" tone="brand" icon={Building} />
+                  </div>
+
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#696969] block">Por Aprobar</span>
+                      <div className="text-2xl sm:text-3xl font-extrabold font-mono text-[#866308] mt-1">{pendingRegistrations.length}</div>
+                      <span className="text-[11px] text-[#696969]">Solicitudes pendientes</span>
+                    </div>
+                    <UiIconBadge level="kpi" tone="warning" icon={Clock} />
+                  </div>
+
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#696969] block">MRR Estimado</span>
+                      <div className="text-2xl sm:text-3xl font-extrabold font-mono text-[#004227] mt-1">${mrr.toFixed(2)}</div>
+                      <span className="text-[11px] text-[#0B996F] font-medium">Suscripciones activas</span>
+                    </div>
+                    <UiIconBadge level="kpi" tone="success" icon={DollarSign} />
+                  </div>
+
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#696969] block">Pagos en Espera</span>
+                      <div className="text-2xl sm:text-3xl font-extrabold font-mono text-[#1B1B1B] mt-1">{pendingTransfers.length}</div>
+                      <span className="text-[11px] text-[#696969]">Transferencias por validar</span>
+                    </div>
+                    <UiIconBadge level="kpi" tone="neutral" icon={CreditCard} />
+                  </div>
+                </div>
+
+                {/* Recent Tenants & Pending Transfers */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-[#1B1B1B]">Últimas Empresas Registradas</h3>
+                      <UiButton type="button" variant="secondary" size="sm" onClick={() => setActiveTab('tenants')}>
+                        Ver todas
+                      </UiButton>
+                    </div>
+                    {tenants.length === 0 ? (
+                      <p className="text-xs text-[#696969] py-6 text-center">No hay empresas registradas aún.</p>
+                    ) : (
+                      <div className="divide-y divide-[#EFEFEF]">
+                        {tenants.slice(0, 6).map((t) => {
+                          const statusLabel = tenantStatus(t);
+                          return (
+                            <div key={t.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                              <div className="min-w-0">
+                                <button
+                                  type="button"
+                                  onClick={() => { setActiveTab('tenants'); handleSelectTenant(t); }}
+                                  className="font-bold text-[#1B1B1B] hover:text-[#004227] truncate block text-left cursor-pointer"
+                                >
+                                  {t.companyName || 'Empresa sin nombre'}
+                                </button>
+                                <p className="text-[11px] text-[#696969] truncate">
+                                  {getPlanName(t.planId)} · {t.ownerEmail || t.id}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${STATUS_PILL_STYLES[statusLabel] || STATUS_PILL_STYLES.Prueba}`}>
+                                  {statusLabel}
+                                </span>
+                                {t.planStatus === 'pending_approval' ? (
+                                  <UiButton type="button" variant="brand" size="sm" onClick={() => openActivationModal(t)}>
+                                    Activar
+                                  </UiButton>
+                                ) : (
+                                  <UiButton
+                                    type="button"
+                                    iconOnly
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => { setActiveTab('tenants'); handleSelectTenant(t); }}
+                                    title="Gestionar empresa"
+                                    aria-label="Gestionar empresa"
+                                  >
+                                    <Edit3 size={14} />
+                                  </UiButton>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-[#1B1B1B]">Transferencias por Validar</h3>
+                      <UiButton type="button" variant="secondary" size="sm" onClick={() => setActiveTab('transfers')}>
+                        Ver pagos
+                      </UiButton>
+                    </div>
+                    {pendingTransfers.length === 0 ? (
+                      <div className="py-8 text-center space-y-2">
+                        <div className="flex justify-center">
+                          <UiIconBadge level="empty" tone="brand" icon={CheckCircle2} />
+                        </div>
+                        <p className="text-xs text-[#696969]">No hay transferencias pendientes de verificación.</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-[#EFEFEF]">
+                        {pendingTransfers.slice(0, 6).map((tr) => (
+                          <div key={tr.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                            <div className="min-w-0">
+                              <p className="font-bold text-[#1B1B1B] truncate">{tr.companyName || tr.tenantId}</p>
+                              <p className="text-[11px] text-[#696969] font-mono truncate">
+                                Ref: {tr.referenceNumber} · {getPlanName(tr.planId)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-mono font-bold text-[#004227]">${Number(tr.amount || 0).toFixed(2)}</span>
+                              <UiButton type="button" variant="soft" size="sm" onClick={() => setSelectedTransfer(tr)}>
+                                Revisar
+                              </UiButton>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* TAB 1: TENANTS TAB */}
-          {loadError && <p role="alert" className="p-4 text-sm text-[var(--red-11)]">{loadError}</p>}
-          {activeTab === 'tenants' && (
-            <div>
-              {/* VIEW MODE: LIST */}
-              {viewMode === 'list' && (
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                    <div className="w-full sm:max-w-md">
-                      <UiInput 
-                        type="text" 
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        placeholder="Buscar empresa, correo o ID..."
-                        iconPrefix={<Search size={14} className="text-[var(--gray-10)]" />}
-                        size="2"
-                        className="w-full"
-                      />
-                    </div>
-                    
-                    <button type="button" onClick={() => setPendingOnly(value => !value)}
-                      className={`px-4 py-2.5 rounded-md border text-xs font-bold ${pendingOnly ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-white border-border-default text-text-secondary'}`}>
-                      Pendientes ({pendingRegistrations.length})
-                    </button>
-                    <button 
-                      onClick={() => setViewMode('create')}
-                      className="px-4 py-2.5 bg-primary hover:opacity-90 text-white text-xs font-bold rounded-md flex items-center gap-1.5 transition-colors self-end sm:self-auto"
-                    >
-                      <Plus size={14} /> Agregar Empresa
-                    </button>
-                  </div>
-
-                  <div className={`overflow-x-auto rounded-card border ${'bg-white border-border-default'}`}>
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className={`border-b text-xs font-bold uppercase tracking-wider text-text-secondary ${'border-border-default bg-surface-bg'}`}>
-                          <th className="px-6 py-4">Empresa</th>
-                          <th className="px-6 py-4">Correo de registro</th>
-                          <th className="px-6 py-4">Inquilino ID</th>
-                          <th className="px-6 py-4">Plan</th>
-                          <th className="px-6 py-4">Estado</th>
-                          <th className="px-6 py-4">Expiración</th>
-                          <th className="px-6 py-4 text-right">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200/50  text-xs font-medium">
-                        {filteredTenants.length === 0 ? (
-                          <tr>
-                            <td colSpan="7" className="text-center py-10 text-text-secondary font-semibold">No se encontraron empresas.</td>
-                          </tr>
-                        ) : (
-                          filteredTenants.map((tenant) => (
-                            <tr key={tenant.id} className="hover:bg-surface-muted/10  transition-colors">
-                              <td className="px-6 py-4 font-bold">{tenant.companyName}</td>
-                              <td className="px-6 py-4">{tenant.ownerEmail || '—'}</td>
-                              <td className="px-6 py-4 font-mono text-text-secondary">{tenant.id}</td>
-                              <td className="px-6 py-4 capitalize">{tenant.planId} ({tenant.billingPeriod || 'mensual'})</td>
-                              <td className="px-6 py-4">
-                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${
-                                  tenant.planStatus === 'active' ? 'bg-emerald-500/15 text-emerald-500' :
-                                  tenant.planStatus === 'trial' ? 'bg-blue-500/15 text-blue-500' :
-                                  tenant.planStatus === 'pending_approval' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
-                                  'bg-red-500/15 text-red-500'
-                                }`}>
-                                  {tenantStatus(tenant)}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4">{getSubscriptionExpiry(tenant)?.toLocaleDateString('es-EC') || 'Sin activar'}</td>
-                              <td className="px-6 py-4 text-right whitespace-nowrap">
-                                {tenant.planStatus === 'pending_approval' && (
-                                  <button type="button" onClick={() => handleApproveRegistration(tenant)}
-                                    className="mr-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
-                                    Aprobar
-                                  </button>
-                                )}
-                                <button 
-                                  onClick={() => handleSelectTenant(tenant)} 
-                                  className="p-1.5 rounded-md bg-surface-card/10 text-primary  hover:bg-surface-card hover:text-white transition-colors"
-                                  title="Ver Detalles y Editar"
-                                >
-                                  <Edit3 size={14} />
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* VIEW MODE: EDIT INLINE (Approach A / No Popups / No Drawers) */}
-              {viewMode === 'edit' && selectedTenantDetails && (
-                <div className="space-y-6">
-                  {/* Inline header navigation */}
-                  <div className="flex items-center gap-4 mb-4 border-b border-border-default/50  pb-4">
-                    <button 
-                      onClick={() => { setViewMode('list'); setSelectedTenantDetails(null); }}
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold border flex items-center gap-1.5 ${
-                        'border-border-default hover:bg-surface-bg text-text-primary'
-                      }`}
-                    >
-                      <ChevronLeft size={14} /> Volver al Listado
-                    </button>
-                    <div>
-                      <h2 className="text-base font-semibold text-black ">Empresa: {selectedTenantDetails.companyName}</h2>
-                      <p className="text-xs font-mono text-text-secondary">Inquilino ID: {selectedTenantDetails.id}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    
-                    {/* Left Column: Edit subscription form */}
-                    <div className={`lg:col-span-5 p-6 rounded-card border ${'bg-white border-border-default'} space-y-4`}>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">Configuración de Suscripción</h3>
-                      
-                      <form onSubmit={handleUpdateSubscription} className="space-y-4 text-xs">
-                        <label className="block font-bold">Nombre de la empresa<UiInput required value={selectedTenantDetails.companyName || ''} onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, companyName: e.target.value })} className="w-full mt-1" /></label>
-                        <label className="block font-bold">Ciclo de facturación<select value={selectedTenantDetails.billingPeriod} onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, billingPeriod: e.target.value })} className="w-full p-2 rounded-md border border-[var(--gray-a6)] mt-1"><option value="monthly">Mensual</option><option value="yearly">Anual</option></select></label>
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Plan SaaS</label>
-                          <select 
-                            value={selectedTenantDetails.planId || 'starter'} 
-                            onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, planId: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
-                          >
-                            <option value="starter">Starter</option>
-                            <option value="professional">Profesional</option>
-                            <option value="enterprise">Enterprise</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Estado de Cuenta</label>
-                          <select 
-                            value={selectedTenantDetails.planStatus || 'trial'} 
-                            onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, planStatus: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
-                          >
-                            <option value="pending_approval">Pendiente de aprobación</option>
-                            <option value="trial">Prueba (Trial)</option>
-                            <option value="active">Activo</option>
-                            <option value="suspended">Suspendido</option>
-                            <option value="expired">Vencido</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Fecha de Expiración</label>
-                          <input 
-                            type="date" 
-                            required={selectedTenantDetails.planStatus !== 'pending_approval'}
-                            value={selectedTenantDetails.expiresAt || ''}
-                            onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, expiresAt: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
+            {/* ==================== TAB: TENANTS ==================== */}
+            {activeTab === 'tenants' && (
+              <div>
+                {/* VIEW: LIST */}
+                {viewMode === 'list' && (
+                  <div className="space-y-4">
+                    {/* Header toolbar */}
+                    <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="w-full sm:max-w-sm">
+                          <UiInput
+                            type="text"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            placeholder="Buscar empresa, correo, ID o plan..."
+                            iconPrefix={<Search size={14} className="text-[#696969]" />}
+                            size="2"
+                            className="w-full"
                           />
                         </div>
+                        <UiButton
+                          type="button"
+                          variant="primary"
+                          size="md"
+                          onClick={() => setViewMode('create')}
+                        >
+                          <Plus size={14} />
+                          <span>Agregar Empresa</span>
+                        </UiButton>
+                      </div>
 
-                        <div className="flex gap-3 justify-end pt-4">
-                          <button 
-                            type="button" 
-                            onClick={() => { setViewMode('list'); setSelectedTenantDetails(null); }}
-                            className="px-4 py-2.5 rounded-md border border-border-default/50  hover:bg-surface-sidebar/10 font-semibold text-text-secondary"
+                      <UiSegmentedTabs
+                        value={tenantStatusFilter}
+                        onChange={setTenantStatusFilter}
+                        items={[
+                          { value: 'all', label: 'Todos', count: tenants.length },
+                          { value: 'pending_approval', label: 'Por aprobar', count: pendingRegistrations.length, dotColor: '#D97706' },
+                          { value: 'active', label: 'Activos', count: activeTenantsList.length, dotColor: '#0B996F' },
+                          { value: 'trial', label: 'Prueba', count: trialTenantsList.length },
+                          { value: 'inactive', label: 'Vencidos / Susp.', count: inactiveTenantsList.length, dotColor: '#D9306B' }
+                        ]}
+                      />
+                    </div>
+
+                    {filteredTenants.length === 0 ? (
+                      <div className="bg-white border border-[#E3E3E3] rounded-2xl p-10 text-center space-y-2">
+                        <div className="flex justify-center">
+                          <UiIconBadge level="empty" tone="neutral" icon={Building} />
+                        </div>
+                        <p className="text-sm font-bold text-[#1B1B1B]">No se encontraron empresas</p>
+                        <p className="text-xs text-[#696969]">Prueba cambiando el filtro de estado o el término de búsqueda.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Mobile Cards (< md) */}
+                        <div className="md:hidden space-y-3">
+                          {filteredTenants.map((tenant) => {
+                            const statusLabel = tenantStatus(tenant);
+                            const expiry = getSubscriptionExpiry(tenant);
+                            return (
+                              <div key={tenant.id} className="bg-white border border-[#E3E3E3] rounded-2xl p-4 space-y-3">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <h3 className="text-sm font-bold text-[#1B1B1B] truncate">{tenant.companyName || 'Sin nombre'}</h3>
+                                    <p className="text-xs text-[#474747] truncate">{tenant.ownerEmail || 'Sin correo'}</p>
+                                    <p className="text-[11px] font-mono text-[#696969] truncate">ID: {tenant.id}</p>
+                                  </div>
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${STATUS_PILL_STYLES[statusLabel] || STATUS_PILL_STYLES.Prueba}`}>
+                                    {statusLabel}
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-[#FAFAFA] border border-[#EFEFEF] text-xs">
+                                  <div>
+                                    <span className="text-[10px] text-[#696969] font-semibold uppercase block">Plan</span>
+                                    <span className="font-bold text-[#1B1B1B]">{getPlanName(tenant.planId)}</span>
+                                    <span className="text-[10px] text-[#696969] block">{tenant.billingPeriod === 'yearly' ? 'Anual' : 'Mensual'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-[10px] text-[#696969] font-semibold uppercase block">Vencimiento</span>
+                                    <span className="font-mono font-semibold text-[#1B1B1B]">
+                                      {expiry ? expiry.toLocaleDateString('es-EC') : 'Sin activar'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-1">
+                                  {(tenant.planStatus === 'pending_approval' || isSubscriptionBlocked(tenant)) && (
+                                    <UiButton
+                                      type="button"
+                                      variant="brand"
+                                      size="sm"
+                                      onClick={() => openActivationModal(tenant)}
+                                      className="flex-1"
+                                    >
+                                      <Sparkles size={13} />
+                                      <span>{tenant.planStatus === 'pending_approval' ? 'Activar Plan' : 'Reactivar'}</span>
+                                    </UiButton>
+                                  )}
+                                  <UiButton
+                                    type="button"
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => handleSelectTenant(tenant)}
+                                    className="flex-1"
+                                  >
+                                    <Edit3 size={13} />
+                                    <span>Configurar</span>
+                                  </UiButton>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Desktop Table (>= md) */}
+                        <div className="hidden md:block bg-white border border-[#E3E3E3] rounded-2xl overflow-hidden">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs">
+                              <thead className="bg-[#FAFAFA] border-b border-[#E3E3E3] text-[#696969] uppercase text-[11px] font-bold">
+                                <tr>
+                                  <th className="py-3 px-4">Empresa</th>
+                                  <th className="py-3 px-4">Contacto / ID</th>
+                                  <th className="py-3 px-4">Plan y Ciclo</th>
+                                  <th className="py-3 px-4">Estado</th>
+                                  <th className="py-3 px-4">Vencimiento</th>
+                                  <th className="py-3 px-4 text-right">Acciones</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-[#EFEFEF]">
+                                {filteredTenants.map((tenant) => {
+                                  const statusLabel = tenantStatus(tenant);
+                                  const expiry = getSubscriptionExpiry(tenant);
+                                  return (
+                                    <tr key={tenant.id} className="hover:bg-[#FAFAFA] transition-colors">
+                                      <td className="py-3.5 px-4 font-bold text-[#1B1B1B]">
+                                        {tenant.companyName || 'Sin nombre'}
+                                      </td>
+                                      <td className="py-3.5 px-4">
+                                        <div className="text-[#1B1B1B]">{tenant.ownerEmail || '—'}</div>
+                                        <div className="text-[11px] font-mono text-[#696969]">{tenant.id}</div>
+                                      </td>
+                                      <td className="py-3.5 px-4">
+                                        <div className="font-semibold text-[#1B1B1B]">{getPlanName(tenant.planId)}</div>
+                                        <div className="text-[11px] text-[#696969]">{tenant.billingPeriod === 'yearly' ? 'Anual' : 'Mensual'}</div>
+                                      </td>
+                                      <td className="py-3.5 px-4">
+                                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_PILL_STYLES[statusLabel] || STATUS_PILL_STYLES.Prueba}`}>
+                                          {statusLabel}
+                                        </span>
+                                      </td>
+                                      <td className="py-3.5 px-4 font-mono text-[#474747]">
+                                        {expiry ? expiry.toLocaleDateString('es-EC') : 'Sin activar'}
+                                      </td>
+                                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                                        <div className="inline-flex items-center justify-end gap-1.5">
+                                          {(tenant.planStatus === 'pending_approval' || isSubscriptionBlocked(tenant)) && (
+                                            <UiButton
+                                              type="button"
+                                              variant="brand"
+                                              size="sm"
+                                              onClick={() => openActivationModal(tenant)}
+                                            >
+                                              <Sparkles size={13} />
+                                              <span>{tenant.planStatus === 'pending_approval' ? 'Activar' : 'Reactivar'}</span>
+                                            </UiButton>
+                                          )}
+                                          <UiButton
+                                            type="button"
+                                            iconOnly
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => handleSelectTenant(tenant)}
+                                            title="Configurar empresa y plan"
+                                            aria-label="Configurar empresa"
+                                          >
+                                            <Edit3 size={14} />
+                                          </UiButton>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* VIEW: EDIT TENANT */}
+                {viewMode === 'edit' && selectedTenantDetails && (
+                  <div className="space-y-5">
+                    {/* Top Tenant Header Card */}
+                    <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-start sm:items-center gap-3 min-w-0">
+                        <UiButton
+                          type="button"
+                          iconOnly
+                          variant="secondary"
+                          size="md"
+                          onClick={() => { setViewMode('list'); setSelectedTenantDetails(null); }}
+                          title="Volver al listado"
+                          aria-label="Volver al listado"
+                        >
+                          <ChevronLeft size={16} />
+                        </UiButton>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h2 className="text-base sm:text-lg font-bold text-[#1B1B1B] truncate">
+                              {selectedTenantDetails.companyName || 'Empresa'}
+                            </h2>
+                            {(() => {
+                              const liveTenant = tenants.find(t => t.id === selectedTenantDetails.id) || selectedTenantDetails;
+                              const label = tenantStatus(liveTenant);
+                              return (
+                                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_PILL_STYLES[label] || STATUS_PILL_STYLES.Prueba}`}>
+                                  {label}
+                                </span>
+                              );
+                            })()}
+                          </div>
+                          <p className="text-xs font-mono text-[#696969] truncate">
+                            ID: {selectedTenantDetails.id} · {selectedTenantDetails.ownerEmail || 'Sin correo propietario'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        {selectedTenantDetails.planStatus === 'pending_approval' && (
+                          <UiButton
+                            type="button"
+                            variant="brand"
+                            size="md"
+                            onClick={() => openActivationModal(selectedTenantDetails)}
                           >
+                            <Sparkles size={14} />
+                            <span>Activar Empresa</span>
+                          </UiButton>
+                        )}
+                        <UiButton
+                          type="button"
+                          variant="secondary"
+                          size="md"
+                          onClick={() => { setViewMode('list'); setSelectedTenantDetails(null); }}
+                        >
+                          Volver al listado
+                        </UiButton>
+                      </div>
+                    </div>
+
+                    {/* Sub-navigation Tabs */}
+                    <UiSegmentedTabs
+                      value={tenantEditSubTab}
+                      onChange={setTenantEditSubTab}
+                      items={[
+                        { value: 'subscription', label: 'Suscripción y Plan', icon: CreditCard },
+                        { value: 'team', label: 'Equipo y Preparación', icon: Users, count: tenantUsers.length },
+                        { value: 'advanced', label: 'Historial y God Mode', icon: ShieldAlert }
+                      ]}
+                    />
+
+                    {/* SUBTAB 1: SUBSCRIPTION & PLAN */}
+                    {tenantEditSubTab === 'subscription' && (
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                        {/* Left: Plan & Activation Form */}
+                        <div className="lg:col-span-7 bg-white border border-[#E3E3E3] rounded-2xl p-5 sm:p-6 space-y-5">
+                          <div className="flex items-center gap-2.5">
+                            <UiIconBadge level="kpi" tone="brand" icon={Sliders} />
+                            <div>
+                              <h3 className="text-sm font-bold text-[#1B1B1B]">Configuración de Plan y Activación</h3>
+                              <p className="text-[11px] text-[#696969]">
+                                Puedes activar directamente en modo Activo o Prueba, asignar cualquier plan base y definir vencimiento.
+                              </p>
+                            </div>
+                          </div>
+
+                          <form onSubmit={handleUpdateSubscription} className="space-y-4 text-xs">
+                            <div className="space-y-1.5">
+                              <label className="block font-bold text-[#1B1B1B]">Nombre de la empresa *</label>
+                              <UiInput
+                                required
+                                value={selectedTenantDetails.companyName || ''}
+                                onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, companyName: e.target.value })}
+                                className="w-full"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="block font-bold text-[#1B1B1B]">Plan SaaS asignado</label>
+                                <UiSelect
+                                  value={selectedTenantDetails.planId || 'starter'}
+                                  onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, planId: e.target.value })}
+                                  className="w-full"
+                                >
+                                  {basePlans.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                      {p.name} (${Number(p.priceMonthly || 0).toFixed(2)}/mes · {(p.category || 'erp').toUpperCase()})
+                                    </option>
+                                  ))}
+                                  {!basePlans.some(p => p.id === selectedTenantDetails.planId) && selectedTenantDetails.planId && (
+                                    <option value={selectedTenantDetails.planId}>{selectedTenantDetails.planId} (Personalizado)</option>
+                                  )}
+                                </UiSelect>
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <label className="block font-bold text-[#1B1B1B]">Ciclo de facturación</label>
+                                <UiSelect
+                                  value={selectedTenantDetails.billingPeriod || 'monthly'}
+                                  onChange={e => {
+                                    const nextPeriod = e.target.value;
+                                    setSelectedTenantDetails(prev => ({
+                                      ...prev,
+                                      billingPeriod: nextPeriod,
+                                      expiresAt: prev.planStatus === 'active'
+                                        ? computeDefaultExpiryDate('active', nextPeriod)
+                                        : prev.expiresAt
+                                    }));
+                                  }}
+                                  className="w-full"
+                                >
+                                  <option value="monthly">Mensual</option>
+                                  <option value="yearly">Anual</option>
+                                </UiSelect>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="block font-bold text-[#1B1B1B]">Estado de la suscripción</label>
+                                <UiSelect
+                                  value={selectedTenantDetails.planStatus || 'pending_approval'}
+                                  onChange={e => {
+                                    const nextStatus = e.target.value;
+                                    setSelectedTenantDetails(prev => ({
+                                      ...prev,
+                                      planStatus: nextStatus,
+                                      expiresAt: ['active', 'trial'].includes(nextStatus) && !prev.expiresAt
+                                        ? computeDefaultExpiryDate(nextStatus, prev.billingPeriod)
+                                        : prev.expiresAt
+                                    }));
+                                  }}
+                                  className="w-full"
+                                >
+                                  <option value="active">Activo (Plan habilitado)</option>
+                                  <option value="trial">Prueba (Trial)</option>
+                                  <option value="pending_approval">Pendiente de aprobación</option>
+                                  <option value="suspended">Suspendido</option>
+                                  <option value="expired">Vencido</option>
+                                </UiSelect>
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <label className="block font-bold text-[#1B1B1B]">Fecha de expiración</label>
+                                <UiInput
+                                  type="date"
+                                  required={selectedTenantDetails.planStatus !== 'pending_approval'}
+                                  value={selectedTenantDetails.expiresAt || ''}
+                                  onChange={e => setSelectedTenantDetails({ ...selectedTenantDetails, expiresAt: e.target.value })}
+                                  className="w-full"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Quick Expiry Presets */}
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                              <span className="text-[11px] font-semibold text-[#696969] mr-1 flex items-center gap-1">
+                                <Calendar size={12} /> Atajos:
+                              </span>
+                              {[
+                                { label: '+14 días (Trial)', action: () => setSelectedTenantDetails(p => ({ ...p, planStatus: 'trial', expiresAt: addDaysToToday(14) })) },
+                                { label: '+1 mes (Activo)', action: () => setSelectedTenantDetails(p => ({ ...p, planStatus: 'active', billingPeriod: 'monthly', expiresAt: addMonthsToToday(1) })) },
+                                { label: '+3 meses', action: () => setSelectedTenantDetails(p => ({ ...p, planStatus: 'active', expiresAt: addMonthsToToday(3) })) },
+                                { label: '+1 año (Anual)', action: () => setSelectedTenantDetails(p => ({ ...p, planStatus: 'active', billingPeriod: 'yearly', expiresAt: addMonthsToToday(12) })) }
+                              ].map(preset => (
+                                <button
+                                  key={preset.label}
+                                  type="button"
+                                  onClick={preset.action}
+                                  className="px-2.5 py-1 rounded-[8px] border border-[#E3E3E3] bg-[#FAFAFA] hover:bg-[#E8FEDF] hover:border-[#B3F4CB] hover:text-[#004227] text-[11px] font-semibold text-[#474747] transition-colors cursor-pointer"
+                                >
+                                  {preset.label}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="flex flex-wrap justify-end gap-2 pt-4 border-t border-[#EFEFEF]">
+                              <UiButton
+                                type="button"
+                                variant="secondary"
+                                size="md"
+                                onClick={() => { setViewMode('list'); setSelectedTenantDetails(null); }}
+                              >
+                                Cancelar
+                              </UiButton>
+                              <UiButton
+                                type="submit"
+                                variant={selectedTenantDetails.planStatus === 'active' ? 'brand' : 'primary'}
+                                size="md"
+                                disabled={savingTenant}
+                              >
+                                <CheckCircle2 size={14} />
+                                <span>{savingTenant ? 'Guardando…' : 'Guardar Configuración'}</span>
+                              </UiButton>
+                            </div>
+                          </form>
+                        </div>
+
+                        {/* Right: Consumption + Add-ons */}
+                        <div className="lg:col-span-5 space-y-5">
+                          {/* Consumption Metrics */}
+                          <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 space-y-4">
+                            <div className="flex items-center gap-2.5">
+                              <UiIconBadge level="kpi" tone="neutral" icon={Activity} />
+                              <div>
+                                <h3 className="text-sm font-bold text-[#1B1B1B]">Consumo del Plan</h3>
+                                <p className="text-[11px] text-[#696969]">Límites según {selectedPlanObj?.name || 'Plan actual'}</p>
+                              </div>
+                            </div>
+
+                            {loadingTenantDetails ? (
+                              <p className="text-xs text-[#696969] py-4 text-center">Cargando métricas de consumo…</p>
+                            ) : (
+                              <div className="space-y-4 text-xs">
+                                <div>
+                                  <div className="flex justify-between mb-1.5">
+                                    <span className="font-semibold text-[#474747]">Usuarios en equipo</span>
+                                    <span className="font-mono font-bold text-[#1B1B1B]">
+                                      {tenantUsers.length} / {selectedPlanObj?.maxUsers >= 9999 ? 'Ilimitados' : (selectedPlanObj?.maxUsers || 3)}
+                                    </span>
+                                  </div>
+                                  <div className="w-full h-2 rounded-full bg-[#F4F4F5] overflow-hidden">
+                                    <div
+                                      className="h-full bg-[#0B996F] rounded-full transition-all"
+                                      style={{ width: `${Math.min(100, (tenantUsers.length / Math.max(1, selectedPlanObj?.maxUsers || 3)) * 100)}%` }}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <div className="flex justify-between mb-1.5">
+                                    <span className="font-semibold text-[#474747]">Productos en inventario</span>
+                                    <span className="font-mono font-bold text-[#1B1B1B]">
+                                      {tenantStats.productsCount} / {selectedPlanObj?.maxProducts >= 99999 ? 'Ilimitados' : (selectedPlanObj?.maxProducts || 100)}
+                                    </span>
+                                  </div>
+                                  <div className="w-full h-2 rounded-full bg-[#F4F4F5] overflow-hidden">
+                                    <div
+                                      className="h-full bg-[#1B1B1B] rounded-full transition-all"
+                                      style={{ width: `${Math.min(100, (tenantStats.productsCount / Math.max(1, selectedPlanObj?.maxProducts || 100)) * 100)}%` }}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="flex justify-between items-center pt-3 border-t border-[#EFEFEF]">
+                                  <span className="font-semibold text-[#474747]">Comprobantes emitidos</span>
+                                  <span className="font-mono font-bold text-[#004227] bg-[#E8FEDF] border border-[#B3F4CB] px-2.5 py-0.5 rounded-full">
+                                    {tenantStats.transactionsCount}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Add-on Services */}
+                          <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 space-y-3">
+                            <div className="flex items-center gap-2.5">
+                              <UiIconBadge level="kpi" tone="success" icon={Layers} />
+                              <div>
+                                <h3 className="text-sm font-bold text-[#1B1B1B]">Servicios Adicionales (Add-ons)</h3>
+                                <p className="text-[11px] text-[#696969]">Páginas Web, Correos y WhatsApp CRM por empresa.</p>
+                              </div>
+                            </div>
+
+                            <div className="divide-y divide-[#EFEFEF]">
+                              {['paginas', 'correos', 'whatsapp'].map(cat => {
+                                const activeSub = selectedTenantDetails.serviceSubscriptions?.[cat];
+                                const catPlans = addonPlans.filter(p => p.category === cat);
+                                const currentAddonPlan = catPlans.find(p => p.id === activeSub?.planId) || catPlans[0];
+                                const isActive = activeSub?.status === 'active';
+                                return (
+                                  <div key={cat} className="py-2.5 flex items-center justify-between gap-2 text-xs">
+                                    <div className="min-w-0">
+                                      <div className="font-bold text-[#1B1B1B]">{CATEGORY_LABELS[cat]}</div>
+                                      <div className="text-[11px] text-[#696969] truncate">
+                                        {isActive
+                                          ? `${currentAddonPlan?.name || activeSub.planId} · vence ${getSubscriptionExpiry({ planStatus: 'active', subscriptionExpiresAt: activeSub.expiresAt })?.toLocaleDateString('es-EC') || '—'}`
+                                          : 'No contratado'}
+                                      </div>
+                                    </div>
+                                    {currentAddonPlan && (
+                                      <UiButton
+                                        type="button"
+                                        size="sm"
+                                        variant={isActive ? 'danger' : 'soft'}
+                                        disabled={savingAddon === cat}
+                                        onClick={() => handleAssignAddonService(currentAddonPlan, !isActive)}
+                                      >
+                                        {savingAddon === cat ? '…' : isActive ? 'Quitar' : 'Activar'}
+                                      </UiButton>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUBTAB 2: TEAM & SETUP */}
+                    {tenantEditSubTab === 'team' && (
+                      <TenantAdminPanel
+                        key={`team_${selectedTenantDetails.id}`}
+                        tenant={selectedTenantDetails}
+                        currentUser={currentUser}
+                        onUsersChange={setTenantUsers}
+                        showToast={showToast}
+                        section="team"
+                      />
+                    )}
+
+                    {/* SUBTAB 3: HISTORY & GOD MODE */}
+                    {tenantEditSubTab === 'advanced' && (
+                      <div className="space-y-5">
+                        <TenantAdminPanel
+                          key={`hist_${selectedTenantDetails.id}`}
+                          tenant={selectedTenantDetails}
+                          currentUser={currentUser}
+                          onUsersChange={setTenantUsers}
+                          showToast={showToast}
+                          section="history"
+                        />
+
+                        {/* God Mode */}
+                        <div className="bg-white border border-[#FBC6D9] rounded-2xl p-5 space-y-5">
+                          <div className="flex items-start gap-3">
+                            <UiIconBadge level="modal" tone="danger" icon={ShieldAlert} />
+                            <div>
+                              <h3 className="text-sm font-bold text-[#851B40]">God Mode: Respaldo y Datos Crudos</h3>
+                              <p className="text-xs text-[#696969]">
+                                Herramientas avanzadas de soporte. Modifican directamente las colecciones del inquilino en Firestore.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2.5">
+                            <UiButton type="button" variant="primary" size="md" onClick={handleExportBackup} disabled={isExporting}>
+                              <Download size={14} />
+                              <span>{isExporting ? 'Generando JSON…' : 'Descargar Backup (JSON)'}</span>
+                            </UiButton>
+                            <UiButton type="button" variant="danger" size="md" onClick={handleWipeSandbox} disabled={isWiping}>
+                              <XCircle size={14} />
+                              <span>{isWiping ? 'Limpiando…' : 'Resetear Sandbox'}</span>
+                            </UiButton>
+                          </div>
+
+                          <div className="border border-[#E3E3E3] rounded-xl p-4 space-y-3 bg-[#FAFAFA]">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <h4 className="text-xs font-bold text-[#1B1B1B] uppercase tracking-wider">Explorador de Colecciones</h4>
+                              <div className="flex items-center gap-2">
+                                <UiSelect value={godModeCollection} onChange={(e) => setGodModeCollection(e.target.value)}>
+                                  <option value="finances_transactions">finances_transactions</option>
+                                  <option value="finances_third_parties">finances_third_parties</option>
+                                  <option value="inventory_products">inventory_products</option>
+                                  <option value="finances_liabilities">finances_liabilities</option>
+                                  <option value="finances_settings">finances_settings</option>
+                                  <option value="meta">meta</option>
+                                </UiSelect>
+                                <UiButton type="button" iconOnly variant="secondary" size="md" onClick={loadGodModeData} title="Refrescar datos" aria-label="Refrescar datos">
+                                  <RefreshCw size={14} className={isLoadingGodMode ? 'animate-spin' : ''} />
+                                </UiButton>
+                              </div>
+                            </div>
+
+                            {isLoadingGodMode ? (
+                              <p className="text-center py-6 text-xs text-[#696969]">Cargando documentos…</p>
+                            ) : (
+                              <div className="overflow-x-auto bg-white rounded-xl border border-[#E3E3E3]">
+                                <table className="w-full text-left text-xs">
+                                  <thead className="bg-[#FAFAFA] border-b border-[#E3E3E3] text-[#696969] uppercase text-[11px] font-bold">
+                                    <tr>
+                                      <th className="py-2.5 px-3">ID</th>
+                                      <th className="py-2.5 px-3">Extracto JSON</th>
+                                      <th className="py-2.5 px-3 text-right">Acción</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-[#EFEFEF]">
+                                    {godModeData.length === 0 ? (
+                                      <tr><td colSpan="3" className="py-6 text-center text-[#696969]">Colección vacía.</td></tr>
+                                    ) : (
+                                      godModeData.map(docData => (
+                                        <tr key={docData.id} className="hover:bg-[#FFF0F5]/40">
+                                          <td className="py-2.5 px-3 font-mono font-bold text-[#1B1B1B] whitespace-nowrap">{docData.id}</td>
+                                          <td className="py-2.5 px-3">
+                                            <div className="max-w-md truncate font-mono text-[11px] text-[#696969]">
+                                              {JSON.stringify(docData).substring(0, 130)}…
+                                            </div>
+                                          </td>
+                                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                                            <UiButton type="button" variant="danger" size="sm" onClick={() => handleDeleteGodModeDoc(docData.id)}>
+                                              Eliminar
+                                            </UiButton>
+                                          </td>
+                                        </tr>
+                                      ))
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* VIEW: CREATE TENANT */}
+                {viewMode === 'create' && (
+                  <div className="space-y-5 max-w-2xl">
+                    <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 sm:p-5 flex items-center gap-3">
+                      <UiButton
+                        type="button"
+                        iconOnly
+                        variant="secondary"
+                        size="md"
+                        onClick={() => setViewMode('list')}
+                        title="Volver al listado"
+                        aria-label="Volver al listado"
+                      >
+                        <ChevronLeft size={16} />
+                      </UiButton>
+                      <div>
+                        <h2 className="text-base font-bold text-[#1B1B1B]">Agregar Nueva Empresa</h2>
+                        <p className="text-xs text-[#696969]">Crea el tenant, el propietario en Firebase Auth y asigna su plan inicial.</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 sm:p-6">
+                      <form onSubmit={handleCreateTenant} className="space-y-4 text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="block font-bold text-[#1B1B1B]">Razón Social *</label>
+                            <UiInput
+                              type="text"
+                              required
+                              placeholder="Ej. WebFix Soluciones Cía. Ltda."
+                              value={newTenantForm.companyName}
+                              onChange={e => setNewTenantForm({ ...newTenantForm, companyName: e.target.value })}
+                              className="w-full"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="block font-bold text-[#1B1B1B]">Inquilino ID / RUC *</label>
+                            <UiInput
+                              type="text"
+                              required
+                              placeholder="Ej. org_webfix o 1792945281001"
+                              value={newTenantForm.tenantId}
+                              onChange={e => setNewTenantForm({ ...newTenantForm, tenantId: e.target.value })}
+                              className="w-full font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="block font-bold text-[#1B1B1B]">Correo del propietario *</label>
+                            <UiInput
+                              type="email"
+                              required
+                              placeholder="cliente@empresa.com"
+                              value={newTenantForm.email}
+                              onChange={e => setNewTenantForm({ ...newTenantForm, email: e.target.value })}
+                              className="w-full"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="block font-bold text-[#1B1B1B]">Contraseña inicial *</label>
+                            <UiInput
+                              type="text"
+                              required
+                              value={newTenantForm.initialPassword}
+                              onChange={e => setNewTenantForm({ ...newTenantForm, initialPassword: e.target.value })}
+                              className="w-full font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="block font-bold text-[#1B1B1B]">Plan SaaS</label>
+                            <UiSelect
+                              value={newTenantForm.planId}
+                              onChange={e => setNewTenantForm({ ...newTenantForm, planId: e.target.value })}
+                              className="w-full"
+                            >
+                              {basePlans.map(p => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name} (${Number(p.priceMonthly || 0).toFixed(2)}/mes)
+                                </option>
+                              ))}
+                            </UiSelect>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="block font-bold text-[#1B1B1B]">Ciclo</label>
+                            <UiSelect
+                              value={newTenantForm.billingPeriod}
+                              onChange={e => {
+                                const nextPeriod = e.target.value;
+                                setNewTenantForm(prev => ({
+                                  ...prev,
+                                  billingPeriod: nextPeriod,
+                                  expiresAt: computeDefaultExpiryDate(prev.planStatus, nextPeriod)
+                                }));
+                              }}
+                              className="w-full"
+                            >
+                              <option value="monthly">Mensual</option>
+                              <option value="yearly">Anual</option>
+                            </UiSelect>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="block font-bold text-[#1B1B1B]">Estado inicial</label>
+                            <UiSelect
+                              value={newTenantForm.planStatus}
+                              onChange={e => {
+                                const nextStatus = e.target.value;
+                                setNewTenantForm(prev => ({
+                                  ...prev,
+                                  planStatus: nextStatus,
+                                  expiresAt: computeDefaultExpiryDate(nextStatus, prev.billingPeriod)
+                                }));
+                              }}
+                              className="w-full"
+                            >
+                              <option value="active">Activo (Plan habilitado)</option>
+                              <option value="trial">Prueba (14 días)</option>
+                              <option value="suspended">Suspendido</option>
+                            </UiSelect>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="block font-bold text-[#1B1B1B]">Fecha de vencimiento</label>
+                            <UiInput
+                              type="date"
+                              required
+                              value={newTenantForm.expiresAt}
+                              onChange={e => setNewTenantForm({ ...newTenantForm, expiresAt: e.target.value })}
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+
+                        <label className="flex items-center gap-2.5 p-3 rounded-xl border border-[#E3E3E3] bg-[#FAFAFA] cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newTenantForm.sendResetEmail}
+                            onChange={e => setNewTenantForm({ ...newTenantForm, sendResetEmail: e.target.checked })}
+                            className="w-4 h-4 accent-[#0B996F]"
+                          />
+                          <span className="font-semibold text-[#1B1B1B]">
+                            Enviar enlace de restablecimiento de contraseña por correo
+                          </span>
+                        </label>
+
+                        <div className="flex justify-end gap-2 pt-4 border-t border-[#EFEFEF]">
+                          <UiButton type="button" variant="secondary" size="md" onClick={() => setViewMode('list')}>
                             Cancelar
-                          </button>
-                          <button 
-                            type="submit" disabled={savingTenant}
-                            className="px-4 py-2.5 rounded-md bg-primary hover:opacity-90 text-white font-bold transition-colors"
-                          >
-                            {savingTenant ? 'Guardando…' : 'Guardar Cambios'}
-                          </button>
+                          </UiButton>
+                          <UiButton type="submit" variant="brand" size="md" disabled={isCreatingTenant}>
+                            <Plus size={14} />
+                            <span>{isCreatingTenant ? 'Creando empresa…' : 'Crear Empresa'}</span>
+                          </UiButton>
                         </div>
                       </form>
                     </div>
-
-                    {/* Right Column: Consumption metrics and team accounts table */}
-                    <div className="lg:col-span-7 min-w-0 space-y-6">
-                      
-                      {/* Consumption stats */}
-                      <div className={`p-6 rounded-card border ${'bg-white border-border-default'} space-y-4`}>
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Métricas de Consumo ERP</h3>
-                        
-                        {loadingTenantDetails ? (
-                          <div className="text-center py-4 text-text-secondary font-semibold">Cargando métricas de consumo...</div>
-                        ) : (
-                          <div className="space-y-4 text-xs">
-                            {/* Users count */}
-                            <div>
-                              <div className="flex justify-between mb-1.5">
-                                <span className="font-bold">Usuarios en Equipo:</span>
-                                <span className="font-mono font-bold">
-                                  {tenantUsers.length} / {plans.find(p => p.id === selectedTenantDetails.planId)?.maxUsers === 9999 ? 'Ilimitados' : plans.find(p => p.id === selectedTenantDetails.planId)?.maxUsers || 3}
-                                </span>
-                              </div>
-                              <div className="w-full h-2 rounded-full bg-surface-muted  overflow-hidden">
-                                <div 
-                                  className="h-full bg-primary transition-all duration-300" 
-                                  style={{ 
-                                    width: `${Math.min(100, (tenantUsers.length / (plans.find(p => p.id === selectedTenantDetails.planId)?.maxUsers || 3)) * 100)}%` 
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Products count */}
-                            <div>
-                              <div className="flex justify-between mb-1.5">
-                                <span className="font-bold">Productos en Inventario:</span>
-                                <span className="font-mono font-bold">
-                                  {tenantStats.productsCount} / {plans.find(p => p.id === selectedTenantDetails.planId)?.maxProducts === 99999 ? 'Ilimitados' : plans.find(p => p.id === selectedTenantDetails.planId)?.maxProducts || 100}
-                                </span>
-                              </div>
-                              <div className="w-full h-2 rounded-full bg-surface-muted  overflow-hidden">
-                                <div 
-                                  className="h-full bg-amber-500 transition-all duration-300" 
-                                  style={{ 
-                                    width: `${Math.min(100, (tenantStats.productsCount / (plans.find(p => p.id === selectedTenantDetails.planId)?.maxProducts || 100)) * 100)}%` 
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Transactions count */}
-                            <div className="flex justify-between items-center pt-3 border-t border-border-default/50  text-xs">
-                              <span className="font-bold">Transacciones Emitidas (Facturación / Gastos):</span>
-                              <span className="font-mono font-semibold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded border border-emerald-500/20">{tenantStats.transactionsCount}</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <TenantAdminPanel key={selectedTenantDetails.id} tenant={selectedTenantDetails} currentUser={currentUser} onUsersChange={setTenantUsers} showToast={showToast} />
-
-                    </div>
-
                   </div>
-
-                  {/* GOD MODE SECTION (Bottom full width) */}
-                  <div className={`mt-8 p-6 rounded-card border ${'bg-red-50/80 border-red-200'} space-y-6`}>
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-red-500/10 text-red-500">
-                        <ShieldAlert size={24} />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-wider text-red-500">God Mode: Herramientas Avanzadas y Mitigación</h3>
-                        <p className="text-xs text-text-secondary ">Peligro: Estas herramientas modifican directamente la base de datos saltándose las reglas del ERP.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-4">
-                      <button 
-                        onClick={handleExportBackup}
-                        disabled={isExporting}
-                        className="px-4 py-2 bg-text-heading hover:bg-surface-sidebar text-white text-xs font-bold rounded-md flex items-center gap-2 transition-colors"
-                      >
-                        <Download size={14} /> 
-                        {isExporting ? 'Generando JSON...' : 'Generar Backup Completo (JSON)'}
-                      </button>
-
-                      <button 
-                        onClick={handleWipeSandbox}
-                        disabled={isWiping}
-                        className="px-4 py-2 bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white text-xs font-bold rounded-md flex items-center gap-2 transition-colors border border-red-500/30"
-                      >
-                        <XCircle size={14} /> 
-                        {isWiping ? 'Limpiando Sandbox...' : 'Resetear Sandbox (Vaciar Data)'}
-                      </button>
-                    </div>
-
-                    <div className={`p-5 rounded-card border ${'bg-white/60 border-border-default'}`}>
-                      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
-                        <h4 className="text-xs font-bold uppercase text-text-primary ">Explorador de Datos Crudos</h4>
-                        <div className="flex items-center gap-2">
-                          <label className="text-xs font-bold text-text-secondary uppercase">Colección:</label>
-                          <select 
-                            value={godModeCollection}
-                            onChange={(e) => setGodModeCollection(e.target.value)}
-                            className={`p-1.5 text-xs font-mono rounded-md border outline-none ${'bg-white border-border-strong text-black'}`}
-                          >
-                            <option value="finances_transactions">finances_transactions</option>
-                            <option value="finances_third_parties">finances_third_parties</option>
-                            <option value="inventory_products">inventory_products</option>
-                            <option value="finances_liabilities">finances_liabilities</option>
-                            <option value="finances_settings">finances_settings</option>
-                            <option value="meta">meta</option>
-                          </select>
-                          <button onClick={loadGodModeData} className="p-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors" title="Refrescar Datos">
-                            <RefreshCw size={14} className={isLoadingGodMode ? 'animate-spin' : ''} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {isLoadingGodMode ? (
-                        <div className="text-center py-6 text-text-secondary text-xs font-semibold">Cargando datos crudos...</div>
-                      ) : (
-                        <div className="overflow-x-auto rounded-md border border-border-default/50 ">
-                          <table className="w-full text-left text-xs whitespace-nowrap">
-                            <thead className={`bg-surface-muted  border-b border-border-default/50  text-xs font-bold uppercase tracking-wider text-text-secondary`}>
-                              <tr>
-                                <th className="px-4 py-3">ID Documento</th>
-                                <th className="px-4 py-3">Datos Clave (JSON Extract)</th>
-                                <th className="px-4 py-3 text-right">Acción Peligrosa</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200/50 ">
-                              {godModeData.length === 0 ? (
-                                <tr><td colSpan="3" className="px-4 py-8 text-center text-text-secondary font-semibold italic">Colección vacía.</td></tr>
-                              ) : (
-                                godModeData.map(docData => (
-                                  <tr key={docData.id} className="hover:bg-red-500/10 transition-colors">
-                                    <td className="px-4 py-3 font-mono text-xs text-text-primary  font-bold">{docData.id}</td>
-                                    <td className="px-4 py-3">
-                                      <div className="max-w-xl truncate font-mono text-xs text-text-secondary bg-black/5  p-1 rounded">
-                                        {JSON.stringify(docData).substring(0, 150)}...
-                                      </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-right">
-                                      <button 
-                                        onClick={() => handleDeleteGodModeDoc(docData.id)}
-                                        className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded text-xs font-semibold uppercase transition-colors"
-                                      >
-                                        Forzar Borrado
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))
-                              )}
-                            </tbody>
-                          </table>
-                          {godModeData.length === 150 && (
-                            <div className="p-2 text-center text-xs text-amber-500 font-bold bg-amber-500/10 border-t border-amber-500/20">Mostrando solo los 150 registros más recientes.</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* VIEW MODE: CREATE INLINE */}
-              {viewMode === 'create' && (
-                <div className="space-y-6">
-                  {/* Inline header */}
-                  <div className="flex items-center gap-4 mb-4 border-b border-border-default/50  pb-4">
-                    <button 
-                      onClick={() => setViewMode('list')}
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold border flex items-center gap-1.5 ${
-                        'border-border-default hover:bg-surface-bg text-text-primary'
-                      }`}
-                    >
-                      <ChevronLeft size={14} /> Volver al Listado
-                    </button>
-                    <h2 className="text-base font-semibold text-black ">Agregar Nueva Empresa (Creación Manual)</h2>
-                  </div>
-
-                  <div className={`max-w-2xl p-6 rounded-card border ${'bg-white border-border-default'}`}>
-                    <form onSubmit={handleCreateTenant} className="space-y-4 text-xs text-left">
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Razón Social *</label>
-                          <input 
-                            type="text" 
-                            required
-                            placeholder="Ej. WebFix Soluciones Cia. Ltda."
-                            value={newTenantForm.companyName}
-                            onChange={e => setNewTenantForm({ ...newTenantForm, companyName: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-slate-350 text-black'}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Inquilino ID / RUC *</label>
-                          <input 
-                            type="text" 
-                            required
-                            placeholder="Ej. org_webfix or 1792945281001"
-                            value={newTenantForm.tenantId}
-                            onChange={e => setNewTenantForm({ ...newTenantForm, tenantId: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-slate-350 text-black'}`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Email del administrador propietario *</label>
-                          <input 
-                            type="email" 
-                            required
-                            placeholder="Ej. cliente@empresa.com"
-                            value={newTenantForm.email}
-                            onChange={e => setNewTenantForm({ ...newTenantForm, email: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-slate-350 text-black'}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Contraseña Inicial *</label>
-                          <input 
-                            type="text" 
-                            required
-                            placeholder="Ej. ContraseñaTemporal"
-                            value={newTenantForm.initialPassword}
-                            onChange={e => setNewTenantForm({ ...newTenantForm, initialPassword: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none font-mono ${'bg-white border-slate-350 text-black'}`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Plan SaaS</label>
-                          <select 
-                            value={newTenantForm.planId}
-                            onChange={e => setNewTenantForm({ ...newTenantForm, planId: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong text-black'}`}
-                          >
-                            <option value="starter">Starter</option>
-                            <option value="professional">Profesional</option>
-                            <option value="enterprise">Enterprise</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Período</label>
-                          <select 
-                            value={newTenantForm.billingPeriod}
-                            onChange={e => setNewTenantForm({ ...newTenantForm, billingPeriod: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong text-black'}`}
-                          >
-                            <option value="monthly">Mensual</option>
-                            <option value="yearly">Anual</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block font-bold mb-1 text-text-secondary">Estado Inicial</label>
-                          <select 
-                            value={newTenantForm.planStatus}
-                            onChange={e => setNewTenantForm({ ...newTenantForm, planStatus: e.target.value })}
-                            className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong text-black'}`}
-                          >
-                            <option value="trial">Prueba (14 días)</option>
-                            <option value="active">Activo</option>
-                            <option value="suspended">Suspendido</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="p-3.5 rounded-card border border-border-default  bg-surface-bg  flex items-center gap-3">
-                        <input 
-                          type="checkbox" 
-                          id="sendResetEmail"
-                          checked={newTenantForm.sendResetEmail}
-                          onChange={e => setNewTenantForm({ ...newTenantForm, sendResetEmail: e.target.checked })}
-                          className="w-4 h-4 cursor-pointer accent-primary"
-                        />
-                        <label htmlFor="sendResetEmail" className="cursor-pointer font-semibold text-gray-750  select-none">
-                          Enviar link de recuperación de contraseña inmediatamente por correo electrónico (Mayor Seguridad)
-                        </label>
-                      </div>
-
-                      <div className="flex gap-3 justify-end pt-4 border-t border-border-default ">
-                        <button 
-                          type="button" 
-                          onClick={() => setViewMode('list')}
-                          className="px-4 py-2.5 rounded-md border border-border-default/50  hover:bg-surface-sidebar/10 font-semibold text-text-secondary"
-                        >
-                          Cancelar
-                        </button>
-                        <button 
-                          type="submit" 
-                          disabled={isCreatingTenant}
-                          className="px-5 py-2.5 rounded-md bg-primary hover:opacity-90 text-white font-bold flex items-center gap-2"
-                        >
-                          {isCreatingTenant ? 'Creando Empresa...' : 'Crear Inquilino y Enviar Correo'}
-                        </button>
-                      </div>
-
-                    </form>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 2: TRANSFERS APPROVAL */}
-          {!loading && activeTab === 'transfers' && (
-            <div className="space-y-6">
-              <div className={`overflow-x-auto rounded-card border ${'bg-white border-border-default'}`}>
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className={`border-b text-xs font-bold uppercase tracking-wider text-text-secondary ${'border-border-default bg-surface-bg'}`}>
-                      <th className="px-6 py-4">Empresa (Tenant)</th>
-                      <th className="px-6 py-4">Plan solicitado</th>
-                      <th className="px-6 py-4">Monto</th>
-                      <th className="px-6 py-4">Referencia</th>
-                      <th className="px-6 py-4">Estado</th>
-                      <th className="px-6 py-4 text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200/50  text-xs font-medium">
-                    {transfers.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" className="text-center py-10 text-text-secondary font-semibold">No hay solicitudes de transferencia.</td>
-                      </tr>
-                    ) : (
-                      transfers.map((transfer) => (
-                        <tr key={transfer.id} className="hover:bg-surface-muted/10  transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-bold">{transfer.companyName || 'Empresa'}</div>
-                            <div className="text-xs font-mono text-text-secondary">{transfer.tenantId}</div>
-                          </td>
-                          <td className="px-6 py-4 capitalize">{transfer.planId} ({transfer.billingPeriod})</td>
-                          <td className="px-6 py-4 font-bold text-emerald-500">${transfer.amount || '0.00'}</td>
-                          <td className="px-6 py-4 font-mono">{transfer.referenceNumber}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${
-                              transfer.status === 'approved' ? 'bg-emerald-500/15 text-emerald-500' :
-                              transfer.status === 'pending' ? 'bg-orange-500/15 text-orange-500 animate-pulse' :
-                              'bg-red-500/15 text-red-500'
-                            }`}>
-                              {transfer.status === 'approved' ? 'Aprobado' :
-                               transfer.status === 'pending' ? 'Pendiente' : 'Rechazado'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex justify-end gap-1.5">
-                              <button 
-                                onClick={() => setSelectedTransfer(transfer)}
-                                className="p-1.5 rounded-md bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 cursor-pointer"
-                                title="Ver Comprobante y Detalles"
-                              >
-                                <Eye size={14} />
-                              </button>
-                              {transfer.status === 'pending' ? (
-                                <>
-                                  <button 
-                                    onClick={() => handleApproveTransfer(transfer)}
-                                    className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 cursor-pointer"
-                                    title="Aprobar Pago"
-                                  >
-                                    <Check size={14} />
-                                  </button>
-                                  <button 
-                                    onClick={() => handleRejectTransfer(transfer)}
-                                    className="p-1.5 rounded-md bg-red-500/10 text-red-500 hover:bg-red-500/20 cursor-pointer"
-                                    title="Rechazar Pago"
-                                  >
-                                    <X size={14} />
-                                  </button>
-                                </>
-                              ) : (
-                                <span className="text-xs text-text-secondary">Procesado</span>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* TAB 3: PLANS DYNAMIC CONFIG */}
-          {!loading && activeTab === 'plans' && (
-            <div className="space-y-6">
-              <div className="text-left max-w-md">
-                <h3 className="text-sm font-semibold mb-1">Personalización Dinámica de Planes</h3>
-                <p className="text-xs text-text-secondary leading-normal">Edita los precios, límites y módulos activos para cada plan. Los cambios se guardan en la base de datos Firestore y se propagan instantáneamente a todos los clientes del SaaS.</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {plans.map((plan) => (
-                  <div key={plan.id} className={`p-6 rounded-card border flex flex-col justify-between ${'bg-white border-border-default'}`}>
-                    <div>
-                      <h4 className="text-sm font-bold mb-3">{plan.name} <span className="text-xs text-text-secondary">({plan.category || 'erp'})</span></h4>
-                      <div className="space-y-3.5 text-xs text-text-secondary">
-                        <div className="flex justify-between">
-                          <span>Precio Mensual:</span>
-                          <strong className="text-text-heading ">${plan.priceMonthly}/mes</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Precio Anual (por mes):</span>
-                          <strong className="text-text-heading ">${plan.priceYearly}/mes</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Usuarios Permitidos:</span>
-                          <strong className="text-text-heading ">{plan.maxUsers === 9999 ? 'Ilimitados' : plan.maxUsers}</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Productos en Inventario:</span>
-                          <strong className="text-text-heading ">{plan.maxProducts === 99999 ? 'Ilimitados' : plan.maxProducts}</strong>
-                        </div>
-                        <div>
-                          <span className="block mb-1">Módulos Habilitados:</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {(plan.modules || []).map(mod => (
-                              <span key={mod} className="px-2 py-0.5 rounded bg-surface-muted  text-xs font-bold text-text-secondary uppercase">{mod}</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button 
-                      onClick={() => setEditingPlan({ ...plan, featuresText: (plan.features || []).join('\n') })}
-                      className="w-full mt-6 py-2.5 text-xs font-bold border border-border-default text-text-secondary hover:bg-surface-card hover:text-white rounded-card transition-all"
-                    >
-                      Personalizar Plan
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* TAB: MONITOR SRI GLOBAL MULTI-TENANT */}
-          {activeTab === 'sri_monitor' && (
-            <div className="space-y-6">
-              {/* Header Card */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-card border border-border-default">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="p-1.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
-                      <ShieldAlert size={18} />
-                    </span>
-                    <h3 className="text-sm font-bold text-slate-900">Monitor SRI Global Multi-Tenant</h3>
-                  </div>
-                  <p className="text-xs text-text-secondary">
-                    Supervisa y mitiga en tiempo real contingencias del SRI en todos los inquilinos sin pérdida de secuencial fiscal.
-                    {lastScanDate && (
-                      <span className="ml-2 text-slate-400">
-                        Último escaneo: {lastScanDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      </span>
-                    )}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleScanAllSri(false)}
-                    disabled={isScanningSri || isReconcilingSri}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-semibold cursor-pointer transition-all disabled:opacity-50"
-                  >
-                    <RefreshCw size={14} className={isScanningSri ? "animate-spin" : ""} />
-                    <span>{isScanningSri ? "Escaneando inquilinos..." : "Escanear Inquilinos"}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleBatchReconcileSri}
-                    disabled={isReconcilingSri || pendingSriDocs.length === 0}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold cursor-pointer transition-all shadow-none disabled:opacity-50"
-                  >
-                    <Zap size={14} className={isReconcilingSri ? "animate-bounce text-amber-400" : "text-emerald-400"} />
-                    <span>{isReconcilingSri ? "Sincronizando lote..." : `Sincronizar Todos con SRI (${pendingSriDocs.length})`}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* KPIs Widgets */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-5 rounded-card border bg-white border-border-default">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-text-secondary">Documentos Pendientes</span>
-                    <span className="p-1 rounded bg-amber-50 text-amber-700"><ShieldAlert size={16}/></span>
-                  </div>
-                  <div className="text-2xl font-extrabold text-amber-700">{pendingSriDocs.length}</div>
-                  <span className="text-[11px] text-text-secondary">En cola de confirmación SRI</span>
-                </div>
-
-                <div className="p-5 rounded-card border bg-white border-border-default">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-text-secondary">Empresas Afectadas</span>
-                    <span className="p-1 rounded bg-blue-50 text-blue-700"><Building size={16}/></span>
-                  </div>
-                  <div className="text-2xl font-extrabold text-blue-700">
-                    {new Set(pendingSriDocs.map(d => d.tenantId)).size}
-                  </div>
-                  <span className="text-[11px] text-text-secondary">De {tenants.length} registradas</span>
-                </div>
-
-                <div className="p-5 rounded-card border bg-white border-border-default">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-text-secondary">Reconciliados en Sesión</span>
-                    <span className="p-1 rounded bg-emerald-50 text-emerald-700"><CheckCircle2 size={16}/></span>
-                  </div>
-                  <div className="text-2xl font-extrabold text-emerald-700">{reconcileStats.authorized}</div>
-                  <span className="text-[11px] text-text-secondary">Autorizados y notificados</span>
-                </div>
-
-                <div className="p-5 rounded-card border bg-white border-border-default">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-text-secondary">Pasarela SRI WebServices</span>
-                    <span className="p-1 rounded bg-emerald-50 text-emerald-700"><Globe size={16}/></span>
-                  </div>
-                  <div className="text-sm font-bold text-emerald-700 flex items-center gap-1.5 pt-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                    SOAP Online
-                  </div>
-                  <span className="text-[11px] text-text-secondary">Producción (cel.sri.gob.ec)</span>
-                </div>
-              </div>
-
-              {/* Batch Reconciliation Progress Bar */}
-              {isReconcilingSri && (
-                <div className="p-5 rounded-card border bg-slate-900 text-white space-y-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold flex items-center gap-2">
-                      <RefreshCw size={14} className="animate-spin text-amber-400" />
-                      Reconciliando en lote: {reconcileProgress.current} de {reconcileProgress.total}
-                    </span>
-                    <span className="font-mono font-bold text-amber-400">
-                      {reconcileProgress.total > 0 ? Math.round((reconcileProgress.current / reconcileProgress.total) * 100) : 0}%
-                    </span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 transition-all duration-300"
-                      style={{ width: `${reconcileProgress.total > 0 ? (reconcileProgress.current / reconcileProgress.total) * 100 : 0}%` }}
-                    />
-                  </div>
-                  {reconcileProgress.currentDoc && (
-                    <div className="text-[11px] text-slate-400 truncate">
-                      Procesando: <strong className="text-white">{reconcileProgress.currentDoc.tenantName}</strong> - {reconcileProgress.currentDoc.documentNumber || reconcileProgress.currentDoc.claveAcceso}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Toolbar: Search and Filters */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-card border border-border-default">
-                <div className="w-full sm:w-72">
-                  <UiInput
-                    placeholder="Buscar empresa, secuencial o clave..."
-                    value={sriSearchTerm}
-                    onChange={(e) => setSriSearchTerm(e.target.value)}
-                    iconPrefix={<Search size={14} className="text-slate-400" />}
-                    size="2"
+            {/* ==================== TAB: TRANSFERS ==================== */}
+            {!loading && activeTab === 'transfers' && (
+              <div className="space-y-4">
+                <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+                  <UiSegmentedTabs
+                    value={transferFilter}
+                    onChange={setTransferFilter}
+                    items={[
+                      { value: 'pending', label: 'Pendientes', count: pendingTransfers.length, dotColor: '#D97706' },
+                      { value: 'approved', label: 'Aprobadas', count: transfers.filter(t => t.status === 'approved').length, dotColor: '#0B996F' },
+                      { value: 'rejected', label: 'Rechazadas', count: transfers.filter(t => t.status === 'rejected').length, dotColor: '#D9306B' },
+                      { value: 'all', label: 'Todas', count: transfers.length }
+                    ]}
                   />
                 </div>
 
-                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 custom-scrollbar">
-                  {[
-                    { id: 'all', label: 'Todos' },
-                    { id: 'factura', label: 'Facturas' },
-                    { id: 'retencion', label: 'Retenciones' },
-                    { id: 'nota_credito', label: 'N. Crédito' },
-                    { id: 'guia_remision', label: 'Guías' },
-                    { id: 'liquidacion_compra', label: 'Liquidaciones' }
-                  ].map(tab => {
-                    const isTabActive = sriDocTypeFilter === tab.id;
+                {filteredTransfers.length === 0 ? (
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-10 text-center space-y-2">
+                    <div className="flex justify-center">
+                      <UiIconBadge level="empty" tone="neutral" icon={CreditCard} />
+                    </div>
+                    <p className="text-sm font-bold text-[#1B1B1B]">Sin transferencias en esta vista</p>
+                    <p className="text-xs text-[#696969]">Cuando un cliente reporte un pago por transferencia aparecerá aquí.</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {filteredTransfers.map((tr) => (
+                        <div key={tr.id} className="bg-white border border-[#E3E3E3] rounded-2xl p-4 space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-[#1B1B1B] truncate">{tr.companyName || 'Empresa'}</p>
+                              <p className="text-[11px] font-mono text-[#696969] truncate">Ref: {tr.referenceNumber}</p>
+                            </div>
+                            <span className="font-mono text-sm font-extrabold text-[#004227]">${Number(tr.amount || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-[#474747]">
+                            <span>{getPlanName(tr.planId)} ({tr.billingPeriod === 'yearly' ? 'Anual' : 'Mensual'})</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                              tr.status === 'approved' ? 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]' :
+                              tr.status === 'pending' ? 'bg-[#FCFBE7] text-[#866308] border-[#F0DF8A]' :
+                              'bg-[#FFF0F5] text-[#851B40] border-[#FBC6D9]'
+                            }`}>
+                              {tr.status === 'approved' ? 'Aprobado' : tr.status === 'pending' ? 'Pendiente' : 'Rechazado'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 pt-1">
+                            <UiButton type="button" variant="secondary" size="sm" onClick={() => setSelectedTransfer(tr)} className="flex-1">
+                              <Eye size={13} />
+                              <span>Ver comprobante</span>
+                            </UiButton>
+                            {tr.status === 'pending' && (
+                              <UiButton type="button" variant="brand" size="sm" onClick={() => handleApproveTransfer(tr)} className="flex-1">
+                                <Check size={13} />
+                                <span>Aprobar</span>
+                              </UiButton>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block bg-white border border-[#E3E3E3] rounded-2xl overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-[#FAFAFA] border-b border-[#E3E3E3] text-[#696969] uppercase text-[11px] font-bold">
+                            <tr>
+                              <th className="py-3 px-4">Empresa</th>
+                              <th className="py-3 px-4">Plan solicitado</th>
+                              <th className="py-3 px-4">Monto</th>
+                              <th className="py-3 px-4">Referencia</th>
+                              <th className="py-3 px-4">Estado</th>
+                              <th className="py-3 px-4 text-right">Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#EFEFEF]">
+                            {filteredTransfers.map((tr) => (
+                              <tr key={tr.id} className="hover:bg-[#FAFAFA]">
+                                <td className="py-3.5 px-4">
+                                  <div className="font-bold text-[#1B1B1B]">{tr.companyName || 'Empresa'}</div>
+                                  <div className="text-[11px] font-mono text-[#696969]">{tr.tenantId}</div>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <span className="font-semibold text-[#1B1B1B]">{getPlanName(tr.planId)}</span>
+                                  <span className="text-[#696969] ml-1">({tr.billingPeriod === 'yearly' ? 'Anual' : 'Mensual'})</span>
+                                </td>
+                                <td className="py-3.5 px-4 font-mono font-bold text-[#004227]">${Number(tr.amount || 0).toFixed(2)}</td>
+                                <td className="py-3.5 px-4 font-mono text-[#474747]">{tr.referenceNumber}</td>
+                                <td className="py-3.5 px-4">
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                                    tr.status === 'approved' ? 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]' :
+                                    tr.status === 'pending' ? 'bg-[#FCFBE7] text-[#866308] border-[#F0DF8A]' :
+                                    'bg-[#FFF0F5] text-[#851B40] border-[#FBC6D9]'
+                                  }`}>
+                                    {tr.status === 'approved' ? 'Aprobado' : tr.status === 'pending' ? 'Pendiente' : 'Rechazado'}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 text-right">
+                                  <div className="inline-flex items-center justify-end gap-1.5">
+                                    <UiButton type="button" iconOnly variant="secondary" size="sm" onClick={() => setSelectedTransfer(tr)} title="Ver comprobante" aria-label="Ver comprobante">
+                                      <Eye size={14} />
+                                    </UiButton>
+                                    {tr.status === 'pending' && (
+                                      <>
+                                        <UiButton type="button" iconOnly variant="soft" size="sm" onClick={() => handleApproveTransfer(tr)} title="Aprobar pago" aria-label="Aprobar pago">
+                                          <Check size={14} />
+                                        </UiButton>
+                                        <UiButton type="button" iconOnly variant="danger" size="sm" onClick={() => handleRejectTransfer(tr)} title="Rechazar pago" aria-label="Rechazar pago">
+                                          <X size={14} />
+                                        </UiButton>
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* ==================== TAB: PLANS ==================== */}
+            {!loading && activeTab === 'plans' && (
+              <div className="space-y-5">
+                <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 sm:p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <UiIconBadge level="header" tone="brand" icon={Sliders} />
+                      <div>
+                        <h2 className="text-base font-bold text-[#1B1B1B]">Catálogo de Tarifas y Planes</h2>
+                        <p className="text-xs text-[#696969]">
+                          Personaliza precios (incluyendo decimales), límites, módulos y beneficios. Los cambios se sincronizan al instante con todos los tenants.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <UiSegmentedTabs
+                    value={planCategoryFilter}
+                    onChange={setPlanCategoryFilter}
+                    items={[
+                      { value: 'all', label: 'Todos', count: plans.length },
+                      { value: 'erp', label: 'ERP', count: plans.filter(p => (p.category || 'erp') === 'erp').length },
+                      { value: 'facturacion', label: 'Facturación SRI', count: plans.filter(p => p.category === 'facturacion').length },
+                      { value: 'paginas', label: 'Páginas Web', count: plans.filter(p => p.category === 'paginas').length },
+                      { value: 'correos', label: 'Correos', count: plans.filter(p => p.category === 'correos').length },
+                      { value: 'whatsapp', label: 'WhatsApp CRM', count: plans.filter(p => p.category === 'whatsapp').length }
+                    ]}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPlans.map((plan) => {
+                    const cat = plan.category || 'erp';
+                    const isBase = isBasePlanCategory(cat);
                     return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setSriDocTypeFilter(tab.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${isTabActive ? 'bg-[#0F172A] text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
-                      >
-                        {tab.label}
-                      </button>
+                      <div key={plan.id} className="bg-white border border-[#E3E3E3] rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-[#B3F4CB] transition-colors">
+                        <div className="space-y-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <h3 className="text-sm font-bold text-[#1B1B1B]">{plan.name}</h3>
+                                {plan.isPopular && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8FEDF] text-[#004227] border border-[#B3F4CB]">
+                                    Popular
+                                  </span>
+                                )}
+                                {plan.active === false && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFF0F5] text-[#851B40] border border-[#FBC6D9]">
+                                    Oculto
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-[#696969] font-mono mt-0.5">
+                                {CATEGORY_LABELS[cat] || cat} · {plan.id}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-[#FAFAFA] border border-[#EFEFEF]">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-[#696969] block">Mensual</span>
+                              <span className="text-lg font-extrabold font-mono text-[#1B1B1B]">${Number(plan.priceMonthly || 0).toFixed(2)}</span>
+                              <span className="text-[10px] text-[#696969]">/mes</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-[#696969] block">Anual</span>
+                              <span className="text-lg font-extrabold font-mono text-[#004227]">${Number(plan.priceYearly || 0).toFixed(2)}</span>
+                              <span className="text-[10px] text-[#696969]">/mes</span>
+                            </div>
+                          </div>
+
+                          {isBase && (
+                            <div className="space-y-2 text-xs">
+                              <div className="flex items-center justify-between text-[#474747]">
+                                <span className="flex items-center gap-1.5"><Users size={13} className="text-[#696969]" /> Usuarios</span>
+                                <strong className="font-mono text-[#1B1B1B]">{plan.maxUsers >= 9999 ? 'Ilimitados' : (plan.maxUsers ?? 0)}</strong>
+                              </div>
+                              <div className="flex items-center justify-between text-[#474747]">
+                                <span className="flex items-center gap-1.5"><Package size={13} className="text-[#696969]" /> Productos</span>
+                                <strong className="font-mono text-[#1B1B1B]">{plan.maxProducts >= 99999 ? 'Ilimitados' : (plan.maxProducts ?? 0)}</strong>
+                              </div>
+                            </div>
+                          )}
+
+                          {(plan.modules || []).length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {plan.modules.map(mod => (
+                                <span key={mod} className="px-2 py-0.5 rounded-md bg-[#FAFAFA] border border-[#E3E3E3] text-[10px] font-semibold text-[#474747]">
+                                  {MODULE_LABELS[mod] || mod}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <UiButton
+                          type="button"
+                          variant="secondary"
+                          size="md"
+                          onClick={() => setEditingPlan({
+                            ...plan,
+                            category: plan.category || 'erp',
+                            priceMonthly: Number(plan.priceMonthly || 0),
+                            priceYearly: Number(plan.priceYearly || 0),
+                            maxUsers: Number.isFinite(Number(plan.maxUsers)) ? Number(plan.maxUsers) : 0,
+                            maxProducts: Number.isFinite(Number(plan.maxProducts)) ? Number(plan.maxProducts) : 0,
+                            modules: Array.isArray(plan.modules) ? plan.modules : [],
+                            active: plan.active !== false,
+                            featuresText: (plan.features || []).join('\n')
+                          })}
+                          className="w-full"
+                        >
+                          <Edit3 size={14} />
+                          <span>Personalizar Plan</span>
+                        </UiButton>
+                      </div>
                     );
                   })}
                 </div>
               </div>
+            )}
 
-              {/* Table of Pending Documents */}
-              <div className="bg-white rounded-card border border-border-default overflow-hidden">
+            {/* ==================== TAB: SRI MONITOR ==================== */}
+            {activeTab === 'sri_monitor' && (
+              <div className="space-y-5">
+                <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <UiIconBadge level="header" tone="warning" icon={ShieldAlert} />
+                    <div>
+                      <h2 className="text-base font-bold text-[#1B1B1B]">Monitor SRI Global Multi-Tenant</h2>
+                      <p className="text-xs text-[#696969]">
+                        Supervisa comprobantes pendientes en todos los inquilinos sin pérdida de secuencial fiscal.
+                        {lastScanDate && (
+                          <span className="ml-1.5 font-mono">
+                            (Último escaneo: {lastScanDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <UiButton
+                      type="button"
+                      variant="secondary"
+                      size="md"
+                      onClick={() => handleScanAllSri(false)}
+                      disabled={isScanningSri || isReconcilingSri}
+                    >
+                      <RefreshCw size={14} className={isScanningSri ? 'animate-spin' : ''} />
+                      <span>{isScanningSri ? 'Escaneando…' : 'Escanear'}</span>
+                    </UiButton>
+                    <UiButton
+                      type="button"
+                      variant="brand"
+                      size="md"
+                      onClick={handleBatchReconcileSri}
+                      disabled={isReconcilingSri || pendingSriDocs.length === 0}
+                    >
+                      <Zap size={14} />
+                      <span>{isReconcilingSri ? 'Sincronizando…' : `Sincronizar (${pendingSriDocs.length})`}</span>
+                    </UiButton>
+                  </div>
+                </div>
+
+                {/* KPIs */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase text-[#696969] block">Pendientes</span>
+                      <div className="text-2xl font-extrabold font-mono text-[#866308]">{pendingSriDocs.length}</div>
+                    </div>
+                    <UiIconBadge level="kpi" tone="warning" icon={ShieldAlert} />
+                  </div>
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase text-[#696969] block">Empresas</span>
+                      <div className="text-2xl font-extrabold font-mono text-[#1B1B1B]">{new Set(pendingSriDocs.map(d => d.tenantId)).size}</div>
+                    </div>
+                    <UiIconBadge level="kpi" tone="neutral" icon={Building} />
+                  </div>
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase text-[#696969] block">Reconciliados</span>
+                      <div className="text-2xl font-extrabold font-mono text-[#004227]">{reconcileStats.authorized}</div>
+                    </div>
+                    <UiIconBadge level="kpi" tone="success" icon={CheckCircle2} />
+                  </div>
+                  <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase text-[#696969] block">Pasarela SRI</span>
+                      <div className="text-sm font-bold text-[#004227] flex items-center gap-1.5 mt-1">
+                        <span className="w-2 h-2 rounded-full bg-[#0B996F] animate-pulse" />
+                        Online
+                      </div>
+                    </div>
+                    <UiIconBadge level="kpi" tone="brand" icon={Globe} />
+                  </div>
+                </div>
+
+                {isReconcilingSri && (
+                  <div className="bg-[#1B1B1B] text-white rounded-2xl p-4 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold flex items-center gap-2">
+                        <RefreshCw size={14} className="animate-spin text-[#B3F4CB]" />
+                        Reconciliando {reconcileProgress.current} de {reconcileProgress.total}
+                      </span>
+                      <span className="font-mono font-bold text-[#B3F4CB]">
+                        {reconcileProgress.total > 0 ? Math.round((reconcileProgress.current / reconcileProgress.total) * 100) : 0}%
+                      </span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
+                      <div
+                        className="h-full bg-[#0B996F] transition-all"
+                        style={{ width: `${reconcileProgress.total > 0 ? (reconcileProgress.current / reconcileProgress.total) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Toolbar */}
+                <div className="bg-white border border-[#E3E3E3] rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div className="w-full md:w-72">
+                    <UiInput
+                      placeholder="Buscar empresa, secuencial o clave..."
+                      value={sriSearchTerm}
+                      onChange={(e) => setSriSearchTerm(e.target.value)}
+                      iconPrefix={<Search size={14} className="text-[#696969]" />}
+                      size="2"
+                      className="w-full"
+                    />
+                  </div>
+                  <UiSegmentedTabs
+                    value={sriDocTypeFilter}
+                    onChange={setSriDocTypeFilter}
+                    items={[
+                      { value: 'all', label: 'Todos' },
+                      { value: 'factura', label: 'Facturas' },
+                      { value: 'retencion', label: 'Retenciones' },
+                      { value: 'nota_credito', label: 'N. Crédito' },
+                      { value: 'guia_remision', label: 'Guías' }
+                    ]}
+                  />
+                </div>
+
                 {(() => {
+                  const term = sriSearchTerm.toLowerCase();
                   const filtered = pendingSriDocs.filter(d => {
                     const matchType = sriDocTypeFilter === 'all' || d.documentType === sriDocTypeFilter;
-                    const term = sriSearchTerm.toLowerCase();
                     const matchSearch = !term ||
                       d.documentNumber?.toLowerCase().includes(term) ||
                       d.claveAcceso?.includes(term) ||
@@ -1787,327 +2563,524 @@ export default function SuperAdminPage({ showToast }) {
 
                   if (filtered.length === 0) {
                     return (
-                      <div className="p-12 text-center">
-                        <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
-                          <CheckCircle2 size={24} />
+                      <div className="bg-white border border-[#E3E3E3] rounded-2xl p-10 text-center space-y-2">
+                        <div className="flex justify-center">
+                          <UiIconBadge level="empty" tone="brand" icon={CheckCircle2} />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-900 mb-1">Comprobantes al día en todos los tenants</h4>
-                        <p className="text-xs text-text-secondary max-w-md mx-auto">
-                          {pendingSriDocs.length === 0
-                            ? "No existen documentos pendientes de autorización en ninguna empresa. La continuidad de secuenciales está 100% garantizada."
-                            : "No hay documentos que coincidan con los filtros aplicados."}
-                        </p>
+                        <p className="text-sm font-bold text-[#1B1B1B]">Comprobantes al día en todos los tenants</p>
+                        <p className="text-xs text-[#696969]">No hay documentos pendientes de autorización en esta vista.</p>
                       </div>
                     );
                   }
 
                   return (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 border-b border-border-default text-text-secondary uppercase text-[11px] font-bold tracking-wider">
-                          <tr>
-                            <th className="p-3.5 pl-5">Empresa / Inquilino</th>
-                            <th className="p-3.5">Tipo</th>
-                            <th className="p-3.5">Secuencial</th>
-                            <th className="p-3.5">Clave de Acceso (49 dígitos)</th>
-                            <th className="p-3.5">Receptor</th>
-                            <th className="p-3.5 text-right">Total</th>
-                            <th className="p-3.5 text-center">Estado SRI</th>
-                            <th className="p-3.5 text-right pr-5">Acciones</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border-default text-slate-800">
-                          {filtered.map((item) => {
-                            const isVerifying = verifyingDocId === item.id;
-                            const docTypeLabel = getDocumentTypeName(item.documentType);
-                            return (
-                              <tr key={`${item.tenantId}_${item.id}`} className="hover:bg-slate-50/70 transition-colors">
-                                <td className="p-3.5 pl-5">
-                                  <div className="font-bold text-slate-900">{item.tenantName}</div>
-                                  <div className="font-mono text-[11px] text-text-secondary">{item.tenantId}</div>
-                                </td>
-                                <td className="p-3.5">
-                                  <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 uppercase">
-                                    {docTypeLabel}
-                                  </span>
-                                </td>
-                                <td className="p-3.5 font-mono font-bold text-slate-900">
-                                  {item.documentNumber || 'Sin número'}
-                                </td>
-                                <td className="p-3.5">
-                                  <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-600">
-                                    <span>{item.claveAcceso ? `${item.claveAcceso.slice(0, 10)}...${item.claveAcceso.slice(-10)}` : 'Sin clave'}</span>
-                                    {item.claveAcceso && (
-                                      <button
-                                        type="button"
-                                        onClick={() => copyToClipboard(item.claveAcceso, item.id)}
-                                        title="Copiar clave completa"
-                                        className="p-1 text-slate-400 hover:text-slate-800 rounded cursor-pointer"
-                                      >
-                                        <Copy size={12} className={copiedKey === item.id ? "text-emerald-600" : ""} />
-                                      </button>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="p-3.5 max-w-[180px] truncate">
-                                  <div className="font-semibold truncate">{item.thirdParty?.name || item.thirdParty?.razonSocial || 'Consumidor Final'}</div>
-                                  <div className="text-[11px] text-text-secondary font-mono">{item.thirdParty?.ruc || ''}</div>
-                                </td>
-                                <td className="p-3.5 text-right font-mono font-bold text-slate-900">
-                                  ${Number(item.total || 0).toFixed(2)}
-                                </td>
-                                <td className="p-3.5 text-center">
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                                    {item.sriStatus === 'pendiente_sri' ? 'Pendiente SRI' : item.sriStatus}
-                                  </span>
-                                </td>
-                                <td className="p-3.5 text-right pr-5">
-                                  <div className="flex items-center justify-end gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleReconcileSingle(item)}
-                                      disabled={isVerifying || isReconcilingSri}
-                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 transition-colors cursor-pointer disabled:opacity-50"
-                                      title="Consultar autorización en el SRI ahora"
-                                    >
-                                      <RefreshCw size={12} className={isVerifying ? "animate-spin text-amber-600" : ""} />
-                                      <span>{isVerifying ? "Consultando..." : "Consultar SRI"}</span>
-                                    </button>
-                                    <a
-                                      href={`/#/public/ride?txId=${encodeURIComponent(item.id)}&claveAcceso=${encodeURIComponent(item.claveAcceso || '')}&tenantId=${encodeURIComponent(item.tenantId)}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="p-1.5 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-                                      title="Ver visor RIDE público"
-                                    >
-                                      <ExternalLink size={14} />
-                                    </a>
-                                  </div>
-                                </td>
+                    <>
+                      {/* Mobile Cards */}
+                      <div className="md:hidden space-y-3">
+                        {filtered.map((item) => {
+                          const isVerifying = verifyingDocId === item.id;
+                          return (
+                            <div key={`${item.tenantId}_${item.id}`} className="bg-white border border-[#E3E3E3] rounded-2xl p-4 space-y-2.5 text-xs">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="font-bold text-[#1B1B1B] truncate">{item.tenantName}</p>
+                                  <p className="font-mono text-[11px] text-[#696969]">{item.documentNumber || 'Sin número'}</p>
+                                </div>
+                                <span className="font-mono font-bold text-[#1B1B1B]">${Number(item.total || 0).toFixed(2)}</span>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1">
+                                <UiButton
+                                  type="button"
+                                  variant="soft-amber"
+                                  size="sm"
+                                  disabled={isVerifying || isReconcilingSri}
+                                  onClick={() => handleReconcileSingle(item)}
+                                  className="flex-1"
+                                >
+                                  <RefreshCw size={13} className={isVerifying ? 'animate-spin' : ''} />
+                                  <span>{isVerifying ? 'Consultando…' : 'Consultar SRI'}</span>
+                                </UiButton>
+                                {item.claveAcceso && (
+                                  <UiButton type="button" iconOnly variant="secondary" size="sm" onClick={() => copyToClipboard(item.claveAcceso, item.id)} aria-label="Copiar clave">
+                                    <Copy size={14} className={copiedKey === item.id ? 'text-[#0B996F]' : ''} />
+                                  </UiButton>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Desktop Table */}
+                      <div className="hidden md:block bg-white border border-[#E3E3E3] rounded-2xl overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-xs">
+                            <thead className="bg-[#FAFAFA] border-b border-[#E3E3E3] text-[#696969] uppercase text-[11px] font-bold">
+                              <tr>
+                                <th className="py-3 px-4">Empresa</th>
+                                <th className="py-3 px-4">Tipo / Secuencial</th>
+                                <th className="py-3 px-4">Clave de Acceso</th>
+                                <th className="py-3 px-4">Receptor</th>
+                                <th className="py-3 px-4 text-right">Total</th>
+                                <th className="py-3 px-4 text-right">Acciones</th>
                               </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                            </thead>
+                            <tbody className="divide-y divide-[#EFEFEF]">
+                              {filtered.map((item) => {
+                                const isVerifying = verifyingDocId === item.id;
+                                return (
+                                  <tr key={`${item.tenantId}_${item.id}`} className="hover:bg-[#FAFAFA]">
+                                    <td className="py-3 px-4">
+                                      <div className="font-bold text-[#1B1B1B]">{item.tenantName}</div>
+                                      <div className="font-mono text-[11px] text-[#696969]">{item.tenantId}</div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <div className="font-mono font-bold text-[#1B1B1B]">{item.documentNumber || 'Sin número'}</div>
+                                      <div className="text-[11px] text-[#696969]">{getDocumentTypeName(item.documentType)}</div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <div className="flex items-center gap-1.5 font-mono text-[11px] text-[#474747]">
+                                        <span>{item.claveAcceso ? `${item.claveAcceso.slice(0, 10)}…${item.claveAcceso.slice(-10)}` : 'Sin clave'}</span>
+                                        {item.claveAcceso && (
+                                          <UiButton type="button" iconOnly variant="secondary" size="sm" onClick={() => copyToClipboard(item.claveAcceso, item.id)} title="Copiar clave" aria-label="Copiar clave">
+                                            <Copy size={13} className={copiedKey === item.id ? 'text-[#0B996F]' : ''} />
+                                          </UiButton>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4 max-w-[180px] truncate">
+                                      <div className="font-semibold text-[#1B1B1B] truncate">{item.thirdParty?.name || 'Consumidor Final'}</div>
+                                      <div className="text-[11px] font-mono text-[#696969]">{item.thirdParty?.ruc || ''}</div>
+                                    </td>
+                                    <td className="py-3 px-4 text-right font-mono font-bold text-[#1B1B1B]">
+                                      ${Number(item.total || 0).toFixed(2)}
+                                    </td>
+                                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                                      <div className="inline-flex items-center justify-end gap-1.5">
+                                        <UiButton
+                                          type="button"
+                                          variant="soft-amber"
+                                          size="sm"
+                                          disabled={isVerifying || isReconcilingSri}
+                                          onClick={() => handleReconcileSingle(item)}
+                                        >
+                                          <RefreshCw size={13} className={isVerifying ? 'animate-spin' : ''} />
+                                          <span>{isVerifying ? 'Consultando…' : 'Consultar SRI'}</span>
+                                        </UiButton>
+                                        <a
+                                          href={`/#/public/ride?txId=${encodeURIComponent(item.id)}&claveAcceso=${encodeURIComponent(item.claveAcceso || '')}&tenantId=${encodeURIComponent(item.tenantId)}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center justify-center w-[30px] h-[30px] rounded-[8px] border border-[#E3E3E3] bg-white hover:bg-[#F0FDF4] hover:border-[#B3F4CB] text-[#474747] hover:text-[#004227]"
+                                          title="Ver visor RIDE público"
+                                        >
+                                          <ExternalLink size={14} />
+                                        </a>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </>
                   );
                 })()}
               </div>
-            </div>
-          )}
-
+            )}
+          </div>
         </main>
       </div>
 
-      {/* EDIT PLAN CONFIG MODAL */}
-      {editingPlan && (
-        <div className="fixed inset-0 z-[260] bg-black/60 flex items-center justify-center p-3 sm:p-4">
-          <div className="w-full max-w-lg max-h-[90dvh] overflow-y-auto p-6 rounded-card border bg-white border-border-default text-black">
-            <div className="flex justify-between items-center mb-6">
-              <h4 className="text-sm font-bold">Personalizar: Plan {editingPlan.name}</h4>
-              <button onClick={() => setEditingPlan(null)} className="text-slate-500 hover:text-slate-900 cursor-pointer"><X size={16}/></button>
+      {/* ==================== MODAL: ACTIVAR EMPRESA (PLAN + ACTIVO/TRIAL) ==================== */}
+      {activationModal && (
+        <div
+          className="fixed inset-0 z-[270] bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+          onClick={() => { if (!isActivating) setActivationModal(null); }}
+        >
+          <div
+            className="w-full max-w-md bg-white border border-[#E3E3E3] rounded-2xl overflow-hidden max-h-[92dvh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-[#EFEFEF] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <UiIconBadge level="modal" tone="brand" icon={Sparkles} />
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-[#1B1B1B] truncate">
+                    Activar {activationModal.tenant.companyName || 'Empresa'}
+                  </h3>
+                  <p className="text-xs text-[#696969] truncate">
+                    {activationModal.tenant.ownerEmail || activationModal.tenant.id}
+                  </p>
+                </div>
+              </div>
+              <UiModalCloseButton disabled={isActivating} onClick={() => setActivationModal(null)} />
             </div>
-            <form onSubmit={handleSavePlanEdit} className="space-y-4 text-left text-xs">
-              <div>
-                <label className="block font-bold mb-1">Nombre del plan</label>
-                <input type="text" maxLength={100} required value={editingPlan.name || ''}
-                  onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
-                  className="w-full p-2.5 rounded-md border outline-none bg-white border-border-strong" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold mb-1">Precio Mensual ($ USD)</label>
-                  <input 
-                    type="number" 
-                    value={editingPlan.priceMonthly} 
-                    onChange={e => setEditingPlan({ ...editingPlan, priceMonthly: Number(e.target.value) })}
-                    className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
-                  />
+
+            <form onSubmit={handleConfirmActivation} className="p-5 space-y-4 overflow-y-auto text-xs">
+              {/* Modo de Activación */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-[#1B1B1B]">Tipo de activación</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'active', title: 'Plan Activo', desc: 'Suscripción completa' },
+                    { id: 'trial', title: 'Prueba (Trial)', desc: 'Evaluación temporal' }
+                  ].map(opt => {
+                    const active = activationModal.planStatus === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setActivationModal(prev => ({
+                          ...prev,
+                          planStatus: opt.id,
+                          expiresAt: computeDefaultExpiryDate(opt.id, prev.billingPeriod)
+                        }))}
+                        className={`p-3 rounded-[10px] border text-left transition-all cursor-pointer ${
+                          active
+                            ? 'bg-[#E8FEDF] border-[#0B996F] text-[#004227]'
+                            : 'bg-white border-[#E3E3E3] text-[#474747] hover:bg-[#FAFAFA]'
+                        }`}
+                      >
+                        <div className="font-bold text-xs">{opt.title}</div>
+                        <div className="text-[11px] opacity-80">{opt.desc}</div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div>
-                  <label className="block font-bold mb-1">Precio Anual ($ USD/mes)</label>
-                  <input 
-                    type="number" 
-                    value={editingPlan.priceYearly} 
-                    onChange={e => setEditingPlan({ ...editingPlan, priceYearly: Number(e.target.value) })}
-                    className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
+              </div>
+
+              {/* Plan */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-[#1B1B1B]">Plan asignado</label>
+                <UiSelect
+                  value={activationModal.planId}
+                  onChange={e => setActivationModal(prev => ({ ...prev, planId: e.target.value }))}
+                  className="w-full"
+                >
+                  {basePlans.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} — ${Number(p.priceMonthly || 0).toFixed(2)}/mes ({(p.category || 'erp').toUpperCase()})
+                    </option>
+                  ))}
+                </UiSelect>
+              </div>
+
+              {/* Ciclo y Vencimiento */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-[#1B1B1B]">Ciclo</label>
+                  <UiSelect
+                    value={activationModal.billingPeriod}
+                    onChange={e => {
+                      const nextPeriod = e.target.value;
+                      setActivationModal(prev => ({
+                        ...prev,
+                        billingPeriod: nextPeriod,
+                        expiresAt: computeDefaultExpiryDate(prev.planStatus, nextPeriod)
+                      }));
+                    }}
+                    className="w-full"
+                  >
+                    <option value="monthly">Mensual</option>
+                    <option value="yearly">Anual</option>
+                  </UiSelect>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-[#1B1B1B]">Válido hasta</label>
+                  <UiInput
+                    type="date"
+                    required
+                    value={activationModal.expiresAt}
+                    onChange={e => setActivationModal(prev => ({ ...prev, expiresAt: e.target.value }))}
+                    className="w-full"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold mb-1">Límite de Usuarios</label>
-                  <input 
-                    type="number" 
-                    value={editingPlan.maxUsers} 
-                    onChange={e => setEditingPlan({ ...editingPlan, maxUsers: Number(e.target.value) })}
-                    className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold mb-1">Límite de Productos</label>
-                  <input 
-                    type="number" 
-                    value={editingPlan.maxProducts} 
-                    onChange={e => setEditingPlan({ ...editingPlan, maxProducts: Number(e.target.value) })}
-                    className={`w-full p-2.5 rounded-md border outline-none ${'bg-white border-border-strong'}`}
-                  />
-                </div>
+              {/* Atajos rápidos */}
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: '+14 días', date: addDaysToToday(14), status: 'trial' },
+                  { label: '+1 mes', date: addMonthsToToday(1), status: 'active', period: 'monthly' },
+                  { label: '+3 meses', date: addMonthsToToday(3), status: 'active' },
+                  { label: '+1 año', date: addMonthsToToday(12), status: 'active', period: 'yearly' }
+                ].map(item => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => setActivationModal(prev => ({
+                      ...prev,
+                      planStatus: item.status,
+                      billingPeriod: item.period || prev.billingPeriod,
+                      expiresAt: item.date
+                    }))}
+                    className="px-2.5 py-1 rounded-[8px] border border-[#E3E3E3] bg-[#FAFAFA] hover:bg-[#E8FEDF] hover:border-[#B3F4CB] text-[11px] font-semibold text-[#474747] cursor-pointer"
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
 
-              <div>
-                <label className="block font-bold mb-1">Beneficios visibles en el catálogo (uno por línea)</label>
-                <textarea rows={4} value={editingPlan.featuresText || ''}
-                  onChange={e => setEditingPlan({ ...editingPlan, featuresText: e.target.value })}
-                  className="w-full p-2.5 rounded-md border outline-none bg-white border-border-strong" />
-              </div>
-              <div>
-                <label className="block font-bold mb-2">Módulos Habilitados</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3 rounded-card border border-slate-200 bg-slate-50">
-                  {(() => {
-                    const moduleLabels = {
-                      dashboard: 'Dashboard',
-                      ventas: 'Ventas',
-                      finances: 'Finanzas/Ingresos',
-                      compras: 'Compras',
-                      gastos_creditos: 'Gastos y Créditos',
-                      inventario: 'Inventario',
-                      personas: 'Personas (Contactos)',
-                      calendar: 'Calendario',
-                      team: 'Equipo',
-                      contabilidad: 'Contabilidad SRI',
-                      general_settings: 'Ajustes generales'
-                    };
-                    return Object.keys(moduleLabels).map((mod) => {
-                      const isChecked = editingPlan.modules?.includes(mod) || false;
-                      return (
-                        <label key={mod} className="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-white/5 font-semibold text-xs tracking-wide">
-                          <input 
-                            type="checkbox" 
-                            checked={isChecked}
-                            onChange={() => {
-                              const currentModules = editingPlan.modules || [];
-                              const newModules = isChecked 
-                                ? currentModules.filter(m => m !== mod)
-                                : [...currentModules, mod];
-                              setEditingPlan({ ...editingPlan, modules: newModules });
-                            }}
-                          />
-                          {moduleLabels[mod]}
-                        </label>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-
-              <div className="flex gap-3 justify-end pt-4">
-                <button type="button" onClick={() => setEditingPlan(null)} className="px-4 py-2.5 rounded-card border border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold cursor-pointer">Cancelar</button>
-                <button type="submit" className="px-4 py-2.5 rounded-card bg-[#1b1b1b] hover:bg-black text-white font-bold cursor-pointer">Guardar Cambios</button>
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#EFEFEF]">
+                <UiButton type="button" variant="secondary" size="md" disabled={isActivating} onClick={() => setActivationModal(null)}>
+                  Cancelar
+                </UiButton>
+                <UiButton type="submit" variant="brand" size="md" disabled={isActivating}>
+                  <CheckCircle2 size={14} />
+                  <span>{isActivating ? 'Activando…' : activationModal.planStatus === 'active' ? 'Confirmar Activación' : 'Habilitar Prueba'}</span>
+                </UiButton>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* VIEW TRANSFER DETAILS MODAL */}
-      {selectedTransfer && (
-        <div className="fixed inset-0 z-[260] flex items-center justify-center p-3 sm:p-4 bg-black/60">
-          <div className="bg-surface-card rounded-card border border-border-default w-full max-w-lg max-h-[90dvh] overflow-y-auto p-6 space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-border-default">
-              <div className="flex items-center gap-2">
-                <CreditCard size={18} className="text-primary" />
-                <h4 className="text-sm font-bold text-text-primary">Detalle de Transferencia Bancaria</h4>
+      {/* ==================== MODAL: EDITAR PLAN ==================== */}
+      {editingPlan && (
+        <div
+          className="fixed inset-0 z-[260] bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+          onClick={() => { if (!savingPlan) setEditingPlan(null); }}
+        >
+          <div
+            className="w-full max-w-lg bg-white border border-[#E3E3E3] rounded-2xl overflow-hidden max-h-[92dvh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-[#EFEFEF] flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <UiIconBadge level="modal" tone="brand" icon={Sliders} />
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold text-[#1B1B1B] truncate">Personalizar: {editingPlan.name}</h4>
+                  <p className="text-[11px] font-mono text-[#696969] truncate">
+                    {CATEGORY_LABELS[editingPlan.category || 'erp'] || editingPlan.category} · {editingPlan.id}
+                  </p>
+                </div>
               </div>
-              <button 
-                type="button"
-                onClick={() => setSelectedTransfer(null)} 
-                className="text-text-secondary hover:text-text-primary cursor-pointer p-1 rounded hover:bg-surface-bg"
-              >
-                <X size={16}/>
-              </button>
+              <UiModalCloseButton disabled={savingPlan} onClick={() => setEditingPlan(null)} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="bg-surface-bg p-2.5 rounded-md border border-border-default">
-                <span className="text-text-secondary font-semibold block mb-0.5">Empresa / Inquilino:</span>
-                <span className="font-bold text-text-primary block">{selectedTransfer.companyName || 'Empresa'}</span>
-                <span className="font-mono text-text-secondary text-[11px]">ID: {selectedTransfer.tenantId}</span>
+            <form onSubmit={handleSavePlanEdit} className="p-5 space-y-4 overflow-y-auto text-xs">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-[#1B1B1B]">Nombre del plan *</label>
+                <UiInput
+                  type="text"
+                  maxLength={100}
+                  required
+                  value={editingPlan.name || ''}
+                  onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
+                  className="w-full"
+                />
               </div>
-              <div className="bg-surface-bg p-2.5 rounded-md border border-border-default">
-                <span className="text-text-secondary font-semibold block mb-0.5">Plan Solicitado:</span>
-                <span className="font-bold text-text-primary block uppercase">{selectedTransfer.planId} ({selectedTransfer.billingPeriod || 'mensual'})</span>
-                <span className="font-bold text-emerald-500 text-sm">${selectedTransfer.amount || '0.00'}</span>
-              </div>
-              <div className="bg-surface-bg p-2.5 rounded-md border border-border-default">
-                <span className="text-text-secondary font-semibold block mb-0.5">Nro. Referencia:</span>
-                <span className="font-mono font-bold text-primary block">{selectedTransfer.referenceNumber || 'S/N'}</span>
-              </div>
-              <div className="bg-surface-bg p-2.5 rounded-md border border-border-default">
-                <span className="text-text-secondary font-semibold block mb-0.5">Estado:</span>
-                <span className={`px-2 py-0.5 rounded text-[11px] font-bold inline-block ${
-                  selectedTransfer.status === 'approved' ? 'bg-emerald-500/15 text-emerald-500' :
-                  selectedTransfer.status === 'pending' ? 'bg-amber-500/15 text-amber-500 animate-pulse' :
-                  'bg-red-500/15 text-red-500'
-                }`}>
-                  {selectedTransfer.status === 'approved' ? 'Aprobado' : selectedTransfer.status === 'pending' ? 'Pendiente' : 'Rechazado'}
-                </span>
-              </div>
-              {selectedTransfer.createdAt && (
-                <div className="col-span-2 bg-surface-bg p-2 rounded-md border border-border-default">
-                  <span className="text-text-secondary font-semibold">Fecha de Solicitud: </span>
-                  <span className="text-text-primary font-medium">{new Date(selectedTransfer.createdAt).toLocaleString('es-EC')}</span>
-                </div>
-              )}
-            </div>
 
-            {/* Comprobante / Voucher Preview */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-bold text-text-secondary block">Archivo / Comprobante de Pago</span>
-              {selectedTransfer.proofUrl ? (
-                <div className="max-h-60 overflow-hidden flex items-center justify-center p-2 bg-surface-bg border border-border-default rounded-md">
-                  <img src={selectedTransfer.proofUrl} alt="Comprobante de pago" className="max-h-56 object-contain rounded" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-[#1B1B1B]">Precio Mensual ($ USD) *</label>
+                  <UiInput
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    required
+                    value={editingPlan.priceMonthly}
+                    onChange={e => setEditingPlan({ ...editingPlan, priceMonthly: e.target.value })}
+                    className="w-full font-mono"
+                  />
                 </div>
-              ) : (
-                <div className="p-4 text-center italic text-xs text-text-secondary bg-surface-bg border border-border-default rounded-md">
-                  No se adjuntó archivo de imagen (solo número de referencia proporcionado por el cliente).
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-[#1B1B1B]">Precio Anual ($ USD/mes) *</label>
+                  <UiInput
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    required
+                    value={editingPlan.priceYearly}
+                    onChange={e => setEditingPlan({ ...editingPlan, priceYearly: e.target.value })}
+                    className="w-full font-mono"
+                  />
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div className="flex gap-2.5 justify-end pt-3 border-t border-border-default">
-              <button 
-                type="button" 
-                onClick={() => setSelectedTransfer(null)} 
-                className="px-4 py-2 rounded-card border border-border-default hover:bg-surface-bg text-xs font-semibold cursor-pointer"
-              >
-                Cerrar
-              </button>
-              {selectedTransfer.status === 'pending' && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => handleRejectTransfer(selectedTransfer)}
-                    className="px-4 py-2 rounded-card bg-red-500/10 text-red-500 hover:bg-red-500/20 text-xs font-bold cursor-pointer"
-                  >
-                    Rechazar Transferencia
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleApproveTransfer(selectedTransfer)}
-                    className="px-4 py-2 rounded-card bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold cursor-pointer"
-                  >
-                    Aprobar y Activar Plan
-                  </button>
-                </>
+              {isBasePlanCategory(editingPlan.category || 'erp') && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block font-bold text-[#1B1B1B]">Límite de Usuarios (9999 = ilimitado)</label>
+                    <UiInput
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={editingPlan.maxUsers}
+                      onChange={e => setEditingPlan({ ...editingPlan, maxUsers: e.target.value })}
+                      className="w-full font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block font-bold text-[#1B1B1B]">Límite de Productos (99999 = ilimitado)</label>
+                    <UiInput
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={editingPlan.maxProducts}
+                      onChange={e => setEditingPlan({ ...editingPlan, maxProducts: e.target.value })}
+                      className="w-full font-mono"
+                    />
+                  </div>
+                </div>
               )}
-            </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-[#1B1B1B]">Beneficios visibles (uno por línea)</label>
+                <UiTextarea
+                  rows={4}
+                  value={editingPlan.featuresText || ''}
+                  onChange={e => setEditingPlan({ ...editingPlan, featuresText: e.target.value })}
+                  className="w-full"
+                />
+              </div>
+
+              {isBasePlanCategory(editingPlan.category || 'erp') && (
+                <div className="space-y-2">
+                  <label className="block font-bold text-[#1B1B1B]">Módulos habilitados en el ERP</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-xl border border-[#E3E3E3] bg-[#FAFAFA]">
+                    {Object.entries(MODULE_LABELS).map(([mod, label]) => {
+                      const isChecked = (editingPlan.modules || []).includes(mod);
+                      return (
+                        <label key={mod} className="flex items-center gap-2 cursor-pointer p-1.5 rounded-lg hover:bg-white text-[11px] font-semibold text-[#1B1B1B]">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            className="accent-[#0B996F]"
+                            onChange={() => {
+                              const currentModules = editingPlan.modules || [];
+                              const newModules = isChecked
+                                ? currentModules.filter(m => m !== mod)
+                                : [...currentModules, mod];
+                              setEditingPlan({ ...editingPlan, modules: newModules });
+                            }}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-4 pt-1">
+                <label className="flex items-center gap-2 cursor-pointer font-semibold text-[#1B1B1B]">
+                  <input
+                    type="checkbox"
+                    checked={editingPlan.active !== false}
+                    onChange={e => setEditingPlan({ ...editingPlan, active: e.target.checked })}
+                    className="accent-[#0B996F]"
+                  />
+                  Plan visible y contratable
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer font-semibold text-[#1B1B1B]">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(editingPlan.isPopular)}
+                    onChange={e => setEditingPlan({ ...editingPlan, isPopular: e.target.checked })}
+                    className="accent-[#0B996F]"
+                  />
+                  Destacar como Popular
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#EFEFEF]">
+                <UiButton type="button" variant="secondary" size="md" disabled={savingPlan} onClick={() => setEditingPlan(null)}>
+                  Cancelar
+                </UiButton>
+                <UiButton type="submit" variant="primary" size="md" disabled={savingPlan}>
+                  <CheckCircle2 size={14} />
+                  <span>{savingPlan ? 'Guardando…' : 'Guardar Plan'}</span>
+                </UiButton>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
+      {/* ==================== MODAL: DETALLE TRANSFERENCIA ==================== */}
+      {selectedTransfer && (
+        <div
+          className="fixed inset-0 z-[260] bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+          onClick={() => setSelectedTransfer(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white border border-[#E3E3E3] rounded-2xl overflow-hidden max-h-[92dvh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-[#EFEFEF] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <UiIconBadge level="modal" tone="brand" icon={CreditCard} />
+                <div>
+                  <h4 className="text-sm font-bold text-[#1B1B1B]">Detalle de Transferencia</h4>
+                  <p className="text-xs text-[#696969]">{selectedTransfer.companyName || selectedTransfer.tenantId}</p>
+                </div>
+              </div>
+              <UiModalCloseButton onClick={() => setSelectedTransfer(null)} />
+            </div>
+
+            <div className="p-5 space-y-4 overflow-y-auto text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#E3E3E3]">
+                  <span className="text-[11px] font-semibold text-[#696969] block">Empresa / Inquilino</span>
+                  <span className="font-bold text-[#1B1B1B] block">{selectedTransfer.companyName || 'Empresa'}</span>
+                  <span className="font-mono text-[11px] text-[#696969]">ID: {selectedTransfer.tenantId}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#E3E3E3]">
+                  <span className="text-[11px] font-semibold text-[#696969] block">Plan Solicitado</span>
+                  <span className="font-bold text-[#1B1B1B] block">
+                    {getPlanName(selectedTransfer.planId)} ({selectedTransfer.billingPeriod === 'yearly' ? 'Anual' : 'Mensual'})
+                  </span>
+                  <span className="font-mono font-extrabold text-[#004227] text-sm">${Number(selectedTransfer.amount || 0).toFixed(2)}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#E3E3E3]">
+                  <span className="text-[11px] font-semibold text-[#696969] block">Nro. Referencia</span>
+                  <span className="font-mono font-bold text-[#1B1B1B]">{selectedTransfer.referenceNumber || 'S/N'}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#E3E3E3]">
+                  <span className="text-[11px] font-semibold text-[#696969] block">Fecha de Solicitud</span>
+                  <span className="font-medium text-[#1B1B1B]">
+                    {selectedTransfer.createdAt ? new Date(selectedTransfer.createdAt).toLocaleString('es-EC') : '—'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="font-bold text-[#1B1B1B] block">Comprobante de Pago</span>
+                {selectedTransfer.proofUrl ? (
+                  <div className="max-h-60 overflow-hidden flex items-center justify-center p-2 bg-[#FAFAFA] border border-[#E3E3E3] rounded-xl">
+                    <img src={selectedTransfer.proofUrl} alt="Comprobante de pago" className="max-h-56 object-contain rounded-lg" />
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-[#696969] bg-[#FAFAFA] border border-[#E3E3E3] rounded-xl">
+                    No se adjuntó imagen de comprobante (solo número de referencia).
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-[#EFEFEF]">
+                <UiButton type="button" variant="secondary" size="md" onClick={() => setSelectedTransfer(null)}>
+                  Cerrar
+                </UiButton>
+                {selectedTransfer.status === 'pending' && (
+                  <>
+                    <UiButton type="button" variant="danger" size="md" onClick={() => handleRejectTransfer(selectedTransfer)}>
+                      Rechazar
+                    </UiButton>
+                    <UiButton type="button" variant="brand" size="md" onClick={() => handleApproveTransfer(selectedTransfer)}>
+                      <CheckCircle2 size={14} />
+                      <span>Aprobar y Activar Plan</span>
+                    </UiButton>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
