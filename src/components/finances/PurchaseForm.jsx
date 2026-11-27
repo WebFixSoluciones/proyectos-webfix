@@ -225,6 +225,26 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
       const existing = cleanRuc
         ? thirdParties.find(t => String(t.ruc || '').trim() === cleanRuc && t.type !== 'cliente')
         : null;
+      const mappedItems = Array.isArray(extracted.items) && extracted.items.length > 0
+        ? extracted.items.map(it => {
+            const matched = products.find(p =>
+              (it.code && String(p.sku || '').toLowerCase() === String(it.code).toLowerCase()) ||
+              (it.name && String(p.name || '').toLowerCase() === String(it.name).toLowerCase())
+            );
+            return {
+              productId: matched?.id || '',
+              name: matched?.name || it.name,
+              sku: matched?.sku || it.code || '',
+              quantity: Number(it.quantity) || 1,
+              price: Number(it.price) || 0,
+              discount: 0,
+              ivaCategory: [0, 5, 12, 15].includes(Number(it.ivaRate)) ? Number(it.ivaRate) : 15,
+              total: Number(it.total) || Number(((Number(it.quantity) || 1) * (Number(it.price) || 0)).toFixed(2)),
+              unmatched: !matched
+            };
+          })
+        : null;
+
       setForm(prev => ({
         ...prev,
         documentNumber: extracted.documentNumber || prev.documentNumber,
@@ -239,8 +259,14 @@ export default function PurchaseForm({ tx, onClose, thirdParties = [], products 
         category: extracted.category || prev.category,
         description: extracted.description || extracted.concepto || prev.description,
         paymentMethod: extracted.paymentMethod || prev.paymentMethod,
+        ...(mappedItems ? { items: mappedItems } : {})
       }));
-      showToast?.('Archivo analizado con IA. Verifica proveedor y montos.', 'success');
+      showToast?.(
+        mappedItems
+          ? `PDF analizado con IA (${mappedItems.length} ítems detectados). Revisa proveedor y montos.`
+          : 'Archivo analizado con IA. Verifica proveedor y montos.',
+        'success'
+      );
     } catch (error) { showToast?.(error.message || 'Error al analizar comprobante con IA.', 'error'); }
     finally { setImportBusy(''); }
     e.target.value = '';

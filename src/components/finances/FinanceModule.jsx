@@ -273,6 +273,25 @@ export default function FinanceModule({
       const matchedSupplier = cleanRuc
         ? thirdParties.find(t => String(t.ruc || '').trim() === cleanRuc && t.type !== 'cliente')
         : null;
+      const mappedItems = Array.isArray(extracted.items) && extracted.items.length > 0
+        ? extracted.items.map(it => {
+            const matched = products.find(p =>
+              (it.code && String(p.sku || '').toLowerCase() === String(it.code).toLowerCase()) ||
+              (it.name && String(p.name || '').toLowerCase() === String(it.name).toLowerCase())
+            );
+            return {
+              productId: matched?.id || '',
+              name: matched?.name || it.name,
+              sku: matched?.sku || it.code || '',
+              quantity: Number(it.quantity) || 1,
+              price: Number(it.price) || 0,
+              discount: 0,
+              ivaCategory: [0, 5, 12, 15].includes(Number(it.ivaRate)) ? Number(it.ivaRate) : 15,
+              total: Number(it.total) || Number(((Number(it.quantity) || 1) * (Number(it.price) || 0)).toFixed(2)),
+              unmatched: !matched
+            };
+          })
+        : [];
       reviewPurchase({
         documentType: 'factura',
         documentNumber: extracted.documentNumber || '',
@@ -290,6 +309,7 @@ export default function FinanceModule({
         category: extracted.category || 'compras',
         description: extracted.description || extracted.concepto || `Compra ${extracted.documentNumber || ''}`.trim(),
         paymentMethod: extracted.paymentMethod || 'transferencia',
+        items: mappedItems,
         isAIDetected: true,
       }, method);
       showToast?.('Comprobante analizado con IA. Verifica los valores antes de guardar.', 'success');

@@ -22,6 +22,9 @@ import PermissionsManagerView from '../../modules/rbac/ui/PermissionsManagerView
 import { createPermissionsFromPreset } from '../../modules/rbac/domain/permissions';
 import { fetchUnifiedWarehouses } from '../../modules/warehouse/infrastructure/WarehouseRepository';
 import { normalizeEmissionPoints } from '../../modules/sri/domain/emissionPoints';
+import { probarConexionGemini } from '../../services/geminiService';
+import { UiButton, UiInput } from '../ui/controls';
+import { UiIconBadge } from '../ui/UiIconBadge';
 
 export default function GeneralSettings({ 
  showToast, db, appId, storage, handleDownloadBackup,
@@ -32,6 +35,10 @@ export default function GeneralSettings({
  const [activeSubTab, setActiveSubTab] = useState('profile');
  const [rbacWarehouses, setRbacWarehouses] = useState([]);
  const [rbacEmissionPoints, setRbacEmissionPoints] = useState([]);
+ const [geminiKeyInput, setGeminiKeyInput] = useState(() => localStorage.getItem('finances_gemini_api_key') || '');
+ const [savingGeminiKey, setSavingGeminiKey] = useState(false);
+ const [testingGemini, setTestingGemini] = useState(false);
+ const [geminiTestStatus, setGeminiTestStatus] = useState(null);
 
  useEffect(() => {
    if (!db || !appId) return;
@@ -39,7 +46,54 @@ export default function GeneralSettings({
    getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finances_settings', 'config'))
      .then((snap) => setRbacEmissionPoints(normalizeEmissionPoints(snap.exists() ? snap.data() : {})))
      .catch(() => {});
+   getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'))
+     .then((snap) => {
+       const cloudKey = String(snap.data()?.geminiApiKey || '').trim();
+       if (cloudKey) {
+         localStorage.setItem('finances_gemini_api_key', cloudKey);
+         setGeminiKeyInput(prev => prev || cloudKey);
+       }
+     })
+     .catch(() => {});
  }, [db, appId, activeSubTab]);
+
+ const handleSaveGeminiKey = async (e) => {
+   e.preventDefault();
+   if (savingGeminiKey) return;
+   setSavingGeminiKey(true);
+   setGeminiTestStatus(null);
+   try {
+     const trimmed = geminiKeyInput.trim();
+     if (trimmed) localStorage.setItem('finances_gemini_api_key', trimmed);
+     else localStorage.removeItem('finances_gemini_api_key');
+     if (db && appId) {
+       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { geminiApiKey: trimmed }, { merge: true });
+     }
+     showToast?.(trimmed ? 'Clave API de Gemini guardada y sincronizada.' : 'Clave local removida (usará clave del servidor).', 'success');
+   } catch (err) {
+     showToast?.(err.message || 'No se pudo guardar la clave de Gemini.', 'error');
+   } finally {
+     setSavingGeminiKey(false);
+   }
+ };
+
+ const handleTestGeminiConnection = async () => {
+   if (testingGemini) return;
+   setTestingGemini(true);
+   setGeminiTestStatus(null);
+   try {
+     const res = await probarConexionGemini(geminiKeyInput.trim());
+     const msg = `Conexión exitosa con ${res.model || 'Gemini IA'}.`;
+     setGeminiTestStatus({ ok: true, message: msg });
+     showToast?.(msg, 'success');
+   } catch (err) {
+     const msg = err.message || 'No se pudo conectar con Gemini IA.';
+     setGeminiTestStatus({ ok: false, message: msg });
+     showToast?.(msg, 'error');
+   } finally {
+     setTestingGemini(false);
+   }
+ };
  
  // States for Company Profile
  const [companyProfile, setCompanyProfile] = useState({
@@ -1981,28 +2035,65 @@ export default function GeneralSettings({
   {/* PESTAÑA: GOOGLE GEMINI (INTELIGENCIA ARTIFICIAL) */}
  {activeSubTab ==='gemini' && (
  <div className="space-y-6 animate-in fade-in duration-200">
- <div className="border-b border-border-default pb-3">
- <h3 className="text-base font-bold text-slate-950 tracking-tight">Inteligencia Artificial y Asistente Gemini</h3>
- <p className="text-xs text-text-secondary mt-1">Servicios cognitivos de IA integrados para optimizar la toma de decisiones, extracción automática de documentos y planificación operativa.</p>
+ <div className="border-b border-[#E3E3E3] pb-3">
+ <h3 className="text-base font-bold text-[#1B1B1B] tracking-tight">Inteligencia Artificial y Asistente Gemini</h3>
+ <p className="text-xs text-[#696969] mt-1">Configura y prueba la conexión con Google Gemini (2.5 Flash) para leer facturas en PDF/imagen, extraer ítems y consultar el asistente contable.</p>
  </div>
 
- <div className="p-5 rounded-card border border-emerald-200 bg-emerald-50/50 space-y-3">
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-2.5">
- <div className="p-2 rounded-card bg-emerald-600 text-white">
- <Sparkles size={18} />
- </div>
- <div>
- <h4 className="text-sm font-bold text-emerald-950">Asistente IA Activado para tu Empresa</h4>
- <p className="text-xs text-emerald-700">Gestionado automáticamente desde la administración central de la plataforma</p>
- </div>
- </div>
- <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white ">
- <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
- Activo y Operativo
- </span>
- </div>
- </div>
+ <form onSubmit={handleSaveGeminiKey} className="p-5 rounded-2xl border border-[#E3E3E3] bg-white space-y-4">
+   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+     <div className="flex items-center gap-3">
+       <UiIconBadge level="modal" tone="brand" icon={Sparkles} />
+       <div>
+         <h4 className="text-sm font-bold text-[#1B1B1B]">Clave API de Google Gemini</h4>
+         <p className="text-xs text-[#696969]">
+           Si el servidor ya tiene una clave global (`GEMINI_API_KEY`), puedes dejar este campo vacío o ingresar tu propia clave de Google AI Studio.
+         </p>
+       </div>
+     </div>
+     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border shrink-0 ${
+       geminiKeyInput.trim() || import.meta.env.VITE_GEMINI_API_KEY
+         ? 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
+         : 'bg-[#FCFBE7] text-[#866308] border-[#F0DF8A]'
+     }`}>
+       <span className={`w-1.5 h-1.5 rounded-full ${geminiKeyInput.trim() || import.meta.env.VITE_GEMINI_API_KEY ? 'bg-[#0B996F]' : 'bg-[#D97706]'}`} />
+       {geminiKeyInput.trim() ? 'Clave configurada en empresa' : import.meta.env.VITE_GEMINI_API_KEY ? 'Clave global activa' : 'Usando servidor / Sin clave local'}
+     </span>
+   </div>
+
+   <div className="flex flex-col sm:flex-row gap-2">
+     <div className="flex-1">
+       <UiInput
+         type="password"
+         value={geminiKeyInput}
+         onChange={e => setGeminiKeyInput(e.target.value)}
+         placeholder="AIzaSy... (Google AI Studio API Key)"
+         className="w-full font-mono"
+       />
+     </div>
+     <div className="flex gap-2 shrink-0">
+       <UiButton type="button" variant="secondary" size="md" disabled={testingGemini} onClick={handleTestGeminiConnection}>
+         <RefreshCw size={14} className={testingGemini ? 'animate-spin' : ''} />
+         <span>{testingGemini ? 'Probando…' : 'Probar IA'}</span>
+       </UiButton>
+       <UiButton type="submit" variant="primary" size="md" disabled={savingGeminiKey}>
+         <Save size={14} />
+         <span>{savingGeminiKey ? 'Guardando…' : 'Guardar'}</span>
+       </UiButton>
+     </div>
+   </div>
+
+   {geminiTestStatus && (
+     <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+       geminiTestStatus.ok
+         ? 'bg-[#E8FEDF] border-[#B3F4CB] text-[#004227]'
+         : 'bg-[#FFF0F5] border-[#FBC6D9] text-[#851B40]'
+     }`}>
+       {geminiTestStatus.ok ? <CheckCircle2 size={14} className="shrink-0 text-[#0B996F]" /> : <AlertTriangle size={14} className="shrink-0 text-[#D9306B]" />}
+       <span>{geminiTestStatus.message}</span>
+     </div>
+   )}
+ </form>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div className="p-4 rounded-card border border-border-default bg-white space-y-1.5">

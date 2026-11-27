@@ -89,6 +89,10 @@
       "memory": 512,
       "maxDuration": 30
     },
+    "api/ai/gemini.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
     "api/public-ride/index.js": {
       "memory": 512,
       "maxDuration": 15
