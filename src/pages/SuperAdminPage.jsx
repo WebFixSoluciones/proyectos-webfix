@@ -58,6 +58,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { DEFAULT_BILLING_PLANS } from '../config/billingPlans';
 import { validatePlanPayment, isBasePlanCategory, getSubscriptionExpiry as computeNextPlanExpiry } from '../services/subscriptionPlan';
+import { obtenerEstadoGemini, guardarConfigGeminiGlobal, probarConexionGemini } from '../services/geminiService';
 
 const CATEGORY_LABELS = {
   all: 'Todos',
@@ -96,7 +97,8 @@ const TAB_TITLES = {
   tenants: 'Empresas (Tenants)',
   sri_monitor: 'Monitor SRI Global',
   transfers: 'Aprobaciones de Pago',
-  plans: 'Tarifas y Planes'
+  plans: 'Tarifas y Planes',
+  ai_config: 'IA Global (Google Gemini)'
 };
 
 function addDaysToToday(days) {
@@ -187,6 +189,86 @@ export default function SuperAdminPage({ showToast }) {
   const [isLoadingGodMode, setIsLoadingGodMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isWiping, setIsWiping] = useState(false);
+
+  // IA Global (Gemini Free Tier) States
+  const [globalAiState, setGlobalAiState] = useState({
+    loading: false,
+    configured: false,
+    enabled: true,
+    source: 'none',
+    preferredModel: 'gemini-2.5-flash',
+    hasPlatformKey: false,
+    hasEnvKey: false,
+    maskedKey: '',
+    freeModels: ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-lite']
+  });
+  const [globalAiKeyInput, setGlobalAiKeyInput] = useState('');
+  const [savingGlobalAi, setSavingGlobalAi] = useState(false);
+  const [testingGlobalAi, setTestingGlobalAi] = useState(false);
+  const [globalAiFeedback, setGlobalAiFeedback] = useState(null);
+
+  const loadGlobalAiStatus = async () => {
+    setGlobalAiState(prev => ({ ...prev, loading: true }));
+    try {
+      const info = await obtenerEstadoGemini();
+      setGlobalAiState(prev => ({ ...prev, loading: false, ...info }));
+    } catch (err) {
+      setGlobalAiState(prev => ({ ...prev, loading: false }));
+      setGlobalAiFeedback({ ok: false, message: err.message || 'No se pudo consultar el estado de IA global.' });
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'ai_config' && currentUser) {
+      loadGlobalAiStatus();
+    }
+  }, [activeTab, currentUser]);
+
+  const handleSaveGlobalAi = async (e, { clearKey = false } = {}) => {
+    e?.preventDefault?.();
+    if (savingGlobalAi) return;
+    setSavingGlobalAi(true);
+    setGlobalAiFeedback(null);
+    try {
+      const result = await guardarConfigGeminiGlobal({
+        geminiApiKey: clearKey ? '' : globalAiKeyInput.trim(),
+        preferredModel: globalAiState.preferredModel,
+        enabled: globalAiState.enabled,
+        clearKey
+      });
+      setGlobalAiState(prev => ({ ...prev, loading: false, ...result }));
+      if (globalAiKeyInput.trim() || clearKey) setGlobalAiKeyInput('');
+      const msg = clearKey
+        ? 'Clave guardada en consola eliminada.'
+        : 'Configuración global de IA guardada. Ya está activa para todas las empresas.';
+      setGlobalAiFeedback({ ok: true, message: msg });
+      showToast?.(msg, 'success');
+    } catch (err) {
+      const msg = err.message || 'No se pudo guardar la configuración global de IA.';
+      setGlobalAiFeedback({ ok: false, message: msg });
+      showToast?.(msg, 'error');
+    } finally {
+      setSavingGlobalAi(false);
+    }
+  };
+
+  const handleTestGlobalAi = async () => {
+    if (testingGlobalAi) return;
+    setTestingGlobalAi(true);
+    setGlobalAiFeedback(null);
+    try {
+      const res = await probarConexionGemini(globalAiKeyInput.trim());
+      const msg = `Conexión global exitosa con ${res.model || 'Gemini'} (nivel gratuito operativo).`;
+      setGlobalAiFeedback({ ok: true, message: msg });
+      showToast?.(msg, 'success');
+    } catch (err) {
+      const msg = err.message || 'Falló la conexión con Gemini IA.';
+      setGlobalAiFeedback({ ok: false, message: msg });
+      showToast?.(msg, 'error');
+    } finally {
+      setTestingGlobalAi(false);
+    }
+  };
 
   const isSuperAdmin = String(role || '').toLowerCase().trim() === 'superadmin';
 
@@ -1102,7 +1184,8 @@ export default function SuperAdminPage({ showToast }) {
     { id: 'users', label: 'Usuarios y altas', icon: Users, count: registrationSummary.incomplete },
     { id: 'transfers', label: 'Aprobaciones', icon: CreditCard, count: pendingTransfers.length },
     { id: 'plans', label: 'Tarifas y Planes', icon: Sliders, count: 0 },
-    { id: 'sri_monitor', label: 'Monitor SRI', icon: ShieldAlert, count: pendingSriDocs.length }
+    { id: 'sri_monitor', label: 'Monitor SRI', icon: ShieldAlert, count: pendingSriDocs.length },
+    { id: 'ai_config', label: 'IA Global', icon: Sparkles, count: 0 }
   ];
 
   const handleNavSelect = (tabId) => {
@@ -2780,6 +2863,175 @@ export default function SuperAdminPage({ showToast }) {
                     </>
                   );
                 })()}
+              </div>
+            )}
+
+            {/* ==================== TAB: IA GLOBAL (GOOGLE GEMINI FREE TIER) ==================== */}
+            {activeTab === 'ai_config' && (
+              <div className="space-y-4 max-w-4xl">
+                <div className="bg-white border border-[#E3E3E3] rounded-2xl p-5 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#EFEFEF]">
+                    <div className="flex items-center gap-3">
+                      <UiIconBadge level="modal" tone="brand" icon={Sparkles} />
+                      <div>
+                        <h3 className="text-sm font-bold text-[#1B1B1B]">Google Gemini Global (Nivel Gratuito SaaS)</h3>
+                        <p className="text-xs text-[#696969]">
+                          Configura una sola API Key gratuita de Google AI Studio para todos tus clientes. Ningún tenant necesita crear cuentas ni configurar claves.
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border shrink-0 ${
+                      globalAiState.loading
+                        ? 'bg-[#F4F4F5] text-[#474747] border-[#E3E3E3]'
+                        : globalAiState.configured && globalAiState.enabled
+                          ? 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
+                          : 'bg-[#FCFBE7] text-[#866308] border-[#F0DF8A]'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        globalAiState.loading
+                          ? 'bg-[#94A3B8]'
+                          : globalAiState.configured && globalAiState.enabled
+                            ? 'bg-[#0B996F]'
+                            : 'bg-[#D97706]'
+                      }`} />
+                      {globalAiState.loading
+                        ? 'Verificando…'
+                        : globalAiState.configured && globalAiState.enabled
+                          ? `Operativa (${globalAiState.source === 'platform' ? 'Consola Global' : globalAiState.source === 'env' ? 'Variable Vercel' : 'Activa'})`
+                          : !globalAiState.enabled
+                            ? 'Pausada globalmente'
+                            : 'Sin clave global'}
+                    </span>
+                  </div>
+
+                  {/* Estado actual */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#E3E3E3]">
+                      <span className="text-[11px] font-semibold text-[#696969] block">Clave actual</span>
+                      <span className="font-mono font-bold text-[#1B1B1B] mt-0.5 block">
+                        {globalAiState.maskedKey || 'No configurada'}
+                      </span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#E3E3E3]">
+                      <span className="text-[11px] font-semibold text-[#696969] block">Modelo gratuito principal</span>
+                      <span className="font-mono font-bold text-[#004227] mt-0.5 block">
+                        {globalAiState.preferredModel || 'gemini-2.5-flash'}
+                      </span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#E3E3E3]">
+                      <span className="text-[11px] font-semibold text-[#696969] block">Respaldo automático (cuota)</span>
+                      <span className="font-medium text-[#474747] mt-0.5 block">
+                        Rotación entre 4 modelos Free Tier
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Formulario de configuración */}
+                  <form onSubmit={handleSaveGlobalAi} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-[#1B1B1B] mb-1.5">
+                          API Key gratuita de Google AI Studio
+                        </label>
+                        <UiInput
+                          type="password"
+                          value={globalAiKeyInput}
+                          onChange={e => setGlobalAiKeyInput(e.target.value)}
+                          placeholder={globalAiState.hasPlatformKey ? 'Dejar vacío para conservar la clave actual' : 'Pega tu clave AIzaSy...'}
+                          className="w-full font-mono"
+                        />
+                        <p className="text-[11px] text-[#696969] mt-1">
+                          Se guarda cifrada en servidor (solo Admin SDK). Nunca se envía al navegador de los clientes.{' '}
+                          <a
+                            href="https://aistudio.google.com/apikey"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#0B996F] font-semibold hover:underline"
+                          >
+                            Crear clave gratuita aquí
+                          </a>
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-[#1B1B1B] mb-1.5">
+                          Modelo gratuito principal
+                        </label>
+                        <UiSelect
+                          value={globalAiState.preferredModel}
+                          onChange={e => setGlobalAiState(prev => ({ ...prev, preferredModel: e.target.value }))}
+                          className="w-full"
+                        >
+                          <option value="gemini-2.5-flash">gemini-2.5-flash — Mejor precisión OCR PDF (Free Tier)</option>
+                          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite — Máxima cuota gratuita diaria (Free Tier)</option>
+                          <option value="gemini-2.0-flash">gemini-2.0-flash — Rápido multimodal (Free Tier)</option>
+                          <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite — Ultraligero respaldo (Free Tier)</option>
+                        </UiSelect>
+                        <p className="text-[11px] text-[#696969] mt-1">
+                          Si un modelo alcanza el límite gratuito por minuto (429), el servidor cambia automáticamente al siguiente modelo gratuito.
+                        </p>
+                      </div>
+                    </div>
+
+                    <label className="flex items-center gap-2.5 text-xs font-semibold text-[#1B1B1B] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={globalAiState.enabled !== false}
+                        onChange={e => setGlobalAiState(prev => ({ ...prev, enabled: e.target.checked }))}
+                        className="accent-[#0B996F] w-4 h-4"
+                      />
+                      <span>Habilitar IA Global para todos los tenants activos (lectura de compras PDF/imagen y asistente contable)</span>
+                    </label>
+
+                    {globalAiFeedback && (
+                      <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                        globalAiFeedback.ok
+                          ? 'bg-[#E8FEDF] border-[#B3F4CB] text-[#004227]'
+                          : 'bg-[#FFF0F5] border-[#FBC6D9] text-[#851B40]'
+                      }`}>
+                        {globalAiFeedback.ok ? <CheckCircle2 size={14} className="shrink-0 text-[#0B996F]" /> : <AlertTriangle size={14} className="shrink-0 text-[#D9306B]" />}
+                        <span>{globalAiFeedback.message}</span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#EFEFEF]">
+                      <div>
+                        {globalAiState.hasPlatformKey && (
+                          <UiButton
+                            type="button"
+                            variant="danger"
+                            size="sm"
+                            disabled={savingGlobalAi}
+                            onClick={() => handleSaveGlobalAi(null, { clearKey: true })}
+                          >
+                            <span>Eliminar clave de consola</span>
+                          </UiButton>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <UiButton
+                          type="button"
+                          variant="secondary"
+                          size="md"
+                          disabled={testingGlobalAi}
+                          onClick={handleTestGlobalAi}
+                        >
+                          <RefreshCw size={14} className={testingGlobalAi ? 'animate-spin' : ''} />
+                          <span>{testingGlobalAi ? 'Probando…' : 'Probar IA Global'}</span>
+                        </UiButton>
+                        <UiButton
+                          type="submit"
+                          variant="primary"
+                          size="md"
+                          disabled={savingGlobalAi}
+                        >
+                          <CheckCircle2 size={14} />
+                          <span>{savingGlobalAi ? 'Guardando…' : 'Guardar Configuración Global'}</span>
+                        </UiButton>
+                      </div>
+                    </div>
+                  </form>
+                </div>
               </div>
             )}
           </div>

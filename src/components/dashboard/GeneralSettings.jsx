@@ -22,7 +22,7 @@ import PermissionsManagerView from '../../modules/rbac/ui/PermissionsManagerView
 import { createPermissionsFromPreset } from '../../modules/rbac/domain/permissions';
 import { fetchUnifiedWarehouses } from '../../modules/warehouse/infrastructure/WarehouseRepository';
 import { normalizeEmissionPoints } from '../../modules/sri/domain/emissionPoints';
-import { probarConexionGemini } from '../../services/geminiService';
+import { obtenerEstadoGemini, probarConexionGemini } from '../../services/geminiService';
 import { UiButton, UiInput } from '../ui/controls';
 import { UiIconBadge } from '../ui/UiIconBadge';
 
@@ -39,6 +39,8 @@ export default function GeneralSettings({
  const [savingGeminiKey, setSavingGeminiKey] = useState(false);
  const [testingGemini, setTestingGemini] = useState(false);
  const [geminiTestStatus, setGeminiTestStatus] = useState(null);
+ const [geminiStatus, setGeminiStatus] = useState({ loading: false, configured: false, enabled: true, source: 'none', preferredModel: 'gemini-2.5-flash' });
+ const [showAdvancedGeminiKey, setShowAdvancedGeminiKey] = useState(false);
 
  useEffect(() => {
    if (!db || !appId) return;
@@ -57,6 +59,22 @@ export default function GeneralSettings({
      .catch(() => {});
  }, [db, appId, activeSubTab]);
 
+ useEffect(() => {
+   if (activeSubTab !== 'gemini') return;
+   let active = true;
+   setGeminiStatus(prev => ({ ...prev, loading: true }));
+   obtenerEstadoGemini()
+     .then((info) => {
+       if (!active) return;
+       setGeminiStatus({ loading: false, ...info });
+     })
+     .catch(() => {
+       if (!active) return;
+       setGeminiStatus(prev => ({ ...prev, loading: false }));
+     });
+   return () => { active = false; };
+ }, [activeSubTab]);
+
  const handleSaveGeminiKey = async (e) => {
    e.preventDefault();
    if (savingGeminiKey) return;
@@ -69,7 +87,9 @@ export default function GeneralSettings({
      if (db && appId) {
        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'meta', 'info'), { geminiApiKey: trimmed }, { merge: true });
      }
-     showToast?.(trimmed ? 'Clave API de Gemini guardada y sincronizada.' : 'Clave local removida (usará clave del servidor).', 'success');
+     const refreshed = await obtenerEstadoGemini().catch(() => null);
+     if (refreshed) setGeminiStatus({ loading: false, ...refreshed });
+     showToast?.(trimmed ? 'Clave dedicada de Gemini guardada.' : 'Usando IA Global administrada por WebFix.', 'success');
    } catch (err) {
      showToast?.(err.message || 'No se pudo guardar la clave de Gemini.', 'error');
    } finally {
@@ -82,9 +102,13 @@ export default function GeneralSettings({
    setTestingGemini(true);
    setGeminiTestStatus(null);
    try {
-     const res = await probarConexionGemini(geminiKeyInput.trim());
-     const msg = `Conexión exitosa con ${res.model || 'Gemini IA'}.`;
+     const res = await probarConexionGemini(showAdvancedGeminiKey ? geminiKeyInput.trim() : '');
+     const sourceLabel = res.source === 'platform' || res.source === 'env'
+       ? 'IA Global de WebFix'
+       : 'clave dedicada';
+     const msg = `Conexión exitosa con ${res.model || 'Gemini IA'} (${sourceLabel}).`;
      setGeminiTestStatus({ ok: true, message: msg });
+     setGeminiStatus(prev => ({ ...prev, configured: true, source: res.source || prev.source }));
      showToast?.(msg, 'success');
    } catch (err) {
      const msg = err.message || 'No se pudo conectar con Gemini IA.';
@@ -2036,49 +2060,45 @@ export default function GeneralSettings({
  {activeSubTab ==='gemini' && (
  <div className="space-y-6 animate-in fade-in duration-200">
  <div className="border-b border-[#E3E3E3] pb-3">
- <h3 className="text-base font-bold text-[#1B1B1B] tracking-tight">Inteligencia Artificial y Asistente Gemini</h3>
- <p className="text-xs text-[#696969] mt-1">Configura y prueba la conexión con Google Gemini (2.5 Flash) para leer facturas en PDF/imagen, extraer ítems y consultar el asistente contable.</p>
+ <h3 className="text-base font-bold text-[#1B1B1B] tracking-tight">Inteligencia Artificial Integrada (Google Gemini)</h3>
+ <p className="text-xs text-[#696969] mt-1">Incluida de forma global en WebFix con modelo gratuito optimizado para leer facturas PDF/imagen, extraer ítems y asistir en contabilidad.</p>
  </div>
 
- <form onSubmit={handleSaveGeminiKey} className="p-5 rounded-2xl border border-[#E3E3E3] bg-white space-y-4">
+ <div className="p-5 rounded-2xl border border-[#E3E3E3] bg-white space-y-4">
    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
      <div className="flex items-center gap-3">
        <UiIconBadge level="modal" tone="brand" icon={Sparkles} />
        <div>
-         <h4 className="text-sm font-bold text-[#1B1B1B]">Clave API de Google Gemini</h4>
+         <h4 className="text-sm font-bold text-[#1B1B1B]">Servicio Global Administrado por WebFix</h4>
          <p className="text-xs text-[#696969]">
-           Si el servidor ya tiene una clave global (`GEMINI_API_KEY`), puedes dejar este campo vacío o ingresar tu propia clave de Google AI Studio.
+           No necesitas crear cuentas ni configurar claves en Google AI Studio. Tu empresa usa el motor gratuito global automáticamente.
          </p>
        </div>
      </div>
-     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border shrink-0 ${
-       geminiKeyInput.trim() || import.meta.env.VITE_GEMINI_API_KEY
-         ? 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
-         : 'bg-[#FCFBE7] text-[#866308] border-[#F0DF8A]'
-     }`}>
-       <span className={`w-1.5 h-1.5 rounded-full ${geminiKeyInput.trim() || import.meta.env.VITE_GEMINI_API_KEY ? 'bg-[#0B996F]' : 'bg-[#D97706]'}`} />
-       {geminiKeyInput.trim() ? 'Clave configurada en empresa' : import.meta.env.VITE_GEMINI_API_KEY ? 'Clave global activa' : 'Usando servidor / Sin clave local'}
-     </span>
-   </div>
-
-   <div className="flex flex-col sm:flex-row gap-2">
-     <div className="flex-1">
-       <UiInput
-         type="password"
-         value={geminiKeyInput}
-         onChange={e => setGeminiKeyInput(e.target.value)}
-         placeholder="AIzaSy... (Google AI Studio API Key)"
-         className="w-full font-mono"
-       />
-     </div>
-     <div className="flex gap-2 shrink-0">
-       <UiButton type="button" variant="secondary" size="md" disabled={testingGemini} onClick={handleTestGeminiConnection}>
-         <RefreshCw size={14} className={testingGemini ? 'animate-spin' : ''} />
+     <div className="flex items-center gap-2 shrink-0">
+       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+         geminiStatus.loading
+           ? 'bg-[#F4F4F5] text-[#474747] border-[#E3E3E3]'
+           : geminiStatus.configured && geminiStatus.enabled !== false
+             ? 'bg-[#E8FEDF] text-[#004227] border-[#B3F4CB]'
+             : 'bg-[#FCFBE7] text-[#866308] border-[#F0DF8A]'
+       }`}>
+         <span className={`w-1.5 h-1.5 rounded-full ${
+           geminiStatus.loading
+             ? 'bg-[#94A3B8]'
+             : geminiStatus.configured && geminiStatus.enabled !== false
+               ? 'bg-[#0B996F]'
+               : 'bg-[#D97706]'
+         }`} />
+         {geminiStatus.loading
+           ? 'Verificando…'
+           : geminiStatus.configured && geminiStatus.enabled !== false
+             ? `Activa (${geminiStatus.preferredModel || 'gemini-2.5-flash'})`
+             : 'Pendiente de activación global'}
+       </span>
+       <UiButton type="button" variant="secondary" size="sm" disabled={testingGemini} onClick={handleTestGeminiConnection}>
+         <RefreshCw size={13} className={testingGemini ? 'animate-spin' : ''} />
          <span>{testingGemini ? 'Probando…' : 'Probar IA'}</span>
-       </UiButton>
-       <UiButton type="submit" variant="primary" size="md" disabled={savingGeminiKey}>
-         <Save size={14} />
-         <span>{savingGeminiKey ? 'Guardando…' : 'Guardar'}</span>
        </UiButton>
      </div>
    </div>
@@ -2093,7 +2113,43 @@ export default function GeneralSettings({
        <span>{geminiTestStatus.message}</span>
      </div>
    )}
- </form>
+
+   {/* Opción avanzada colapsada solo si un cliente técnico desea clave dedicada */}
+   <div className="pt-2 border-t border-[#EFEFEF]">
+     <button
+       type="button"
+       onClick={() => setShowAdvancedGeminiKey(prev => !prev)}
+       className="text-[11px] font-semibold text-[#696969] hover:text-[#1B1B1B] transition-colors cursor-pointer"
+     >
+       {showAdvancedGeminiKey
+         ? 'Ocultar configuración avanzada'
+         : 'Configuración avanzada: usar una clave dedicada de Google AI Studio (opcional)'}
+     </button>
+
+     {showAdvancedGeminiKey && (
+       <form onSubmit={handleSaveGeminiKey} className="mt-3 p-3.5 rounded-xl bg-[#FAFAFA] border border-[#E3E3E3] space-y-3">
+         <p className="text-[11px] text-[#696969]">
+           Solo completa esto si deseas usar tu propia cuota dedicada de Google AI Studio. Déjalo vacío y guarda para volver al servicio global gratuito de WebFix.
+         </p>
+         <div className="flex flex-col sm:flex-row gap-2">
+           <div className="flex-1">
+             <UiInput
+               type="password"
+               value={geminiKeyInput}
+               onChange={e => setGeminiKeyInput(e.target.value)}
+               placeholder="Dejar vacío para usar IA Global de WebFix"
+               className="w-full font-mono"
+             />
+           </div>
+           <UiButton type="submit" variant="primary" size="md" disabled={savingGeminiKey}>
+             <Save size={14} />
+             <span>{savingGeminiKey ? 'Guardando…' : 'Guardar'}</span>
+           </UiButton>
+         </div>
+       </form>
+     )}
+   </div>
+ </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div className="p-4 rounded-card border border-border-default bg-white space-y-1.5">

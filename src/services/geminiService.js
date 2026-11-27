@@ -111,10 +111,10 @@ async function callGeminiDirect({ apiKey, contents, generationConfig, fetchImpl 
   throw lastError || new Error('No se pudo conectar con los modelos de Gemini.');
 }
 
-async function callGeminiViaProxy({ action, contents, generationConfig, apiKey, fetchImpl = fetch }) {
+async function callGeminiViaProxy({ action, contents, generationConfig, apiKey, extraBody = {}, fetchImpl = fetch }) {
   const token = await auth?.currentUser?.getIdToken?.();
   if (!token) {
-    throw new Error('No se ha configurado la clave API de Gemini. Configúrala en Ajustes → Google Gemini.');
+    throw new Error('Inicia sesión para usar la Inteligencia Artificial integrada.');
   }
   const response = await fetchImpl('/api/ai/gemini', {
     method: 'POST',
@@ -126,43 +126,108 @@ async function callGeminiViaProxy({ action, contents, generationConfig, apiKey, 
       ...(action ? { action } : {}),
       ...(contents ? { contents } : {}),
       ...(generationConfig ? { generationConfig } : {}),
-      ...(apiKey ? { apiKey } : {})
+      ...(apiKey ? { apiKey } : {}),
+      ...extraBody
     })
   });
   const data = await response.json().catch(() => null);
   if (!response.ok || !data) {
-    throw new Error(
+    const err = new Error(
       data?.error ||
-      'No se ha configurado la clave API de Gemini. Ingresa tu clave en Ajustes → Google Gemini.'
+      'La IA global de WebFix no está disponible en este momento.'
     );
+    err.status = response.status;
+    throw err;
   }
   return data;
 }
 
 async function generateWithGemini({ contents, generationConfig, apiKeyOverride } = {}) {
-  const apiKey = String(apiKeyOverride || '').trim() || await resolveGeminiApiKey();
+  const explicitOverride = String(apiKeyOverride || '').trim();
+  if (explicitOverride) {
+    return callGeminiDirect({ apiKey: explicitOverride, contents, generationConfig });
+  }
+
+  // Modo Global SaaS (por defecto): usa la clave gratuita administrada en servidor sin pedir nada al tenant
+  if (auth?.currentUser) {
+    try {
+      return await callGeminiViaProxy({ contents, generationConfig });
+    } catch (proxyError) {
+      // Si el proxy devolvió 404 (entorno dev sin funciones Vercel) o 503 (aún no hay clave global), intentar fallback local si existe
+      if ([404, 503].includes(proxyError?.status)) {
+        const localFallback = await resolveGeminiApiKey();
+        if (localFallback) {
+          return callGeminiDirect({ apiKey: localFallback, contents, generationConfig });
+        }
+      }
+      throw proxyError;
+    }
+  }
+
+  const apiKey = await resolveGeminiApiKey();
   if (apiKey) {
     return callGeminiDirect({ apiKey, contents, generationConfig });
   }
-  return callGeminiViaProxy({ contents, generationConfig });
+  throw new Error('Inicia sesión para utilizar la Inteligencia Artificial integrada.');
+}
+
+export async function obtenerEstadoGemini() {
+  if (auth?.currentUser) {
+    try {
+      return await callGeminiViaProxy({ action: 'status' });
+    } catch (err) {
+      if (err?.status !== 404) throw err;
+    }
+  }
+  const localKey = await resolveGeminiApiKey();
+  return {
+    configured: Boolean(localKey),
+    enabled: true,
+    source: localKey ? 'tenant' : 'none',
+    preferredModel: GEMINI_MODELS[0],
+    freeTierMode: true,
+    freeModels: GEMINI_MODELS
+  };
+}
+
+export async function guardarConfigGeminiGlobal({ geminiApiKey, preferredModel, enabled = true, clearKey = false } = {}) {
+  return callGeminiViaProxy({
+    action: 'save_global_config',
+    extraBody: {
+      geminiApiKey: typeof geminiApiKey === 'string' ? geminiApiKey.trim() : '',
+      preferredModel,
+      enabled,
+      clearKey
+    }
+  });
 }
 
 export async function probarConexionGemini(apiKeyOverride = '') {
   const cleanOverride = String(apiKeyOverride || '').trim();
-  if (cleanOverride) {
-    return callGeminiDirect({
-      apiKey: cleanOverride,
-      contents: [{ parts: [{ text: 'Responde únicamente: OK' }] }]
-    });
+  if (auth?.currentUser) {
+    try {
+      return await callGeminiViaProxy({ action: 'ping', apiKey: cleanOverride });
+    } catch (proxyError) {
+      if ([404, 503].includes(proxyError?.status)) {
+        const fallbackKey = cleanOverride || await resolveGeminiApiKey();
+        if (fallbackKey) {
+          return callGeminiDirect({
+            apiKey: fallbackKey,
+            contents: [{ parts: [{ text: 'Responde únicamente: OK' }] }]
+          });
+        }
+      }
+      throw proxyError;
+    }
   }
-  const resolved = await resolveGeminiApiKey();
-  if (resolved) {
-    return callGeminiDirect({
-      apiKey: resolved,
-      contents: [{ parts: [{ text: 'Responde únicamente: OK' }] }]
-    });
+  const resolved = cleanOverride || await resolveGeminiApiKey();
+  if (!resolved) {
+    throw new Error('La IA global aún no está configurada por el administrador.');
   }
-  return callGeminiViaProxy({ action: 'ping' });
+  return callGeminiDirect({
+    apiKey: resolved,
+    contents: [{ parts: [{ text: 'Responde únicamente: OK' }] }]
+  });
 }
 
 // Parseador de XML nativo para evitar llamadas innecesarias a Gemini en archivos XML

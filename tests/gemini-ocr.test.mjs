@@ -23,6 +23,7 @@ test('buildFilePart wraps base64 payload inside inlineData and inferMimeType han
   });
   assert.ok(!GEMINI_MODELS.includes('gemini-1.5-flash'));
   assert.equal(GEMINI_MODELS[0], 'gemini-2.5-flash');
+  assert.equal(GEMINI_MODELS[1], 'gemini-2.5-flash-lite');
 });
 
 test('parseGeminiJsonResponse strips markdown fences and normalizeExtractedInvoice extracts items and 49-digit claveAcceso', () => {
@@ -42,15 +43,15 @@ test('parseGeminiJsonResponse strips markdown fences and normalizeExtractedInvoi
   assert.equal(norm.items[0].price, 30);
 });
 
-test('callGeminiRest automatically falls back to next active model when first returns 404', async () => {
+test('callGeminiRest automatically falls back to next free-tier model on 429 or 404', async () => {
   const calledUrls = [];
   const fakeFetch = async (url) => {
     calledUrls.push(url);
     if (url.includes('gemini-2.5-flash:')) {
       return {
         ok: false,
-        status: 404,
-        json: async () => ({ error: { message: 'Model not found' } })
+        status: 429,
+        json: async () => ({ error: { message: 'Resource exhausted' } })
       };
     }
     return {
@@ -68,39 +69,47 @@ test('callGeminiRest automatically falls back to next active model when first re
     fetchImpl: fakeFetch
   });
 
-  assert.equal(result.model, 'gemini-2.0-flash');
+  assert.equal(result.model, 'gemini-2.5-flash-lite');
   assert.equal(result.text, '{"total":45}');
   assert.equal(calledUrls.length, 2);
 });
 
-test('api/ai/gemini handler verifies Firebase user, resolves tenant key from Firestore and handles ping/OCR', async () => {
+test('api/ai/gemini supports SuperAdmin global free-tier config without exposing keys to tenant admins', async () => {
   const docs = new Map([
-    ['users/u1', { status: 'active', role: 'admin', tenantId: 'org_1' }],
-    ['artifacts/org_1/public/data/meta/info', { geminiApiKey: 'AIzaTenantKey123' }]
+    ['users/super1', { status: 'active', role: 'superadmin', tenantId: 'org_root' }],
+    ['users/tenant1', { status: 'active', role: 'admin', tenantId: 'org_1' }]
   ]);
   const fakeDb = {
     doc: (path) => ({
-      get: async () => ({ exists: docs.has(path), data: () => docs.get(path) })
+      get: async () => ({ exists: docs.has(path), data: () => docs.get(path) }),
+      set: async (data) => {
+        docs.set(path, { ...(docs.get(path) || {}), ...data });
+      }
     })
   };
   const fakeAuth = {
     verifyIdToken: async (token) => {
-      if (token !== 'valid-token') throw new Error('invalid');
-      return { uid: 'u1' };
+      if (token === 'super-token') return { uid: 'super1' };
+      if (token === 'tenant-token') return { uid: 'tenant1' };
+      throw new Error('invalid');
     }
   };
-  const fakeFetch = async () => ({
-    ok: true,
-    status: 200,
-    json: async () => ({ candidates: [{ content: { parts: [{ text: 'OK' }] } }] })
-  });
+  const calledModels = [];
+  const fakeFetch = async (url) => {
+    calledModels.push(url);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ candidates: [{ content: { parts: [{ text: 'OK' }] } }] })
+    };
+  };
 
   const handler = createGeminiHandler({
-    getServices: () => ({ auth: fakeAuth, db: fakeDb }),
+    getServices: () => ({ auth: fakeAuth, db: fakeDb, serverTimestamp: () => 'NOW' }),
     fetchImpl: fakeFetch
   });
 
-  const call = async (body, token = 'valid-token') => {
+  const call = async (body, token) => {
     const out = { headers: {} };
     const res = {
       setHeader: (k, v) => { out.headers[k] = v; },
@@ -111,9 +120,38 @@ test('api/ai/gemini handler verifies Firebase user, resolves tenant key from Fir
     return out;
   };
 
+  // Unauthenticated rejected
   assert.equal((await call({ action: 'ping' }, '')).status, 401);
-  const ping = await call({ action: 'ping' });
+
+  // Tenant admin cannot modify global AI config
+  const denied = await call({ action: 'save_global_config', geminiApiKey: 'AIzaHack' }, 'tenant-token');
+  assert.equal(denied.status, 403);
+
+  // SuperAdmin saves global free-tier key and preferred model
+  const saved = await call({
+    action: 'save_global_config',
+    geminiApiKey: 'AIzaGlobalFreeKey9999',
+    preferredModel: 'gemini-2.5-flash-lite',
+    enabled: true
+  }, 'super-token');
+  assert.equal(saved.status, 200);
+  assert.equal(saved.body.configured, true);
+  assert.equal(saved.body.source, 'platform');
+  assert.equal(saved.body.preferredModel, 'gemini-2.5-flash-lite');
+  assert.ok(saved.body.maskedKey.endsWith('9999'));
+
+  // Tenant checks status: sees configured=true without ever seeing maskedKey or real key
+  const tenantStatus = await call({ action: 'status' }, 'tenant-token');
+  assert.equal(tenantStatus.status, 200);
+  assert.equal(tenantStatus.body.configured, true);
+  assert.equal(tenantStatus.body.source, 'platform');
+  assert.equal(tenantStatus.body.maskedKey, undefined);
+
+  // Tenant runs ping using global free key without any local setup
+  const ping = await call({ action: 'ping' }, 'tenant-token');
   assert.equal(ping.status, 200);
   assert.equal(ping.body.ok, true);
-  assert.equal(ping.body.model, 'gemini-2.5-flash');
+  assert.equal(ping.body.model, 'gemini-2.5-flash-lite');
+  assert.equal(ping.body.source, 'platform');
+  assert.ok(calledModels[0].includes('gemini-2.5-flash-lite:generateContent?key=AIzaGlobalFreeKey9999'));
 });

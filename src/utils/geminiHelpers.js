@@ -5,9 +5,16 @@
 
 export const GEMINI_MODELS = [
   'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
   'gemini-2.0-flash',
-  'gemini-2.5-flash-lite'
+  'gemini-2.0-flash-lite'
 ];
+
+export function buildModelChain(preferredModel = '') {
+  const clean = String(preferredModel || '').trim();
+  if (!clean) return [...GEMINI_MODELS];
+  return [clean, ...GEMINI_MODELS.filter(m => m !== clean)];
+}
 
 const MIME_BY_EXTENSION = {
   pdf: 'application/pdf',
